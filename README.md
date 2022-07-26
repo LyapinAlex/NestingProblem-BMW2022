@@ -1,1 +1,0 @@
-# NestingProblem-BMW2022
