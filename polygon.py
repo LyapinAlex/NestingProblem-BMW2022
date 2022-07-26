@@ -148,4 +148,8 @@ class Polygon():
         print(self.edge)
 
 if __name__ == "__main__":
-    print("Ты не должен запускать этот файл на прямую!!! Пользуйся интерфейсом generate.py!!!")
+    # print("Ты не должен запускать этот файл на прямую!!! Пользуйся интерфейсом generate.py!!!")
+    p = Polygon()
+    p.showPolygon()
+    p.setPowerOfPolygon(5)
+    p.showPolygon()
