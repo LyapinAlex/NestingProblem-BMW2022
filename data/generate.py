@@ -1,7 +1,7 @@
 import class_item 
 import polygon
 
-class generate():
+class Generator():
 
     def __init__(self, len, width, number):
         self.len = len
