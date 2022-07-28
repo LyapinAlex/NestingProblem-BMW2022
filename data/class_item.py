@@ -51,16 +51,22 @@ class Item:
         self.matrix = np.zeros((n_x, n_y), dtype="int")
         # заполнение массива
         edges = np.zeros((n_x, n_y + 1), dtype="int")
-        print("+++++++++++++++")
-        def checking_intersections():
-            k=3
-            for i_1 in range(0, (self.points).shape[0]):
-                i_2 = (i_1+1)%(self.points).shape[0]
-                if ((min(self.points[i_1][1], self.points[i_2][1]) <= k*h) and (k*h <= max(self.points[i_1][1], self.points[i_2][1]))):
-                    print(self.points[i_1], self.points[i_2])
-                    a = 1
 
-                    print("--------------")
+        def checking_intersections():
+            k = 0
+            for i in range(0, (self.points).shape[0]):
+                j = (i + 1) % (self.points).shape[0]
+                if ((min(self.points[i][1], self.points[j][1]) <= k * h) and
+                    (k * h <= max(self.points[i][1], self.points[j][1]))):
+                    i1 = self.points[i]
+                    i2 = self.points[j]
+                    print(i, i1, j, i2)
+                    if (i2[1] - i1[1] == 0): print("горизонталь")
+                    else: #ax+by+c=0
+                        a = i2[1]-i1[1]
+                        b = -(i2[0]-i1[0])
+                        c = -i1[0]*(i2[1]-i1[1])+i1[1]*(i2[0]-i1[0])
+                        print("=======", a, b, c, "=======")
             return None
 
         checking_intersections()
@@ -75,8 +81,8 @@ class Item:
         return None
 
 
-eq = Item(1, np.array([[1, 1], [0, 3], [3, 3.7], [2, 0]]))
+eq = Item(1, np.array([[1, 0], [0, 3], [3, 3.7], [2, 0]]))
 print(eq.points, ' ', eq.points.shape[0])
-eq.set_matrix(1)
+eq.set_matrix(0.5)
 # print(eq.matrix)
 # print(eq.points)
