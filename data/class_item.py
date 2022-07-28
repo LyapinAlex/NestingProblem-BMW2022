@@ -12,7 +12,7 @@ class Item:
         self.matrix = np.empty([0, 0])
         return None
 
-    def set_matrix(self, h):
+    def set_matrix_rectangular(self, h):
         x_max = 0.0
         y_max = 0.0
         for i in range(0, (self.points).shape[0]):
@@ -30,6 +30,31 @@ class Item:
         
         # print("1235645")
         return None
+        
+    
+    # def set_matrix(self, h):
+
+    #     x_max = 0.0
+    #     y_max = 0.0
+    #     for i in range(0, (self.points).shape[0]):
+    #         x_max = max(x_max, self.points[i][0])
+    #         y_max = max(y_max, self.points[i][1])
+    #     x_min = x_max
+    #     y_min = y_max
+    #     for i in range(0, (self.points).shape[0]):
+    #         x_min = min(x_min, self.points[i][0])
+    #         y_min = min(y_min, self.points[i][1])
+        
+    #     shape = (math.ceil((x_max - x_min) / h), math.ceil((y_max - y_min) / h))
+
+    #     self.matrix = np.zeros(shape, dtype="int")
+
+    #     for i in range(shape[0]):
+    #         for j in range(shape[1]):
+                
+
+        
+
 
     def set_rotation(self, rotate):
         self.rotation += rotate
