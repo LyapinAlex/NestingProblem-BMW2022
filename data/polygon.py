@@ -3,6 +3,8 @@ import random as rd
 import matplotlib.pyplot as plt
 import math
 
+
+
 def norm(vec):
     return  math.sqrt(scalarProduc(vec, vec))
 
@@ -53,9 +55,19 @@ def definitionOfOrderTriongle(points):
    
     return [indFirst, indSecond, listInd[0]]
 
+def getConvexPolygon(n, w , l):
+    p = Polygon()
+    x = rd.normalvariate(w / 2, w /4 )
+    y = rd.normalvariate(l / 2, l /4 )
+    p.extension(x, y)
+    p.setPowerOfPolygon(n)
+
+    return p
+
+
 class Polygon():
     
-    def __init__(self):
+    def __init__(self, n = 3):
         self.powerOfPolygon = 3 # количество вершин
 
         # Сначало создаем треугольник и определяем порядок точек, как против часовой 
@@ -68,6 +80,7 @@ class Polygon():
         self.edge = np.array([[0, 1], [1, 2], [2, 0]])
         self.order = np.array([0, 1, 2])
 
+        
         return 
 
     def addVertex(self):
@@ -140,16 +153,18 @@ class Polygon():
             plt.plot(v_1, v_2, '-k')
 
         plt.show()
+        return
 
-    
-    def pr(self):
-        print(self.order)
-        print(self.points)
-        print(self.edge)
+    def extension(self, x, y):
+        
+        
+        for i in range(self.powerOfPolygon):
+            self.points[i, 0] =  self.points[i, 0]*x
+            self.points[i, 1] =  self.points[i, 1]*y
+            
+
+        return
 
 if __name__ == "__main__":
-    # print("Ты не должен запускать этот файл на прямую!!! Пользуйся интерфейсом generate.py!!!")
-    p = Polygon()
-    p.showPolygon()
-    p.setPowerOfPolygon(5)
-    p.showPolygon()
+    print("Ты не должен запускать этот файл на прямую!!! Пользуйся интерфейсом generate.py!!!")
+    # getConvexPolygon(5).showPolygon()
