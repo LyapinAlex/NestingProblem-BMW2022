@@ -1,7 +1,8 @@
-import class_item 
+import class_item
 import polygon
 
-class generate():
+
+class gen():
 
     def __init__(self, len, width, number):
         self.len = len
@@ -18,7 +19,7 @@ class generate():
             for id in range(self.number):
                 points = polygon.getConvexPolygon(5, self.width, self.len).points
                 item = class_item.Item(id, points)
-                item.set_matrix_rectangular( 0.5)
+                item.set_matrix_rectangular(0.5)
                 self.data.append(item.matrix)
 
         
