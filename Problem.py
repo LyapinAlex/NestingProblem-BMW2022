@@ -32,6 +32,7 @@ class Problem():
 
         print(len(rastr_method.fit_pallets(self.pallet.matrix, self.data)))
 
+print('1')
 p = Problem()
 p.generatData()
 p.rastrMethod()
