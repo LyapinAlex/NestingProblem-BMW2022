@@ -4,7 +4,7 @@ import math
 
 class Item:
 
-    def __init__(self, id: int, points: float, lb_x: float = None, lb_y: float = None, pallet_number: int = None, rotation: float = None):
+    def __init__(self, id: int, points: list, lb_x: float = None, lb_y: float = None, pallet_number: int = None, rotation: float = None):
         self.id = id
         self.points = points
         self.lb_x = lb_x
