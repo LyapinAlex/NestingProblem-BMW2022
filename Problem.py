@@ -1,5 +1,5 @@
-import sys
-sys.path.append('./data')
+# import sys
+# sys.path.append('./data')
 
 import generate
 import rastr_method
@@ -31,7 +31,6 @@ class Problem():
     def rastrMethod(self):
 
         print(len(rastr_method.fit_pallets(self.pallet.matrix, self.data)))
-
 
 p = Problem()
 p.generatData()
