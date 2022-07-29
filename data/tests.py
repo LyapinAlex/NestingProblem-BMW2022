@@ -1,3 +1,6 @@
-print(int(12.7//0.5))
+print(12.7//1)
+print(int(12.7))
+print(7.3 % 2)
 
-print(-1 % 5)
+
+print(round(3.75, 1))
