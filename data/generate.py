@@ -2,7 +2,7 @@ import class_item
 import polygon
 
 
-class gen():
+class Generator():
 
     def __init__(self, len, width, number):
         self.len = len
@@ -13,13 +13,18 @@ class gen():
 
         return
 
-    def start(self):
+    def start(self, e):
 
         if 1 :
             for id in range(self.number):
-                points = polygon.getConvexPolygon(5, self.width, self.len).points
+                points = polygon.getConvexPolygon(4, self.width, self.len).points
                 item = class_item.Item(id, points)
-                item.set_matrix_rectangular(0.5)
+                item.set_matrix_rectangular(e)
+                # исправь для всех сторон
+                while item.matrix.shape[0] > self.width or item.matrix.shape[1] > self.len:
+                    points = polygon.getConvexPolygon(4, self.width, self.len).points
+                    item = class_item.Item(id, points)
+                    item.set_matrix_rectangular(e)
                 self.data.append(item.matrix)
 
         
