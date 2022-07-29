@@ -11,7 +11,7 @@ n = 10
 e = 1
 
 class Problem():
-
+    
     def __init__(self, name="", len = l, width = w, number = n):
         self.len = len
         self.width = width
