@@ -1,5 +1,6 @@
-import class_item 
+import class_item
 import polygon
+
 
 class Generator():
 
