@@ -2,12 +2,14 @@ import sys
 sys.path.append('./data')
 
 import generate
-
 import rastr_method
+import pallet
 
-w = 100
-l = 100
+w = 10
+l = 10
 n = 10
+e = 1
+
 class Problem():
 
     def __init__(self, name="", len = l, width = w, number = n):
@@ -15,25 +17,25 @@ class Problem():
         self.width = width
         self.number = number
 
-        self.solution = []
-        self.data = []
-        self.order = range(n)
+        self.setOfPlane = []
+        self.data = None
+        self.pallet = pallet.Pallet(0 ,w, l, e)
+       
 
-        self.objFun = int("inf")
-    
-    def generateData(self):
-
-        g = generate.Generator(w, l, n)
-        g.start()
+    def generatData(self):
+        g = generate.Generator(w,l, n)
+        g.start(e)
         self.data = g.data
+        
     
+    def rastrMethod(self):
 
-    def rasateMetdod(self):
+        print(len(rastr_method.fit_pallets(self.pallet.matrix, self.data)))
 
-        usePallet = rast(data)
-        if 
-        pass
 
+p = Problem()
+p.generatData()
+p.rastrMethod()
 
 
 
