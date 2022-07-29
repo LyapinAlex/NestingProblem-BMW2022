@@ -47,29 +47,50 @@ class Item:
         for i in range(0, (self.points).shape[0]):
             self.points[i][0] -= x_min
             self.points[i][1] -= y_min
-        # создание массива
-        self.matrix = np.zeros((n_x, n_y), dtype="int")
-        # заполнение массива
-        edges = np.zeros((n_x, n_y + 1), dtype="int")
-
-        def checking_intersections():
-            k = 0
+        # заполнение массива пересечений с осями параллельными оси абсцисс
+        for k in range(0,n_y):
+            edges = np.zeros(n_x)
+            intersect = []
             for i in range(0, (self.points).shape[0]):
                 j = (i + 1) % (self.points).shape[0]
                 if ((min(self.points[i][1], self.points[j][1]) <= k * h) and
                     (k * h <= max(self.points[i][1], self.points[j][1]))):
-                    i1 = self.points[i]
-                    i2 = self.points[j]
-                    print(i, i1, j, i2)
-                    if (i2[1] - i1[1] == 0): print("горизонталь")
-                    else: #ax+by+c=0
-                        a = i2[1]-i1[1]
-                        b = -(i2[0]-i1[0])
-                        c = -i1[0]*(i2[1]-i1[1])+i1[1]*(i2[0]-i1[0])
-                        print("=======", a, b, c, "=======")
-            return None
+                    i1 = np.copy(self.points[i])
+                    i2 = np.copy(self.points[j])
+                    # print(i, i1, j, i2) # i - номер точки i1 
+                    if (i2[1] - i1[1] == 0): #ребро параллельно оси абсцисс
+                        if (i1[0] > i2[0]):
+                            fr = i1[0]
+                            i1[0] = i2[0]
+                            i2[0] = fr
+                        for m in range (math.floor(i1[0]/h),math.floor(i2[0]/h)):
+                            edges[m] = +1.33
+                        if (i2[0]%h!=0): edges[math.floor(i2[0]/h)] = +1.33
 
-        checking_intersections()
+                    else:  #x+ay+b=0
+                        a = -(i2[0] - i1[0]) / (i2[1] - i1[1])
+                        b = (-i1[0] * (i2[1] - i1[1]) + i1[1] *
+                             (i2[0] - i1[0])) / (i2[1] - i1[1])
+                        y_p = k * h
+                        x_p = -b - a * k * h
+                        # проверка положения по разные стороны
+                        if (x_p == i1[0]): 
+                            # относительно первой точки
+                            if ( (i2[1]-y_p) * (self.points[(i - 1) % (self.points).shape[0]][1]-y_p) < 0 ):
+                                edges[math.floor(i1[0]/h)] += 1
+                            else: edges[math.floor(i1[0]/h)] += 2
+                        elif (x_p != i2[0]):
+                            edges[math.floor(x_p/h)] += 1
+                        intersect.append([x_p, i1, i2])
+            print(edges)
+                    
+            #print()
+            intersect = sorted(intersect, key=lambda inter: inter[0])
+            #print(intersect)
+        
+        # создание массива
+        self.matrix = np.zeros((n_x, n_y), dtype="int")
+
         return None
 
     def set_rotation(self, rotate):
@@ -81,8 +102,8 @@ class Item:
         return None
 
 
-eq = Item(1, np.array([[1, 0], [0, 3], [3, 3.7], [2, 0]]))
-print(eq.points, ' ', eq.points.shape[0])
+eq = Item(1, np.array([[1, 0], [0, 3], [3, 3.7], [2.1, 0]]))
+## print(eq.points, ' ', eq.points.shape[0])
 eq.set_matrix(0.5)
 # print(eq.matrix)
 # print(eq.points)
