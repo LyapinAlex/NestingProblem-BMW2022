@@ -4,13 +4,14 @@ import math
 
 class Item:
 
-    def __init__(self, id, points):
+    def __init__(self, id: int, points: float, lb_x: float = None, lb_y: float = None, pallet_number: int = None, rotation: float = None):
         self.id = id
         self.points = points
-        self.position = np.empty([0, 0])
-        self.rotation = 0.0
+        self.lb_x = lb_x
+        self.lb_y = lb_y
+        self.pallet_number = pallet_number
+        self.rotation = rotation
         self.matrix = np.empty([0, 0])
-        return None
 
     def set_matrix_rectangular(self, h):
         x_max = max(self.points[0][0], self.points[1][0])
