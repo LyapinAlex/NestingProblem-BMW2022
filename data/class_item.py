@@ -105,5 +105,5 @@ class Item:
 eq = Item(1, np.array([[1, 0], [0, 3], [3, 3.7], [2.1, 0]]))
 ## print(eq.points, ' ', eq.points.shape[0])
 eq.set_matrix(0.5)
-# print(eq.matrix)
+print(eq.matrix)
 # print(eq.points)
