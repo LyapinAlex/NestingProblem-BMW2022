@@ -123,9 +123,9 @@ class Item:
         return None
 
 
-eq1 = Item(1, np.array([[1, 0], [0, 3], [3, 3.7], [2.1, 0]]))
-eq1.set_matrix(0.2)
-print(eq1.matrix)
+# eq1 = Item(1, np.array([[1, 0], [0, 3], [3, 3.7], [2.1, 0]]))
+# eq1.set_matrix(0.2)
+# print(eq1.matrix)
 
 # eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
 # eq2.set_matrix(0.01)
