@@ -1,5 +1,6 @@
 import class_item
 import polygon
+import math
 
 
 class Generator():
@@ -15,17 +16,19 @@ class Generator():
 
     def start(self, e):
 
-        if 1 :
-            for id in range(self.number):
+        
+        for id in range(self.number):
+            points = polygon.getConvexPolygon(4, self.width, self.len).points
+            item = class_item.Item(id, points)
+            item.set_matrix_rectangular(e)
+            # исправь для всех сторон
+            maxLen = max(item.matrix.shape[0],item.matrix.shape[1])
+            while maxLen  > self.width or maxLen > self.len:
                 points = polygon.getConvexPolygon(4, self.width, self.len).points
                 item = class_item.Item(id, points)
                 item.set_matrix_rectangular(e)
-                # исправь для всех сторон
-                while item.matrix.shape[0] > self.width or item.matrix.shape[1] > self.len:
-                    points = polygon.getConvexPolygon(4, self.width, self.len).points
-                    item = class_item.Item(id, points)
-                    item.set_matrix_rectangular(e)
-                self.data.append(item.matrix)
+                maxLen = max(item.matrix.shape[0],item.matrix.shape[1])
+            self.data.append(item.matrix.tolist())
 
         
         return
