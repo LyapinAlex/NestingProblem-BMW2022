@@ -57,8 +57,8 @@ def definitionOfOrderTriongle(points):
 
 def getConvexPolygon(n, w , l):
     p = Polygon()
-    x = rd.normalvariate(w / 2, w /4 )
-    y = rd.normalvariate(l / 2, l /4 )
+    x = rd.normalvariate(3*w / 4, w /4 )
+    y = rd.normalvariate(3*l / 4, l /4 )
     p.extension(x, y)
     p.setPowerOfPolygon(n)
 
@@ -67,7 +67,7 @@ def getConvexPolygon(n, w , l):
 
 class Polygon():
     
-    def __init__(self, n = 3):
+    def __init__(self):
         self.powerOfPolygon = 3 # количество вершин
 
         # Сначало создаем треугольник и определяем порядок точек, как против часовой 
@@ -136,7 +136,7 @@ class Polygon():
         return 
 
     def setPowerOfPolygon(self, n):
-        if n <= self.powerOfPolygon:
+        if n < self.powerOfPolygon:
             print("АХТУНГ!!! Ты  заставляешь многограник уменьшить количество вершин!!!")
 
         for __ in range( n - self.powerOfPolygon):
@@ -151,6 +151,7 @@ class Polygon():
             v_1 = np.array([self.points[edge[0]][0], self.points[edge[1]][0]])
             v_2 = np.array([self.points[edge[0]][1], self.points[edge[1]][1]])
             plt.plot(v_1, v_2, '-k')
+            plt.plot(self.points[0][0],self.points[0][1], '-r')
 
         plt.show()
         return
@@ -165,6 +166,12 @@ class Polygon():
 
         return
 
+    # def coordinate
+
 if __name__ == "__main__":
-    print("Ты не должен запускать этот файл на прямую!!! Пользуйся интерфейсом generate.py!!!")
-    # getConvexPolygon(5).showPolygon()
+    # print("Ты не должен запускать этот файл на прямую!!! Пользуйся интерфейсом generate.py!!!")0
+    p = Polygon()
+    p.showPolygon()
+    for i in range(2):
+        p.addVertex()
+        p.showPolygon()

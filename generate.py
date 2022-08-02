@@ -1,10 +1,12 @@
-import class_item
+from scipy.fft import idct
+import class_item 
 import polygon
+import math
 
 
 class Generator():
 
-    def __init__(self, len, width, number):
+    def __init__(self,  width, len, number):
         self.len = len
         self.width = width
         self.number = number
@@ -15,18 +17,27 @@ class Generator():
 
     def start(self, e):
 
-        if 1 :
-            for id in range(self.number):
-                points = polygon.getConvexPolygon(4, self.width, self.len).points
+        
+        for id in range(self.number):
+            points = polygon.getConvexPolygon(4, self.width, self.len).points
+            item = class_item.Item(id, points)
+            item.set_matrix_rectangular(e)
+            # исправь для всех сторон
+            long = max( len(item.matrix), len(item.matrix[0]) )
+            while long > self.len or long > self.width:
+                points = polygon.getConvexPolygon(3, self.width, self.len).points
                 item = class_item.Item(id, points)
                 item.set_matrix_rectangular(e)
-                # исправь для всех сторон
-                while item.matrix.shape[0] > self.width or item.matrix.shape[1] > self.len:
-                    points = polygon.getConvexPolygon(4, self.width, self.len).points
-                    item = class_item.Item(id, points)
-                    item.set_matrix_rectangular(e)
-                self.data.append(item.matrix)
+                long = max( len(item.matrix), len(item.matrix[0]) )
+
+            item.points = item.points.tolist()
+            self.data.append(item)
+            print("!!!!!!!!!", id)
+            # print(item.matrix)
 
         
-        return
+        return 
 
+
+g = Generator(10, 10, 2)
+g.start(0.5)

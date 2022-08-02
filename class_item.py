@@ -27,8 +27,8 @@ class Item:
 
         self.matrix = np.ones((math.ceil(
             (x_max - x_min) / h), math.ceil((y_max - y_min) / h)),
-                              dtype="int")
-
+                              dtype="int").tolist()
+        
         return None
 
     def set_rotation(self, rotate):
