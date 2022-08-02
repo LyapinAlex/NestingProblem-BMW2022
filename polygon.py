@@ -56,10 +56,12 @@ def definitionOfOrderTriongle(points):
     return [indFirst, indSecond, listInd[0]]
 
 def getConvexPolygon(n, w , l):
+    # print(n, w, l)
     p = Polygon()
     x = rd.normalvariate(3*w / 4, w /4 )
     y = rd.normalvariate(3*l / 4, l /4 )
     p.extension(x, y)
+    # print(x,y, 'pol')
     p.setPowerOfPolygon(n)
 
     return p
@@ -151,7 +153,7 @@ class Polygon():
             v_1 = np.array([self.points[edge[0]][0], self.points[edge[1]][0]])
             v_2 = np.array([self.points[edge[0]][1], self.points[edge[1]][1]])
             plt.plot(v_1, v_2, '-k')
-            plt.plot(self.points[0][0],self.points[0][1], '-r')
+            # plt.plot(self.points[0][0],self.points[0][1], '-r')
 
         plt.show()
         return

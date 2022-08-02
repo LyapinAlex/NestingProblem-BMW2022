@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import math
 
 
@@ -33,6 +34,7 @@ class Item:
 
     def set_matrix(self, h):
         # вычисление размера массива
+        self.points = np.array(self.points)
         x_max = max(self.points[0][0], self.points[1][0])
         x_min = min(self.points[0][0], self.points[1][0])
         y_max = max(self.points[0][1], self.points[1][1])
@@ -116,13 +118,40 @@ class Item:
         self.matrix = self.matrix[ 0:(self.matrix.shape[0]-1),: ]
         return None
 
-    def set_rotation(self, rotate):
-        self.rotation = math.ceil(rotate / math.pi * 90)
-        if (self.rotation % 90 == 0):
-            self.matrix = np.rot90(self.matrix, self.rotation // 90)
-        else:
-            print("Не прямой поворот")
+    # def set_rotation(self, rotate):
+    #     self.rotation = math.ceil(rotate / math.pi * 90)
+    #     if (self.rotation % 90 == 0):
+    #         self.matrix = np.rot90(self.matrix, self.rotation // 90)
+    #     else:
+    #         print("Не прямой поворот")
+    #     return None
+
+    def rotation90_item_matrix(self): 
+  
+        self.matrix = np.rot90(np.array(self.matrix))
+        self.matrix = self.matrix.tolist()
+
         return None
+
+    def show_item(self):
+        pointsX = []
+        pointsY = []
+        
+        for point in self.points:
+            pointsX.append(point[0])
+            pointsY.append(point[1])
+        
+
+        pointsX.append(self.points[0][0])
+        pointsY.append(self.points[0][1])
+                
+        plt.plot(np.array(pointsX), np.array(pointsY), '-k')
+                
+
+        plt.show()
+        return
+
+    
 
 
 # eq = Item(1, np.array([[0, 1], [0, 3], [3, 3.7], [7, 1.2]]))
