@@ -8,8 +8,8 @@ def make_unicode(inp):
     return inp
 
 
-def text2matrix(text, size,
-                fon):  # size - размер шрифта в пикселях; fon - имя шрифта
+def text2matrix(text, size, fon):
+    # size - размер шрифта в пикселях; fon - имя шрифта
     unicode_text = make_unicode(text)
     font = ImageFont.truetype(fon, size, encoding="unic")
     text_width, text_height = font.getsize(unicode_text)
