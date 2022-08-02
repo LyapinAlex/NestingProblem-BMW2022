@@ -4,3 +4,8 @@
 
 
 # print(round(3.75, 1))
+
+print("fghj"+str(10))
+
+print(type(u"tye"))
+print(type("tye"))
