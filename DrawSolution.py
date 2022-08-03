@@ -5,6 +5,7 @@ def draw_pallet(items, pallet_width, pallet_height):
     # fig, ax = plt.subplots(figsize=(pallet_height, pallet_height))
     fig, ax = plt.subplots()
     pallet = patches.Rectangle((0, 0), pallet_width, pallet_height, linewidth=2, facecolor='none', edgecolor='black')
+    pallet = patches.Rectangle((0, 0), pallet_width, pallet_height, linewidth=2, facecolor='black', edgecolor='blue')
     ax.add_patch(pallet)
     ax.set_xlim(-1, pallet_width + 1)
     ax.set_ylim(-1, pallet_height + 1)
