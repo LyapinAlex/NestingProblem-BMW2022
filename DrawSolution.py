@@ -16,3 +16,7 @@ def draw_pallet(items, pallet_width, pallet_height):
         polygon = patches.Polygon(item.points, linewidth=1, facecolor='silver', edgecolor='black')
         ax.add_patch(polygon)
     return fig, ax
+
+def draw_all_pallets(packing, pallet_width, pallet_leight):
+    for i in range(len(packing)):
+        draw_pallet(packing[i], pallet_width, pallet_leight)
