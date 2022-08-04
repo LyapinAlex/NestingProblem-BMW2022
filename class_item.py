@@ -243,10 +243,13 @@ class Item:
 
     
 
-
 # eq = Item(1, np.array([[0, 1], [0, 3], [3, 3.7], [7, 1.2]]))
 # print(eq.points, ' ', eq.points.shape[0])
 # eq.set_matrix_rectangular(0.5)
 # print(eq.matrix)
 # eq.set_rotation(1.5707*2)
 # print(eq.matrix)
+
+# eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
+# eq2.set_matrix(0.1)
+# print(eq2.matrix)
