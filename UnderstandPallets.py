@@ -13,4 +13,4 @@ def understand_pallets(items):
             if item.pallet_number == i:
                 packing[i].append(item)
 
-    return items
+    return packing
