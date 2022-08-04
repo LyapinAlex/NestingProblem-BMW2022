@@ -74,8 +74,7 @@ class Item:
 
                     else:  #x+ay+b=0
                         a = -(i2[0] - i1[0]) / (i2[1] - i1[1])
-                        b = (-i1[0] * (i2[1] - i1[1]) + i1[1] *
-                             (i2[0] - i1[0])) / (i2[1] - i1[1])
+                        b = -i1[0] - i1[1] * a
                         y_p = k * h
                         x_p = round(-b - a * k * h, 8)
                         # проверка положения по разные стороны
@@ -95,9 +94,9 @@ class Item:
                         elif (x_p != i2[0]):
                             edges[math.floor(x_p / h + h / 100)][k] += 1
                             #print(i1, i2, x_p)
-        print(edges)
+        # print(edges)
         # создание растровой копии
-        self.matrix = np.zeros((n_x + 1, n_y), dtype="int")
+        self.matrix = np.zeros((n_x + 1, n_y + 1), dtype="int")
         for k in range(0, n_y):
             flag = 0.0
             for i in range(0, n_x + 1):
@@ -125,27 +124,22 @@ class Item:
                     self.matrix[i][k] = 1
                     if ((flag == 1) and (k - 1 >= 0)):
                         self.matrix[i][k - 1] = 1
-
-        self.matrix = self.matrix[0:n_x, :]
-        self.matrix_of_border(h, n_x, n_y)
-        return None
-
-    def matrix_of_border(self, h, n_x, n_y):
-        mat = np.zeros((n_x + 1, n_y + 1), dtype="int")
+        # закрашивание границ
         for i in range(0, (self.points).shape[0]):
-            # for i in range(2, 6):
             j = (i + 1) % (self.points).shape[0]
             i1 = np.copy(self.points[i])  # i - номер точки i1
             i2 = np.copy(self.points[j])  # j - номер точки i2
 
-            j1 = [int(i1[0] / h), int(i1[1] / h)]
-            j2 = [int(i2[0] / h), int(i2[1] / h)]
+            j1 = [int(i1[0] / h), int(i1[1] / h)]  # пиксель соотв. i1 точке
+            j2 = [int(i2[0] / h), int(i2[1] / h)]  # пиксель соотв. i2 точке
 
             step_x = 1
-            if (j1[0] > j2[0]): step_x = -1
-            elif (j1[0] == j2[0]): step_x = 0
-            check = 1
             step_y = 1
+            check = 1
+            if (j1[0] > j2[0]):
+                step_x = -1
+            elif (j1[0] == j2[0]):
+                step_x = 0
             if (j1[1] > j2[1]):
                 step_y = -1
                 check = 0
@@ -153,28 +147,64 @@ class Item:
                 step_y = 0
 
             p = [int(i1[0] / h), int(i1[1] / h)]  # двигается от j1 к j2
-            # print(j1, j2)
-            # print(step_x, step_y, abs(j1[0] - j2[0]) + abs(j1[1] - j2[1]) + 1)
-            if (j1[1] == j2[1]):  # горизонтальная граница
+            if (j1[1] == j2[1]):  # вертикальная граница
                 for i in range(0, abs(j1[0] - j2[0]) + 1):
-                    mat[p[0], p[1]] = 1
+                    self.matrix[p[0], p[1]] = 1
                     p[0] += step_x
             else:
                 for i in range(0, abs(j1[0] - j2[0]) + abs(j1[1] - j2[1]) + 1):
-                    print(p)
-                    mat[p[0], p[1]] = 1
+                    self.matrix[p[0], p[1]] = 1
                     if (j2 != p):
                         a = -(i2[0] - i1[0]) / (i2[1] - i1[1])
-                        b = (-i1[0] * (i2[1] - i1[1]) + i1[1] *
-                             (i2[0] - i1[0])) / (i2[1] - i1[1])
-                        y_p = (p[1] + 1) * h
+                        b = -i1[0] - i1[1] * a
                         x_p = round(-b - a * (p[1] + check) * h, 8)
                         if (int(x_p / h) == p[0]):
                             p[1] += step_y
                         else:
                             p[0] += step_x
-        mat = mat[0:n_x-1, 0:n_y-1]
-        # print(mat)
+        self.matrix = self.matrix[0:n_x, 0:n_y]
+        return None
+
+    def matrix_of_border(self, h, n_x, n_y):
+        mat = np.zeros((n_x + 1, n_y + 1), dtype="int")
+        for i in range(0, (self.points).shape[0]):
+            j = (i + 1) % (self.points).shape[0]
+            i1 = np.copy(self.points[i])  # i - номер точки i1
+            i2 = np.copy(self.points[j])  # j - номер точки i2
+
+            j1 = [int(i1[0] / h), int(i1[1] / h)]  # пиксель соотв. i1 точке
+            j2 = [int(i2[0] / h), int(i2[1] / h)]  # пиксель соотв. i2 точке
+
+            step_x = 1
+            step_y = 1
+            check = 1
+            if (j1[0] > j2[0]):
+                step_x = -1
+            elif (j1[0] == j2[0]):
+                step_x = 0
+            if (j1[1] > j2[1]):
+                step_y = -1
+                check = 0
+            elif (j1[1] == j2[1]):
+                step_y = 0
+
+            p = [int(i1[0] / h), int(i1[1] / h)]  # двигается от j1 к j2
+            if (j1[1] == j2[1]):  # вертикальная граница
+                for i in range(0, abs(j1[0] - j2[0]) + 1):
+                    mat[p[0], p[1]] = 1
+                    p[0] += step_x
+            else:
+                for i in range(0, abs(j1[0] - j2[0]) + abs(j1[1] - j2[1]) + 1):
+                    mat[p[0], p[1]] = 1
+                    if (j2 != p):
+                        a = -(i2[0] - i1[0]) / (i2[1] - i1[1])
+                        b = -i1[0] - i1[1] * a
+                        x_p = round(-b - a * (p[1] + check) * h, 8)
+                        if (int(x_p / h) == p[0]):
+                            p[1] += step_y
+                        else:
+                            p[0] += step_x
+        mat = mat[0:n_x, 0:n_y]
         return mat
 
     def set_rotation(self, rotate):
@@ -189,7 +219,6 @@ class Item:
 eq1 = Item(1, np.array([[1, 0], [0, 3], [3, 3.7], [2.1, 0]]))
 eq1.set_matrix(0.13)
 print(eq1.matrix)
-print(eq1.matrix.shape)
 
 # eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
 # eq2.set_matrix(0.1)
