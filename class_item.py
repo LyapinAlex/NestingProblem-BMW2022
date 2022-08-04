@@ -29,8 +29,8 @@ class Item:
 
         return None
 
-    def set_matrix(self, h):
-        # вычисление размера массива
+    def shift2zero(self):
+        # сдвиг фигуры к началу координат
         x_max = max(self.points[0][0], self.points[1][0])
         x_min = min(self.points[0][0], self.points[1][0])
         y_max = max(self.points[0][1], self.points[1][1])
@@ -40,14 +40,18 @@ class Item:
             y_max = max(y_max, self.points[i][1])
             x_min = min(x_min, self.points[i][0])
             y_min = min(y_min, self.points[i][1])
-
-        n_x = math.ceil((x_max - x_min) / h)
-        n_y = math.ceil((y_max - y_min) / h)
         # нормировка фигуры к (0,0)
         for i in range(0, (self.points).shape[0]):
             self.points[i][0] -= x_min
             self.points[i][1] -= y_min
-        
+        return [x_min, x_max, y_min, y_max]
+
+    def set_matrix(self, h):
+        # вычисление размера массива
+        size_of_sides = self.shift2zero()
+        n_x = math.ceil((size_of_sides[1] - size_of_sides[0]) / h)
+        n_y = math.ceil((size_of_sides[3] - size_of_sides[2]) / h)
+
         # заполнение массива пересечений с осями параллельными оси абсцисс
         edges = np.zeros((n_x + 1, n_y))
         for k in range(0, n_y):
@@ -55,8 +59,8 @@ class Item:
                 j = (i + 1) % (self.points).shape[0]
                 if ((min(self.points[i][1], self.points[j][1]) <= k * h) and
                     (k * h <= max(self.points[i][1], self.points[j][1]))):
-                    i1 = np.copy(self.points[i]) # i - номер точки i1
-                    i2 = np.copy(self.points[j]) # j - номер точки j1
+                    i1 = np.copy(self.points[i])  # i - номер точки i1
+                    i2 = np.copy(self.points[j])  # j - номер точки i2
                     if (i2[1] - i1[1] == 0):  #ребро параллельно оси абсцисс
                         if (i1[0] > i2[0]):
                             fr = i1[0]
@@ -78,41 +82,100 @@ class Item:
                         if (x_p == i1[0]):
                             # относительно первой точки
                             if ((i2[1] - y_p) *
-                                (self.points[(i - 1) % (self.points).shape[0]][1] - y_p) < 0):
+                                (self.points[(i - 1) %
+                                             (self.points).shape[0]][1] - y_p)
+                                    < 0):
                                 edges[math.floor(i1[0] / h + h / 100)][k] += 1
-                            elif ((i2[1] - y_p) * (self.points[(i - 1) %(self.points).shape[0]][1] - y_p) > 0):
+                            elif (
+                                (i2[1] - y_p) *
+                                (self.points[(i - 1) %
+                                             (self.points).shape[0]][1] - y_p)
+                                    > 0):
                                 edges[math.floor(i1[0] / h + h / 100)][k] += 2
                         elif (x_p != i2[0]):
                             edges[math.floor(x_p / h + h / 100)][k] += 1
                             #print(i1, i2, x_p)
-        # создание растровой копии 
+        print(edges)
+        # создание растровой копии
         self.matrix = np.zeros((n_x + 1, n_y), dtype="int")
         for k in range(0, n_y):
             flag = 0.0
             for i in range(0, n_x + 1):
-                if ((edges[i][k] % 2 == 0) and (edges[i][k] != 0)): #если наталкнулись на угол и т.п.
+                if ((edges[i][k] % 2 == 0) and
+                    (edges[i][k] != 0)):  #если наталкнулись на угол и т.п.
                     self.matrix[i][k] = 1
-                elif (edges[i][k] % 2 == 1): #если наталкнулись на пересечение
+                elif (edges[i][k] % 2 == 1):  #если наталкнулись на пересечение
                     self.matrix[i][k] = 1
-                    if (k-1 >= 0): self.matrix[i][k-1] = 1
+                    if (k - 1 >= 0): self.matrix[i][k - 1] = 1
                     if (flag == 0): flag = 1
                     else: flag = 0
-                elif (edges[i][k] % 1 != 0):  #если наталкнулись на плотное косание
-                    if (k-1 >= 0): 
-                        if (self.matrix[i][k-1] == 0):
+                elif (edges[i][k] % 1 !=
+                      0):  #если наталкнулись на плотное косание
+                    if (k - 1 >= 0):
+                        if (self.matrix[i][k - 1] == 0):
                             self.matrix[i][k] = 1
-                        if ((flag == 0.5) and (i-1 >= 0)):
-                            if (self.matrix[i-1][k]==1): self.matrix[i][k] = 1
+                        if ((flag == 0.5) and (i - 1 >= 0)):
+                            if (self.matrix[i - 1][k] == 1):
+                                self.matrix[i][k] = 1
                     else:
                         self.matrix[i][k] = 1
                     if (flag == 0.5): flag = 0
                     else: flag = 0.5
-                if (flag > 0): #заливка
+                if (flag > 0):  #заливка
                     self.matrix[i][k] = 1
-                    if ((flag == 1) and (k-1 >= 0)):
-                        self.matrix[i][k-1] = 1
-        self.matrix = self.matrix[ 0:(self.matrix.shape[0]-1),: ]
+                    if ((flag == 1) and (k - 1 >= 0)):
+                        self.matrix[i][k - 1] = 1
+
+        self.matrix = self.matrix[0:n_x, :]
+        self.matrix_of_border(h, n_x, n_y)
         return None
+
+    def matrix_of_border(self, h, n_x, n_y):
+        mat = np.zeros((n_x + 1, n_y + 1), dtype="int")
+        for i in range(0, (self.points).shape[0]):
+            # for i in range(2, 6):
+            j = (i + 1) % (self.points).shape[0]
+            i1 = np.copy(self.points[i])  # i - номер точки i1
+            i2 = np.copy(self.points[j])  # j - номер точки i2
+
+            j1 = [int(i1[0] / h), int(i1[1] / h)]
+            j2 = [int(i2[0] / h), int(i2[1] / h)]
+
+            step_x = 1
+            if (j1[0] > j2[0]): step_x = -1
+            elif (j1[0] == j2[0]): step_x = 0
+            check = 1
+            step_y = 1
+            if (j1[1] > j2[1]):
+                step_y = -1
+                check = 0
+            elif (j1[1] == j2[1]):
+                step_y = 0
+
+            p = [int(i1[0] / h), int(i1[1] / h)]  # двигается от j1 к j2
+            # print(j1, j2)
+            # print(step_x, step_y, abs(j1[0] - j2[0]) + abs(j1[1] - j2[1]) + 1)
+            if (j1[1] == j2[1]):  # горизонтальная граница
+                for i in range(0, abs(j1[0] - j2[0]) + 1):
+                    mat[p[0], p[1]] = 1
+                    p[0] += step_x
+            else:
+                for i in range(0, abs(j1[0] - j2[0]) + abs(j1[1] - j2[1]) + 1):
+                    print(p)
+                    mat[p[0], p[1]] = 1
+                    if (j2 != p):
+                        a = -(i2[0] - i1[0]) / (i2[1] - i1[1])
+                        b = (-i1[0] * (i2[1] - i1[1]) + i1[1] *
+                             (i2[0] - i1[0])) / (i2[1] - i1[1])
+                        y_p = (p[1] + 1) * h
+                        x_p = round(-b - a * (p[1] + check) * h, 8)
+                        if (int(x_p / h) == p[0]):
+                            p[1] += step_y
+                        else:
+                            p[0] += step_x
+        mat = mat[0:n_x-1, 0:n_y-1]
+        # print(mat)
+        return mat
 
     def set_rotation(self, rotate):
         self.rotation = math.ceil(rotate / math.pi * 90)
@@ -123,10 +186,11 @@ class Item:
         return None
 
 
-# eq1 = Item(1, np.array([[1, 0], [0, 3], [3, 3.7], [2.1, 0]]))
-# eq1.set_matrix(0.2)
-# print(eq1.matrix)
+eq1 = Item(1, np.array([[1, 0], [0, 3], [3, 3.7], [2.1, 0]]))
+eq1.set_matrix(0.13)
+print(eq1.matrix)
+print(eq1.matrix.shape)
 
 # eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
-# eq2.set_matrix(0.01)
+# eq2.set_matrix(0.1)
 # print(eq2.matrix)
