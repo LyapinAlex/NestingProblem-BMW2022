@@ -3,6 +3,8 @@ import random as rd
 import matplotlib.pyplot as plt
 import math
 
+from sqlalchemy import true
+
 
 
 def norm(vec):
@@ -33,27 +35,44 @@ def checkCross(vecA, vecB):
 
     return  check
 
-def definitionOfOrderTriongle(points):
-    indFirst = -1
-    xFirst = 10
-    for i in range(3):
-        if points[i,0] < xFirst:
-            indFirst = i
-            xFirst = points[i,0]
+# def definitionOfOrderTriongle(points):
+#     indFirst = -1
+#     xFirst = 10
+#     for i in range(3):
+#         if points[i,0] < xFirst:
+#             indFirst = i
+#             xFirst = points[i,0]
 
-    indSecond = -1
-    ySecond = 10
-    for i in range(3):
-        if points[i,1] < ySecond and i != indFirst :
-            indSecond = i
-            ySecond = points[i,1]
+#     indSecond = -1
+#     ySecond = 10
+#     for i in range(3):
+#         if points[i,1] < ySecond and i != indFirst :
+#             indSecond = i
+#             ySecond = points[i,1]
 
-    listInd = [0, 1, 2]
-    listInd.remove(indFirst)
-    listInd.remove(indSecond)
+#     listInd = [0, 1, 2]
+#     listInd.remove(indFirst)
+#     listInd.remove(indSecond)
     
    
-    return [indFirst, indSecond, listInd[0]]
+#     return [indFirst, indSecond, listInd[0]]
+
+
+def definitionOfOrderTriongle(points):
+    
+    points = points.tolist()
+    points = sorted(points, key=lambda point: point[0])
+    firstPoint = sorted(points, key=lambda point: point[1] == sorted([point[1] for point in points])[0])[2]
+    points.remove(firstPoint)
+    
+    points = sorted(points, key=lambda point: point[0])
+    secondPoint = sorted(points, key=lambda point: point[1] == sorted([point[1] for point in points])[0])[1]
+    points.remove(secondPoint)
+
+    return np.array([firstPoint, secondPoint, points[0]])
+
+
+
 
 def getConvexPolygon(n, w , l):
     # print(n, w, l)
@@ -71,16 +90,16 @@ class Polygon():
     
     def __init__(self):
         self.powerOfPolygon = 3 # количество вершин
-
+        
         # Сначало создаем треугольник и определяем порядок точек, как против часовой 
         rng = np.random.default_rng()
         points = rng.random((3, 2)) # создвем три точки в 2-D
         
-        newOrder = np.array(definitionOfOrderTriongle(points))
-
-        self.points = np.array([points[newOrder[0]], points[newOrder[1]], points[newOrder[2]]])
+        
+        self.points = definitionOfOrderTriongle(points)
         self.edge = np.array([[0, 1], [1, 2], [2, 0]])
         self.order = np.array([0, 1, 2])
+        self.convex = True
 
         
         return 
@@ -153,9 +172,14 @@ class Polygon():
             v_1 = np.array([self.points[edge[0]][0], self.points[edge[1]][0]])
             v_2 = np.array([self.points[edge[0]][1], self.points[edge[1]][1]])
             plt.plot(v_1, v_2, '-k')
-            # plt.plot(self.points[0][0],self.points[0][1], '-r')
+
+        for point in self.points:
+
+            plt.plot(point[0],point[1], 'ro')
 
         plt.show()
+
+
         return
 
     def extension(self, x, y):
@@ -168,12 +192,28 @@ class Polygon():
 
         return
 
+    def surfPolygon(self):
+
+        # вычисление размера массива
+        self.points = self.points.tolist()
+
+        minX = sorted(self.points, key=lambda point: point[0])[0][0]
+        minY = sorted(self.points, key=lambda point: point[1])[0][1]
+        
+        # print(minX)
+        for point in self.points:
+            point[0] = point[0] - minX
+            point[1] = point[1] - minY
+       
+        self.points = np.array(self.points)
+
+        return self.points
     # def coordinate
 
 if __name__ == "__main__":
     # print("Ты не должен запускать этот файл на прямую!!! Пользуйся интерфейсом generate.py!!!")0
     p = Polygon()
+    p.setPowerOfPolygon(4)
     p.showPolygon()
-    for i in range(2):
-        p.addVertex()
-        p.showPolygon()
+    p.surfPolygon()
+    p.showPolygon()
