@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-
+import copy
 
 class Item:
 
@@ -241,7 +241,24 @@ class Item:
         plt.show()
         return
 
+    def surfPoint(self):
+         # вычисление размера массива
+        
+        # self.points = self.points.tolist()
+
+        minX = sorted(self.points, key=lambda point: point[0])[0][0]
+        minY = sorted(self.points, key=lambda point: point[1])[0][1]
+        
+        # print(minX)
+        for point in self.points:
+            point[0] = point[0] - minX
+            point[1] = point[1] - minY
+       
+        # self.points = np.array(self.points)
+        return None
     
+    
+
 
 # eq = Item(1, np.array([[0, 1], [0, 3], [3, 3.7], [7, 1.2]]))
 # print(eq.points, ' ', eq.points.shape[0])

@@ -136,13 +136,31 @@ def arpol(points, a, b, M = 4):
             # print(checkCrossEdge(pointsCopy[i], pointsCopy[i + 1], pointsCopy[0], pointsCopy[M - 1]))
             exitPolygon+= checkCrossEdge(pointsCopy[i], pointsCopy[i + 1], pointsCopy[0], pointsCopy[M - 1])
         
+        
 
     return pointsCopy
 
-points = getPolygon()
+def surfPolygon(points):
+
+    # # вычисление размера массива
+    # points = points.tolist()
+
+    minX = sorted(points, key=lambda point: point[0])[0][0]
+    minY = sorted(points, key=lambda point: point[1])[0][1]
+    
+    # print(minX)
+    for point in points:
+        point[0] = point[0] - minX
+        point[1] = point[1] - minY
+    
+    # points = np.array(points)
+
+    return points
+
+# points = getPolygon()
 # print(points)
 # showPolygon(points)
-showPolygon(arpol(points, 1.0, 2.0, 5))
+# showPolygon(surfPolygon(arpol(getPolygon(), 1.0, 2.0, 5)))
 # arpol(points, 0.0, 1.0)
 # # print(points)
 # arpol(points, 0.0, 1.0)
