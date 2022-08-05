@@ -50,6 +50,8 @@ class Item:
         return [x_min, x_max, y_min, y_max]
 
     def set_matrix(self, h):
+
+        self.points = np.array(self.points)
         # вычисление размера массива
         size_of_sides = self.shift2zero()
         n_x = math.ceil((size_of_sides[1] - size_of_sides[0]) / h)
@@ -166,15 +168,9 @@ class Item:
                         else:
                             p[0] += step_x
         self.matrix = self.matrix[0:n_x, 0:n_y]
+        self.points = self.points.tolist()
         return None
 
-    # def set_rotation(self, rotate):
-    #     self.rotation = math.ceil(rotate / math.pi * 90)
-    #     if (self.rotation % 90 == 0):
-    #         self.matrix = np.rot90(self.matrix, self.rotation // 90)
-    #     else:
-    #         print("Не прямой поворот:", self.rotation)
-    #     return None
 
     def rotation90_item_matrix(self): 
   

@@ -60,7 +60,7 @@ class Generator():
             # print(item.points)
             
             item.surfPoint()
-            item.points = item.points.tolist()
+
             self.data.append(item)
            
 
@@ -87,7 +87,7 @@ class Generator():
                 long = max( len(item.matrix), len(item.matrix[0]) )
             
             item.surfPoint()
-            item.points = item.points.tolist()
+    
             self.data.append(item)
            
 
