@@ -59,7 +59,8 @@ def checkCross(vecA, vecB):
 
 
 def definitionOfOrderTriongle(points):
-       
+    
+    points = points.tolist()
     points = sorted(points, key=lambda point: point[0])
     firstPoint = sorted(points, key=lambda point: point[1] == sorted([point[1] for point in points])[0])[2]
     points.remove(firstPoint)
@@ -191,10 +192,28 @@ class Polygon():
 
         return
 
+    def surfPolygon(self):
+
+        # вычисление размера массива
+        self.points = self.points.tolist()
+
+        minX = sorted(self.points, key=lambda point: point[0])[0][0]
+        minY = sorted(self.points, key=lambda point: point[1])[0][1]
+        
+        # print(minX)
+        for point in self.points:
+            point[0] = point[0] - minX
+            point[1] = point[1] - minY
+       
+        self.points = np.array(self.points)
+
+        return self.points
     # def coordinate
 
 if __name__ == "__main__":
     # print("Ты не должен запускать этот файл на прямую!!! Пользуйся интерфейсом generate.py!!!")0
     p = Polygon()
-    # p.setPowerOfPolygon(4)
+    p.setPowerOfPolygon(4)
+    p.showPolygon()
+    p.surfPolygon()
     p.showPolygon()
