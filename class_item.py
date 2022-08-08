@@ -1,5 +1,12 @@
 import numpy as np
 import math
+import time
+from smth2matrix.polygon2matrix import polygon2matrix
+from smth2matrix.polyline2matrix import polyline2matrix
+from smth2matrix.shift2zero import shift2zero
+from shift_code.simple2shift import simple2shift
+from shift_code.simple2revers_shift import simple2revers_shift
+from shift_code.simple2mixed_shift import simple2mixed_shift
 
 
 class Item:
@@ -28,22 +35,22 @@ class Item:
                               dtype="int")
         return None
 
-    def shift2zero(self):
-        # сдвиг фигуры к началу координат
-        x_max = max(self.points[0][0], self.points[1][0])
-        x_min = min(self.points[0][0], self.points[1][0])
-        y_max = max(self.points[0][1], self.points[1][1])
-        y_min = min(self.points[0][1], self.points[1][1])
-        for i in range(0, (self.points).shape[0]):
-            x_max = max(x_max, self.points[i][0])
-            y_max = max(y_max, self.points[i][1])
-            x_min = min(x_min, self.points[i][0])
-            y_min = min(y_min, self.points[i][1])
-        # нормировка фигуры к (0,0)
-        for i in range(0, (self.points).shape[0]):
-            self.points[i][0] -= x_min
-            self.points[i][1] -= y_min
-        return [x_max - x_min, y_max - y_min]
+    # def shift2zero(self):
+    #     # сдвиг фигуры к началу координат
+    #     x_max = max(self.points[0][0], self.points[1][0])
+    #     x_min = min(self.points[0][0], self.points[1][0])
+    #     y_max = max(self.points[0][1], self.points[1][1])
+    #     y_min = min(self.points[0][1], self.points[1][1])
+    #     for i in range(0, (self.points).shape[0]):
+    #         x_max = max(x_max, self.points[i][0])
+    #         y_max = max(y_max, self.points[i][1])
+    #         x_min = min(x_min, self.points[i][0])
+    #         y_min = min(y_min, self.points[i][1])
+    #     # нормировка фигуры к (0,0)
+    #     for i in range(0, (self.points).shape[0]):
+    #         self.points[i][0] -= x_min
+    #         self.points[i][1] -= y_min
+    #     return [x_max - x_min, y_max - y_min]
 
     def set_matrix(self, h):
         # вычисление размера массива
@@ -209,11 +216,31 @@ class Item:
             print("Не прямой поворот:", self.rotation)
         return None
 
+    def list_of_ShiftC_4R(self, h): # крутит против часовой стрелки
+        self.set_matrix(h)
+        li=np.array( [[simple2revers_shift(self.matrix),simple2shift(self.matrix)],[None,None],[None,None],[None,None]] )
+        for i in range(1,4):
+            li[i][0] = simple2revers_shift(np.rot90(self.matrix, i))
+            li[i][1] = simple2shift(np.rot90(self.matrix, i))
+        return li
 
-eq1 = Item(1, np.array([[1, 0], [0, 3], [3, 3.7], [2.1, 0]]))
-eq1.set_matrix(0.13)
-print(eq1.matrix)
+    def list_of_MixedShiftC_4R(self, h): # крутит против часовой стрелки
+        self.set_matrix(h)
+        li=np.array( [[simple2mixed_shift(self.matrix)],[None],[None],[None]] )
+        for i in range(1,4):
+            li[i][0] = simple2mixed_shift(np.rot90(self.matrix, i))
+        return li
+
+
+eq1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]))
+print(polyline2matrix(eq1.points, 0.2))
+# print(eq1.matrix.shape)
+# eq1.set_matrix(0.2)
+# print(eq1.matrix)
+# eq1.shiftCode()
 
 # eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
-# eq2.set_matrix(0.1)
-# print(eq2.matrix)
+# start_time=time.time()
+# # print(eq2.listOf4Mat2Cod(0.025))
+# print(eq2.list_of_MixedShiftC_4R(0.4))
+# print(time.time() - start_time, " seconds")
