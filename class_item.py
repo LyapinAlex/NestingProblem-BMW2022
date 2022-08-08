@@ -26,7 +26,6 @@ class Item:
         self.matrix = np.ones((math.ceil(
             (x_max - x_min) / h), math.ceil((y_max - y_min) / h)),
                               dtype="int")
-
         return None
 
     def shift2zero(self):
@@ -44,13 +43,13 @@ class Item:
         for i in range(0, (self.points).shape[0]):
             self.points[i][0] -= x_min
             self.points[i][1] -= y_min
-        return [x_min, x_max, y_min, y_max]
+        return [x_max - x_min, y_max - y_min]
 
     def set_matrix(self, h):
         # вычисление размера массива
         size_of_sides = self.shift2zero()
-        n_x = math.ceil((size_of_sides[1] - size_of_sides[0]) / h)
-        n_y = math.ceil((size_of_sides[3] - size_of_sides[2]) / h)
+        n_x = math.ceil(size_of_sides[0] / h)
+        n_y = math.ceil(size_of_sides[1] / h)
 
         # заполнение массива пересечений с осями параллельными оси абсцисс
         edges = np.zeros((n_x + 1, n_y))
@@ -81,15 +80,10 @@ class Item:
                         if (x_p == i1[0]):
                             # относительно первой точки
                             if ((i2[1] - y_p) *
-                                (self.points[(i - 1) %
-                                             (self.points).shape[0]][1] - y_p)
-                                    < 0):
+                                (self.points[(i - 1) % (self.points).shape[0]][1] - y_p) < 0):
                                 edges[math.floor(i1[0] / h + h / 100)][k] += 1
-                            elif (
-                                (i2[1] - y_p) *
-                                (self.points[(i - 1) %
-                                             (self.points).shape[0]][1] - y_p)
-                                    > 0):
+                            elif ((i2[1] - y_p) * 
+                                (self.points[(i - 1) % (self.points).shape[0]][1] - y_p) > 0):
                                 edges[math.floor(i1[0] / h + h / 100)][k] += 2
                         elif (x_p != i2[0]):
                             edges[math.floor(x_p / h + h / 100)][k] += 1
