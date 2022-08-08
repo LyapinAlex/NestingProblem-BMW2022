@@ -27,9 +27,9 @@ class Generator():
         # showPolygon(arpol(getPolygon(), 1.0, 2.0, 10))
    
         for id in range(self.number):
-            points = np.array(uc.arpol(uc.getPolygon(), 3, 5, 4))
+            points = np.array(uc.arpol(uc.getPolygon(), 1, max(self.width, self.len), 4))
             item = class_item.Item(id, points)
-            x = random.gauss(5, 1.5) 
+            x = random.gauss(self.len + self.width / 2, self.len + self.width / 4) 
             # print(item.points) 
 
             for point in item.points:
@@ -47,9 +47,9 @@ class Generator():
             while long*e > self.len or long*e > self.width :
             # while long*e > self.len or long*e > self.width or S < 1.0 :
                 # print("!")
-                points = uc.arpol(uc.getPolygon(),3 ,5, 4)
+                points = np.array(uc.arpol(uc.getPolygon(), 1, max(self.width, self.len), 4))
                 item = class_item.Item(id, points)
-                x = random.gauss(5, 1.5)    
+                x = random.gauss(self.len + self.width / 2, self.len + self.width / 4)   
                 for point in item.points:
                     point[0]*=x
                     point[1]*=x
