@@ -27,13 +27,12 @@ def text2matrix(text, size, fon):
     return matrix
 
 
-# st1 = "No 9"
-# st2 = "No2"
-# fon1 = "HARNGTON.TTF"
-# fon2 = "KUNSTLER.TTF"
-# id1 = 121
-# id2 = 16
-# size1 = 50
-# size2 = 20
+if (__name__=='__main__'):
+    st1 = "No 9"
+    st2 = "No2"
+    fon1 = "HARNGTON.TTF"
+    fon2 = "KUNSTLER.TTF"
+    size1 = 50
+    size2 = 20
 
-# print(text2matrix(id1, st2, size2, fon2))
+    print(text2matrix(st2, size2, fon2))
