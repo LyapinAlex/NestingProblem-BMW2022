@@ -76,8 +76,8 @@ class Item:
 # eq1.set_matrix(0.2)
 # print(eq1.matrix)
 
-eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
-start_time=time.time()
-# print(eq2.listOf4Mat2Cod(0.025))
-print(eq2.list_of_MixedShiftC_4R(0.4))
-print(time.time() - start_time, " seconds")
+# eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
+# start_time=time.time()
+# # print(eq2.listOf4Mat2Cod(0.025))
+# print(eq2.list_of_MixedShiftC_4R(0.4))
+# print(time.time() - start_time, " seconds")
