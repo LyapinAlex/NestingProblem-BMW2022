@@ -64,20 +64,17 @@ class Item:
 
     def list_of_MixedShiftC_4R(self, h):  # крутит против часовой стрелки
         self.set_matrix(h)
-        li = np.array([[simple2mixed_shift(self.matrix)], [None], [None],
-                       [None]])
-        for i in range(1, 4):
-            li[i][0] = simple2mixed_shift(np.rot90(self.matrix, i))
+        li = np.array([None, None, None, None])
+        for i in range(0, 4):
+            li[i] = simple2mixed_shift(np.rot90(self.matrix, i))
         return li
 
 
 # eq1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]))
-# print(eq1.matrix.shape)
-# eq1.set_matrix(0.2)
-# print(eq1.matrix)
+# print(eq1.list_of_MixedShiftC_4R(0.2))
 
 # eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
 # start_time=time.time()
-# # print(eq2.listOf4Mat2Cod(0.025))
-# print(eq2.list_of_MixedShiftC_4R(0.4))
+# # print(eq2.list_of_ShiftC_4R(0.025))
+# print(eq2.list_of_MixedShiftC_4R(0.025))
 # print(time.time() - start_time, " seconds")
