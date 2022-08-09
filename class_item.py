@@ -19,7 +19,7 @@ class Item:
                  lb_x: float = None,
                  lb_y: float = None,
                  pallet_number: int = None,
-                 matrix: list = None):
+                 matrix: list = np.empty([0,0])):
         self.id = id
         self.points = points
         self.lb_x = lb_x
@@ -122,5 +122,4 @@ if (__name__=='__main__'):
     eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
     # print(eq2.list_of_ShiftC_4R(0.025))
     eq2.list_of_MixedShiftC_4R(0.022)
-    print(time.time() - start_time, " seconds")
-    print(eq2.matrix.size)
+    print("---", time.time() - start_time, "seconds ---")
