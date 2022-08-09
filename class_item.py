@@ -63,18 +63,27 @@ class Item:
         return li
 
     def list_of_MixedShiftC_4R(self, h):  # крутит против часовой стрелки
-        self.set_matrix(h)
+        if self.empty_matrix():
+            self.set_matrix(h)
         li = np.array([None, None, None, None])
         for i in range(0, 4):
             li[i] = simple2mixed_shift(np.rot90(self.matrix, i))
         return li
+    
+    def empty_matrix(self):
+        return self.matrix.size == 0
 
 
-# eq1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]))
-# print(eq1.list_of_MixedShiftC_4R(0.2))
+if (__name__=='__main__'):
+    # start_time=time.time()
+    # eq1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]))
+    # eq1.list_of_MixedShiftC_4R(0.025)
+    # print(time.time() - start_time, " seconds")
+    # print(eq1.matrix.shape)
 
-# eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
-# start_time=time.time()
-# # print(eq2.list_of_ShiftC_4R(0.025))
-# print(eq2.list_of_MixedShiftC_4R(0.025))
-# print(time.time() - start_time, " seconds")
+    start_time = time.time()
+    eq2 = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
+    # print(eq2.list_of_ShiftC_4R(0.025))
+    eq2.list_of_MixedShiftC_4R(0.022)
+    print(time.time() - start_time, " seconds")
+    print(eq2.matrix.size)
