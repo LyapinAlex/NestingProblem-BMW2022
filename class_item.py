@@ -52,12 +52,14 @@ class Item:
         mat = polyline2matrix(self.points, h)
         return mat
 
-    def set_rotation(self, rotate):
-        self.rotation = math.ceil(rotate / math.pi * 90)
-        if (self.rotation % 90 == 0):
-            self.matrix = np.rot90(self.matrix, self.rotation // 90)
-        else:
-            print("Не прямой поворот:", self.rotation)
+    def rotationMatrix(self):
+        # self.rotation = math.ceil(rotate / math.pi * 90)
+        # if (self.rotation % 90 == 0):
+        #     self.matrix = np.rot90(self.matrix, self.rotation // 90)
+        # else:
+        #     print("Не прямой поворот:", self.rotation)
+        self.matrix = np.rot90(self.matrix)
+
         return None
 
     def list_of_ShiftC_4R(self, h):  # крутит против часовой стрелки

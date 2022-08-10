@@ -21,7 +21,7 @@ def fit_item_all_route(pallet, item):
                 exit = False
                 bonder = copyItem.lb_x + len(copyItem.matrix)
 
-        item.rotation90_item_matrix()
+        item.rotationMatrix()
 
     return pallet, exit
 

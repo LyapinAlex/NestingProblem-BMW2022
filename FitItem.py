@@ -1,7 +1,7 @@
 def fit_item(pallet, item):
     # print(item.matrix)
-    for i in range(len(pallet[0])):
-        for j in range(len(pallet)):
+    for i in range(len(pallet)):
+        for j in range(len(pallet[0])):
             exit = False
             # условия, что объект влезает
             if len(item.matrix) + i <= len(pallet) and len(item.matrix[0]) + j <= len(pallet[0]):
