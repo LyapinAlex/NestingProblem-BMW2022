@@ -6,6 +6,14 @@ import math
 import random
 import unconvexpoligon as uc
 import numpy as np
+import time 
+import sys
+
+sys.path.append('./smth2matrix')
+sys.path.append('./shift_code')
+from  shift2zero import shift2zero 
+import pdb
+
 
 class Generator():
 
@@ -18,56 +26,7 @@ class Generator():
 
         return
 
-
-    def start(self, e):
-
-        # pp = random.randint(3, 8)
-        pp = 4
-
-        # showPolygon(arpol(getPolygon(), 1.0, 2.0, 10))
-   
-        for id in range(self.number):
-            points = np.array(uc.arpol(uc.getPolygon(), 1, max(self.width, self.len), 4))
-            item = class_item.Item(id, points)
-            x = random.gauss(self.len + self.width / 2, self.len + self.width / 4) 
-            # print(item.points) 
-
-            for point in item.points:
-      
-                point[0]*=x
-                point[1]*=x
-                
-            item.set_matrix(e)
-            # print(item.points) 
-            # исправь для всех сторон
-            long = max( len(item.matrix), len(item.matrix[0]) )
-            
-            S = sum(sum(item.matrix))*e*e
-
-            while long*e > self.len or long*e > self.width :
-            # while long*e > self.len or long*e > self.width or S < 1.0 :
-                # print("!")
-                points = np.array(uc.arpol(uc.getPolygon(), 1, max(self.width, self.len), 4))
-                item = class_item.Item(id, points)
-                x = random.gauss(self.len + self.width / 2, self.len + self.width / 4)   
-                for point in item.points:
-                    point[0]*=x
-                    point[1]*=x
-                item.set_matrix(e)
-                long = max( len(item.matrix), len(item.matrix[0]) )
-                S = sum(sum(item.matrix))*e*e
-
-            # print(item.points)
-            
-            item.surfPoint()
-
-            self.data.append(item)
-           
-
-        return 
-
     def startRectangles(self, e):
-
 
    
         for id in range(self.number):
@@ -93,7 +52,38 @@ class Generator():
 
         return 
 
+    def start(self, e):
+        
+        # создаем
+        for id in range(self.number):
+            # t = time.time()
+            points = np.array(uc.arpol(uc.getPolygon(), 0.0, 1, 3))
+            size = shift2zero(points)
 
-g = Generator(10, 10, 1)
-g.start(0.5)
+            x = random.uniform(e, self.width)
+            y = random.uniform(e, self.len)
+            x/=2
+            y/=2
+            for point in points:
+
+                point[0]*=(x /size[0])
+                point[1]*=(y /size[1])
+
+            item = class_item.Item(id, points)
+            item.list_of_MixedShiftC_4R(e)
+            self.data.append(item)
+            # print( time.time() - t)
+            # print(shift2zero(points))
+        return
+        
+
+
+
+if __name__ == "__main__":
+    t = time.time()
+    g = Generator(20, 10, 1)
+
+    g.start(0.1)
+    print(time.time() - t,'v')
+
 

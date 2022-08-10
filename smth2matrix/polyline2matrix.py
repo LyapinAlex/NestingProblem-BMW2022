@@ -1,6 +1,6 @@
 import numpy as np
 import math
-
+# from shift2zero import shift2zero 
 
 def shift2zero(points):
     # сдвиг фигуры к началу координат

@@ -1,5 +1,8 @@
 import numpy as np
 import math
+# from shift2zero import shift2zero
+from .shift2zero import shift2zero
+
 
 
 def shift2zero(points):
