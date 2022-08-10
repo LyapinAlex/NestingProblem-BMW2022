@@ -1,6 +1,12 @@
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
-from png2matrix import png2matrix
+
+
+if __name__=='__main__':
+    from png2matrix import png2matrix
+else:
+    from .png2matrix import png2matrix
+
 
 
 def svg2matrix(svg_file, h):

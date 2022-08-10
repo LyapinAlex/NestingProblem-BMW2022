@@ -1,7 +1,10 @@
 import numpy as np
 import math
 
-from .shift2zero import shift2zero
+if __name__=='__main__':
+    from shift2zero import shift2zero
+else:
+    from .shift2zero import shift2zero
 
 
 
@@ -117,3 +120,6 @@ def polygon2matrix(points, h):
                         p[0] += step_x
     mat = mat[0:n_x, 0:n_y]
     return mat
+
+if __name__=='__main__':
+    print(polygon2matrix(np.array([[0,2.05],[0.26,0],[2.7,1.74]]), 1))
