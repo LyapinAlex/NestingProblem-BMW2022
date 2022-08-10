@@ -8,10 +8,14 @@ import unconvexpoligon as uc
 import numpy as np
 import time 
 import sys
+from generators.generate_polygon1 import generate_polygon
 
 sys.path.append('./smth2matrix')
 sys.path.append('./shift_code')
+# sys.path.append('./poli')
 from  shift2zero import shift2zero 
+
+
 import pdb
 
 
@@ -57,7 +61,8 @@ class Generator():
         # создаем
         for id in range(self.number):
             # t = time.time()
-            points = np.array(uc.arpol(uc.getPolygon(), 0.0, 1, 3))
+            points = generate_polygon(center=(250, 250), avg_radius=100, irregularity=0.35, spikiness=0.2, num_vertices=4)
+            # points = np.array(uc.arpol(uc.getPolygon(), 0.0, 1, 3))
             size = shift2zero(points)
 
             x = random.uniform(e, self.width)
@@ -83,7 +88,7 @@ if __name__ == "__main__":
     t = time.time()
     g = Generator(20, 10, 1)
 
-    g.start(0.1)
+    g.start(1)
     print(time.time() - t,'v')
 
 
