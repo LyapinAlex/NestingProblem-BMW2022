@@ -61,7 +61,7 @@ class Generator():
         # создаем
         for id in range(self.number):
             # t = time.time()
-            points = generate_polygon(center=(250, 250), avg_radius=100, irregularity=0.35, spikiness=0.2, num_vertices=4)
+            points = generate_polygon(center=(250, 250), avg_radius=100, irregularity=0.35, spikiness=0.2, num_vertices=random.randint(3, 8))
             # points = np.array(uc.arpol(uc.getPolygon(), 0.0, 1, 3))
             size = shift2zero(points)
 
