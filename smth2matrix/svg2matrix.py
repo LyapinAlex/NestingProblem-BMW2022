@@ -11,5 +11,5 @@ def svg2matrix(svg_file, h):
     renderPM.drawToFile(drawing, output, fmt='PNG')
     return png2matrix(output, h)
 
-
-# print(svg2matrix(r'smth2matrix/input/ice.svg', 0.5))
+if (__name__=='__main__'):
+    print(svg2matrix(r'smth2matrix/input/ice.svg', 5))
