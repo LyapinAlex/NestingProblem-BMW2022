@@ -1,7 +1,10 @@
 import numpy as np
 import math
 
-from .shift2zero import shift2zero
+if __name__=='__main__':
+    from shift2zero import shift2zero
+else:
+    from .shift2zero import shift2zero
 
 
 

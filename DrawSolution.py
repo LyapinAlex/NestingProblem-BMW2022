@@ -4,6 +4,8 @@ import math
 
 def draw_pallet(items, pallet_width, pallet_height):
     fig, ax = plt.subplots()
+    fig.set_figheight(7)
+    fig.set_figwidth(7)
    
     pallet = patches.Rectangle((0, 0), pallet_width, pallet_height, linewidth=2, facecolor='none', edgecolor='black')
     ax.add_patch(pallet)
