@@ -82,7 +82,7 @@ class Item:
         self.matix = self.matrix.transpose()
 
         for i in range(0, 4):
-            li[i] = np.rot90(simple2mixed_shift(np.rot90(self.matrix, i - 1)))
+            li[i] = np.rot90(simple2mixed_shift(np.rot90(self.matrix,3 + i )))
             # li[i] = simple2mixed_shift(np.rot90(self.matrix, i ))
         self.matix = self.matrix.transpose()
         self.listMatrix = li

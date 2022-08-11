@@ -25,5 +25,7 @@ def draw_pallet(items, pallet_width, pallet_height):
     return fig, ax
 
 def draw_all_pallets(packing, pallet_width, pallet_leight):
+    
     for i in range(len(packing)):
+      
         draw_pallet(packing[i], pallet_width, pallet_leight)

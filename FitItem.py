@@ -26,5 +26,6 @@ def fit_item(pallet, item):
                 break
         if not exit:
             break
-
+    
+    
     return pallet, exit

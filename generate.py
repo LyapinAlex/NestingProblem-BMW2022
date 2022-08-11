@@ -45,10 +45,10 @@ class Generator():
                 item.set_matrix(e)
                 long = max( len(item.matrix), len(item.matrix[0]) )
             
-            item.surfPoint()
-    
+            
+            item.list_of_MixedShiftC_4R(e)
             self.data.append(item)
-           
+            
 
         return 
 
@@ -57,6 +57,7 @@ class Generator():
         # создаем
         for id in range(self.number):
             # t = time.time()
+            
             points = np.array(uc.arpol(uc.getPolygon(), 0.0, 1, 3))
             size = shift2zero(points)
 

@@ -38,6 +38,7 @@ def fit_pallets(matrix, items, eps):
     pallets = []
     pallets.append(copy.deepcopy(matrix))
     for item in items:
+        # print(item.matrix)
         i=0
         exit = True
         while exit and i<len(pallets):
@@ -49,6 +50,12 @@ def fit_pallets(matrix, items, eps):
                 item.pallet_number = i
                 # print(i)
             i+=1
+        # print('!!!!!!!!!!!!!!!!')
+        # for pal in  pallets:
+        #     for l in pal:
+        #         print(l)
+
+        # print('!!!!!!!!!!!!!!!!')
 
     # print_matrix(pallets)
     find_lb_coordinates(items, eps)
