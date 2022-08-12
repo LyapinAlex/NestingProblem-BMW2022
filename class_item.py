@@ -82,6 +82,10 @@ class Item:
     
         for i in range(0, 4):
             li[i] = np.rot90(simple2mixed_shift(np.rot90(self.matrix,3 + i )))
+
+        # np.rot90(self.matrix)
+        # for i in range(0, 4):
+        #     li[i] = simple2mixed_shift(self.matrix)
         
         self.listMatrix = li
         return None
@@ -113,20 +117,8 @@ class Item:
         return
 
     def surfPoint(self):
-        # вычисление размера массива
-
-        # self.points = self.points.tolist()
-
-        minX = sorted(self.points, key=lambda point: point[0])[0][0]
-        minY = sorted(self.points, key=lambda point: point[1])[0][1]
-
-        # print(minX)
-        for point in self.points:
-            point[0] = point[0] - minX
-            point[1] = point[1] - minY
-
-        # self.points = np.array(self.points)
-        return None
+        
+        return shift2zero(self.points)
 
 
 def draw_polygon(item, h):

@@ -27,34 +27,72 @@ def draw_pallet(items, pallet_width, pallet_height, eps):
        
         # item.surfPoint()
         pointsCopy = copy.deepcopy(item.points)
+        r = int(item.rotation*2 / math.pi)
 
-        print(item.rotation)
+        print(r)
 
-        for point in pointsCopy:
+        item.surfPoint()
+        
+        for point in item.points:
+
             point0_copy = point[0]
             point1_copy = point[1]
-            point[0] = math.cos(item.rotation)*point0_copy - math.sin(item.rotation)*point1_copy
-            point[1] =  math.sin(item.rotation)*point0_copy + math.cos(item.rotation)*point1_copy
+            if r == 0:
+                continue
+            if r == 1:
+
+                point[0] = -point1_copy
+                point[1] = point0_copy
+
+            if r == 2:
+                point[0] = -point0_copy
+                point[1] = -point1_copy
+            if r == 3:
+
+                point[0] = point1_copy
+                point[1] = -point0_copy
+
+   
         
-        # item.surfPoint()
-        # pointsCopy
+        
+        # print('?')
+        
+        # print(item.surfPoint())
 
-        minX = sorted(pointsCopy, key=lambda point: point[0])[0][0]
-        minY = sorted(pointsCopy, key=lambda point: point[1])[0][1]
+        for point in item.points:
 
-        # print(minX)
-        for point in pointsCopy:
-            point[0] = point[0] - minX
-            point[1] = point[1] - minY
+            
+            if r == 0:
+                point[0] += item.lb_x
+                point[1] += item.lb_y
+            if r == 1:
 
-        for point in pointsCopy:
-            point[0] += item.lb_x
-            point[1] += item.lb_y
+                point[0] += item.lb_x + eps*len(item.matrix[0])
+                point[1] += item.lb_y
 
-        polygon = patches.Polygon(pointsCopy, linewidth=1, facecolor='silver', edgecolor='black')
+            if r == 2:
+                point[0] += item.lb_x + eps*len(item.matrix)
+                point[1] += item.lb_y + eps*len(item.matrix[0])
+            if r == 3:
+
+                point[0] += item.lb_x
+                point[1] += item.lb_y + eps*len(item.matrix)
+
+      
+
+
+
+        # for point in item.points:
+        #     point[0] += item.lb_x
+        #     point[1] += item.lb_y
+
+        # print(pointsCopy)
+
+
+
+        polygon = patches.Polygon(item.points, linewidth=1, facecolor='silver', edgecolor='black')
         ax.add_patch(polygon)
 
-        r = int(item.rotation*2 / math.pi)
         # matrix =  np.rot90(item.matrix, r)
         matrix =  item.listMatrix[r]
         # print(np.shape(matrix))

@@ -79,7 +79,7 @@ def print_matrix(matrix):
 eps = 1
 pallet_width = 20
 pallet_height = 20
-numPoligons = 10
+numPoligons = 20
 
             
 
@@ -222,19 +222,18 @@ def fit_item_all_route(pallet, item):
     
     rout = 0
     exit = True
+    # r = 0
     for r in range(4):  
-        
+    
         sol = check_item(pallet,  listMatrix[r])
-        if sol[0] == False:
-            if sol[1] + len(listMatrix[r]) <=  bounder_x:
-                if sol[2] <  bounder_y:
-                    item.lb_x = sol[1]
-                    item.lb_y = sol[2]
-                    item.rotation = r * math.pi / 2
-                    exit = False
-                    bounder_x = sol[1]  + len(listMatrix[r])
-                    bounder_y = sol[2]  
-                    rout = r
+        if sol[0] == False and ((sol[1] + len(listMatrix[r]) < bounder_x) or (sol[1] + len(listMatrix[r]) < bounder_x  and sol[2] < bounder_y)):
+            item.lb_x = sol[1]
+            item.lb_y = sol[2]
+            item.rotation = r * math.pi / 2
+            exit = False
+            bounder_x = sol[1]  + len(listMatrix[r])
+            bounder_y = sol[2]  
+            rout = r
 
         
     if not exit:
@@ -271,8 +270,9 @@ def fit_pallets(matrix_shape, items, eps):
                 
                 item.pallet_number = i
             i+=1
-            draw_all_pallets(understand_pallets(items), pallet_width, pallet_height, eps)
-            pdb.set_trace()
+            # draw_all_pallets(understand_pallets(items), pallet_width, pallet_height, eps)
+            # pdb.set_trace()
+            
 
             # draw_all_pallets(understand_pallets(items), pallet_width, pallet_height)
      
@@ -285,8 +285,8 @@ items = g.start(eps)
 
 # for item in items:
 #     item.show_item(eps)
-for item in items:
-    print(item.points)
+# for item in items:
+#     print(item.points)
 
 
 t = time.time()
@@ -294,14 +294,15 @@ t = time.time()
 pal = fit_pallets(pal.shape, items, eps )
 # print(locSearch(pal.shape , items2, eps))
 print(time.time() - t)
-print(pal[0])
+# print(pal[0])
+
 
 
 # for item in items:
 #     print(item.id)
 #     print(item.matrix)
 
-# draw_all_pallets(understand_pallets(items), pallet_width, pallet_height, eps)
+draw_all_pallets(understand_pallets(items), pallet_width, pallet_height, eps)
 # for item in items:
     
 #     print(item.points)
