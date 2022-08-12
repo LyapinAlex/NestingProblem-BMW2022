@@ -90,7 +90,7 @@ class Item:
         return self.matrix.size == 0
 
 
-    def show_item(self):
+    def show_item(self,eps):
         pointsX = []
         pointsY = []
         for point in self.points:
@@ -99,6 +99,15 @@ class Item:
         pointsX.append(self.points[0][0])
         pointsY.append(self.points[0][1])
         plt.plot(np.array(pointsX), np.array(pointsY), '-k')
+
+        r = int(self.rotation*2 / math.pi)
+        matrix =  np.rot90(self.matrix, r)
+        # print(np.shape(matrix))
+        for i in range(np.shape(matrix)[0]):
+            for j in range(np.shape(matrix)[1]):
+                if matrix[i,j] != 0:
+                    plt.scatter([ eps*(i + 1/2)],[eps*(j + 1/2)], c ='r' )
+
         plt.show()
         return
 

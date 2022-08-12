@@ -57,12 +57,12 @@ class Generator():
         return 
 
     def start(self, e):
-        
+        data = [] 
         # создаем
         for id in range(self.number):
             # t = time.time()
             
-            points = np.array(uc.arpol(uc.getPolygon(), 0.0, 1, 3))
+            points = np.array(uc.arpol(uc.getPolygon(), 0.0, 1, 4))
             size = shift2zero(points)
 
             x = random.uniform(e, self.width)
@@ -76,21 +76,21 @@ class Generator():
 
             item = class_item.Item(id, points)
             item.list_of_MixedShiftC_4R(e)
-            self.data.append(item)
-            print(item.matrix)
-            item.show_item()
+            data.append(item)
+            # print(item.matrix)
+            # item.show_item(e)
             # for r in range(4):
                 # print(item.listMatrix[r])
             # print( time.time() - t)
             # print(shift2zero(points))
-        return
+        return data
         
 
 
 
 if __name__ == "__main__":
     t = time.time()
-    g = Generator(10, 10, 1)
+    g = Generator(15, 15, 1)
 
     g.start(1)
     print(time.time() - t,'v')

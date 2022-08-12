@@ -18,25 +18,57 @@ import pdb
 
 
 
-def draw_pallet(items, pallet_width, pallet_height):
-    # fig, ax = plt.subplots(figsize=(pallet_height, pallet_height))
+# def draw_pallet(items, pallet_width, pallet_height):
+#     # fig, ax = plt.subplots(figsize=(pallet_height, pallet_height))
+#     fig, ax = plt.subplots()
+#     pallet = patches.Rectangle((0, 0), pallet_width, pallet_height, linewidth=2, facecolor='none', edgecolor='blue')
+#     ax.add_patch(pallet)
+#     ax.set_xlim(-1, pallet_width + 1)
+#     ax.set_ylim(-1, pallet_height + 1)
+#     for item in items:
+#         for point in item.points:
+#             point0_copy = point[0]
+#             point[0] = math.cos(item.rotation)*point[0] - math.sin(item.rotation)*point[1]
+#             point[1] = math.sin(item.rotation)*point0_copy + math.cos(item.rotation)*point[1]
+#         item.surfPoint()
+#         for point in item.points:
+#             point[0] += item.lb_x
+#             point[1] += item.lb_y
+#         polygon = patches.Polygon(item.points)
+#         ax.add_patch(polygon)
+#     return fig, ax
+
+def draw_item(item, eps):
     fig, ax = plt.subplots()
-    pallet = patches.Rectangle((0, 0), pallet_width, pallet_height, linewidth=2, facecolor='none', edgecolor='blue')
+    pallet = patches.Rectangle((0, 0),  pallet_width, pallet_height, linewidth=2, facecolor='none', edgecolor='blue')
     ax.add_patch(pallet)
-    ax.set_xlim(-1, pallet_width + 1)
-    ax.set_ylim(-1, pallet_height + 1)
-    for item in items:
-        for point in item.points:
-            point0_copy = point[0]
-            point[0] = math.cos(item.rotation)*point[0] - math.sin(item.rotation)*point[1]
-            point[1] = math.sin(item.rotation)*point0_copy + math.cos(item.rotation)*point[1]
-        item.surfPoint()
-        for point in item.points:
-            point[0] += item.lb_x
-            point[1] += item.lb_y
-        polygon = patches.Polygon(item.points)
-        ax.add_patch(polygon)
+
+
+    # for point in item.points:
+    #     point0_copy = point[0]
+    #     point[0] = math.cos(item.rotation)*point[0] - math.sin(item.rotation)*point[1]
+    #     point[1] = math.sin(item.rotation)*point0_copy + math.cos(item.rotation)*point[1]
+
+    # item.surfPoint()
+    for point in item.points:
+        point[0] += item.lb_x
+        point[1] += item.lb_y
+
+
+    polygon = patches.Polygon(item.points)
+    ax.add_patch(polygon)
+
+    r = int(item.rotation*2 / math.pi)
+    matrix =  np.rot90(item.matrix, r)
+    # print(np.shape(matrix))
+    for i in range(np.shape(matrix)[0]):
+        for j in range(np.shape(matrix)[1]):
+            if matrix[i,j] > 0:
+                plt.scatter([ item.lb_x + eps*(i + 1/2)],[item.lb_y + eps*(j + 1/2)], c ='r' )
+        
+    plt.show()
     return fig, ax
+    
 
 def print_matrix(matrix):
     for i in range(len(matrix)):
@@ -45,36 +77,10 @@ def print_matrix(matrix):
 
 
 eps = 1
-pallet_width = 10
-pallet_height = 10
-numPoligons = 20
+pallet_width = 20
+pallet_height = 20
+numPoligons = 10
 
-def getItems(number, e):
-    data = []
-    for id in range(number):
-            # t = time.time()
-                
-        points = np.array(uc.arpol(uc.getPolygon(), 0.0, 1, 3))
-        size = shift2zero(points)
-
-        x = random.uniform(e, pallet_width)
-        y = random.uniform(e, pallet_height)
-        x/=2
-        y/=2
-        for point in points:
-
-            point[0]*=(x /size[0])
-            point[1]*=(y /size[1])
-
-        item = Item(id, points)
-        item.list_of_MixedShiftC_4R(e)
-        data.append(item)
-        # print(item.matrix)
-        # for r in range(4):
-            # print(item.listMatrix[r])
-        # print( time.time() - t)
-        # print(shift2zero(points))
-    return data
             
 
 
@@ -84,14 +90,18 @@ pal = pallet.Pallet(0, pallet_width, pallet_height, eps)
 
 def understand_pallets(items):
     packing = []
-    usedNumPallet = max([item.pallet_number for item in items])
+    itemsCom = []
+    for item in items:
+        if item.pallet_number != None:
+            itemsCom.append(item)
+    usedNumPallet = max([item.pallet_number for item in  itemsCom])
 
     for i in range(usedNumPallet  + 1):
         # print(i)
         packing.append([])
 
     for i in range(usedNumPallet  + 1):
-        for item in items:
+        for item in itemsCom:
             if item.pallet_number > len(packing):
                     packing.append([])
             if item.pallet_number == i:
@@ -168,7 +178,7 @@ def check_item(pallet, itemMatrix):
 
                 # если пересечений нет и элемент влезает, то добавляем его
                 if not exit:
-                    
+                 
                     lb_x = i
                     lb_y = j    
                     break
@@ -229,7 +239,7 @@ def fit_item_all_route(pallet, item):
         
     if not exit:
         fit_item(pallet, listMatrix[rout], item.lb_x, item.lb_y )
-
+  
     
     return pallet, exit
 
@@ -261,20 +271,43 @@ def fit_pallets(matrix_shape, items, eps):
                 
                 item.pallet_number = i
             i+=1
+            draw_all_pallets(understand_pallets(items), pallet_width, pallet_height, eps)
+            pdb.set_trace()
 
             # draw_all_pallets(understand_pallets(items), pallet_width, pallet_height)
      
     find_lb_coordinates(items, eps)
-
     return pallets
 
 
+g= generate.Generator(pallet_width, pallet_height, numPoligons )
+items = g.start(eps)
 
-items2 = getItems(10, eps)
+# for item in items:
+#     item.show_item(eps)
+for item in items:
+    print(item.points)
+
 
 t = time.time()
 # l = np.zeros((pallet_width, pallet_height), dtype = np.uint16)
-pal = fit_pallets(pal.shape, items2, eps )
+pal = fit_pallets(pal.shape, items, eps )
 # print(locSearch(pal.shape , items2, eps))
 print(time.time() - t)
-draw_all_pallets(understand_pallets(items2), pallet_width, pallet_height)
+print(pal[0])
+
+
+# for item in items:
+#     print(item.id)
+#     print(item.matrix)
+
+# draw_all_pallets(understand_pallets(items), pallet_width, pallet_height, eps)
+# for item in items:
+    
+#     print(item.points)
+#     # draw_item(item, eps)
+#     print(int(item.rotation*2 / math.pi))
+#     print(item.id)
+#     print(item.listMatrix[int(item.rotation*2 / math.pi)])
+#     print(item.lb_x, item.lb_y)
+#     print('\n')
