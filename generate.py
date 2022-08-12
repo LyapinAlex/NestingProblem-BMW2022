@@ -9,11 +9,13 @@ import numpy as np
 import time 
 import sys
 
-points = np.array([[0, 2.05], [0.26, 0], [2.7,  1.7]])
+points = np.array([[6.09471997, 4.11162817],
+ [4.0 ,         5.04845032], [4.6250296,  1.        ]])
 
 sys.path.append('./smth2matrix')
 sys.path.append('./shift_code')
 from  shift2zero import shift2zero 
+
 import pdb
 
 
@@ -75,7 +77,10 @@ class Generator():
             item = class_item.Item(id, points)
             item.list_of_MixedShiftC_4R(e)
             self.data.append(item)
-            # print(item.matrix)
+            print(item.matrix)
+            item.show_item()
+            # for r in range(4):
+                # print(item.listMatrix[r])
             # print( time.time() - t)
             # print(shift2zero(points))
         return

@@ -25,7 +25,8 @@ def draw_pallet(items, pallet_width, pallet_height):
    
         polygon = patches.Polygon(item.points, linewidth=1, facecolor='silver', edgecolor='black')
         ax.add_patch(polygon)
-        
+    
+
     plt.savefig('pallet' + str(items[0].pallet_number) + '.png')
     return fig, ax
 
