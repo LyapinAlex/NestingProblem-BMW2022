@@ -4,13 +4,19 @@ import math
 
 def draw_pallet(items, pallet_width, pallet_height):
     fig, ax = plt.subplots()
-    fig.set_figheight(7)
-    fig.set_figwidth(7)
+    MAX_SIZE = 7
+    if pallet_width > pallet_height:
+        fig.set_figheight(MAX_SIZE * pallet_height/pallet_width)
+        fig.set_figwidth(MAX_SIZE)
+    else:
+        fig.set_figheight(MAX_SIZE)
+        fig.set_figwidth(MAX_SIZE * pallet_width/pallet_height)
+
    
     pallet = patches.Rectangle((0, 0), pallet_width, pallet_height, linewidth=2, facecolor='none', edgecolor='black')
     ax.add_patch(pallet)
-    ax.set_xlim(-1, pallet_width + 1)
-    ax.set_ylim(-1, pallet_height + 1)
+    ax.set_xlim(-0.5, pallet_width + 0.5)
+    ax.set_ylim(-0.5, pallet_height + 0.5)
 
     for item in items:
         for point in item.points:
