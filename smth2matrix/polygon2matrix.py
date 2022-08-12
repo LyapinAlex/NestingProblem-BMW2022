@@ -17,8 +17,8 @@ def polygon2matrix(points, h):
     # заполнение массива пересечений с осями параллельными оси абсцисс
     edges = np.zeros((n_x + 1, n_y))
     for k in range(0, n_y):
-        for i in range(0, (points).shape[0]):
-            j = (i + 1) % (points).shape[0]
+        for i in range(0, points.shape[0]):
+            j = (i + 1) % points.shape[0]
             if ((min(points[i][1], points[j][1]) <= k * h)
                     and (k * h <= max(points[i][1], points[j][1]))):
                 i1 = np.copy(points[i])  # i - номер точки i1
@@ -120,3 +120,6 @@ def polygon2matrix(points, h):
                         p[0] += step_x
     mat = mat[0:n_x, 0:n_y]
     return mat
+
+if __name__=='__main__':
+    print(polygon2matrix(np.array([[0,2.05],[0.26,0],[2.7,1.74]]), 1))
