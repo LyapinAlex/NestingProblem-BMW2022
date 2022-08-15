@@ -20,19 +20,68 @@ def draw_pallet(items, pallet_width, pallet_height, h):
     ax.set_ylim(-0.5, pallet_height + 2)
 
     for item in items:
-        for point in item.points:
-            point0_copy = point[0]
-            point[0] = math.cos(item.rotation)*point[0] - math.sin(item.rotation)*point[1]
-            point[1] = math.sin(item.rotation)*point0_copy + math.cos(item.rotation)*point[1]
-        
+
+        r = int(item.rotation*2 / math.pi)
         item.surfPoint()
+        
         for point in item.points:
-            point[0] += item.lb_x
-            point[1] += item.lb_y
-   
-        for j in range(item.matrix.shape[1]):
-            for i in range(item.matrix.shape[0]):
-                if item.matrix[i][j]:
+
+            point0_copy = point[0]
+            point1_copy = point[1]
+            if r == 0:
+                continue
+            if r == 1:
+
+                point[0] = -point1_copy
+                point[1] = point0_copy
+
+            if r == 2:
+                point[0] = -point0_copy
+                point[1] = -point1_copy
+            if r == 3:
+
+                point[0] = point1_copy
+                point[1] = -point0_copy
+
+        for point in item.points:
+
+            
+            if r == 0:
+                point[0] += item.lb_x
+                point[1] += item.lb_y
+            if r == 1:
+
+                point[0] += item.lb_x + h*len(item.matrix[0])
+                point[1] += item.lb_y
+
+            if r == 2:
+                point[0] += item.lb_x + h*len(item.matrix)
+                point[1] += item.lb_y + h*len(item.matrix[0])
+            if r == 3:
+
+                point[0] += item.lb_x
+                point[1] += item.lb_y + h*len(item.matrix)
+
+      
+
+
+
+
+        # for point in item.points:
+        #     point0_copy = point[0]
+        #     point[0] = math.cos(item.rotation)*point[0] - math.sin(item.rotation)*point[1]
+        #     point[1] = math.sin(item.rotation)*point0_copy + math.cos(item.rotation)*point[1]
+        
+        # item.surfPoint()
+        # for point in item.points:
+        #     point[0] += item.lb_x
+        #     point[1] += item.lb_y
+
+        matrix = item.listMatrix[r]
+
+        for j in range(matrix.shape[1]):
+            for i in range(matrix.shape[0]):
+                if matrix[i][j] > 0:
                     sqver = np.array([[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
                     for i in range(sqver.shape[0]):
                         sqver[i][0] += item.lb_x

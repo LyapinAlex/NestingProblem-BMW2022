@@ -77,9 +77,9 @@ def print_matrix(matrix):
 
 
 eps = 1
-pallet_width = 20
-pallet_height = 20
-numPoligons = 20
+pallet_width = 50
+pallet_height = 30
+numPoligons = 40
 
             
 
@@ -275,9 +275,82 @@ def fit_pallets(matrix_shape, items, eps):
             
 
             # draw_all_pallets(understand_pallets(items), pallet_width, pallet_height)
-     
+    
+    # print(len(pallets))
     find_lb_coordinates(items, eps)
     return pallets
+
+def swap(list, pos1, pos2):
+
+    list[pos1], list[pos2] = list[pos2], list[pos1]
+    return list
+
+
+# перениси это item class
+def clearCoordinat(item):
+    item.lb_x = None
+    item.lb_y = None
+    item.rotation = 0.0
+    item.pallet_number = None
+
+    return None
+
+
+def locSearch(matrix_shape , poligons, eps):
+
+    n = len( poligons)
+    objVal = len(fit_pallets(matrix_shape,  poligons, eps))
+
+    # print(poligons[0].lb_x)
+    stop = False
+    iter = 0
+    while not stop:
+        # print([item.id for item in poligons])
+        
+        t = time.time()
+        betterNeighboor = (0,0)
+        stop = True
+        for i in range(n):
+
+            for j in range(i + 1, n):
+
+                for poligon in poligons:
+                    clearCoordinat(poligon)
+
+            
+                pal = fit_pallets(matrix_shape, swap(poligons, i, j), eps)
+                swap(poligons, i, j)
+                
+                val = len(pal)
+                if val < objVal:
+                    # print(i,j)
+                    # print('best', val, 'c', i, j)
+                    
+
+                    stop = False
+                    objVal = val
+                    betterNeighboor = (i,j)
+                    
+        print(iter, ':', objVal, 't :', time.time() - t)
+        iter+=1
+            
+        if betterNeighboor != (0,0):
+            # print('1*1')
+            fit_pallets(matrix_shape, swap(poligons, betterNeighboor[0], betterNeighboor[1]), eps)
+            
+    for poligon in poligons:
+        clearCoordinat(poligon)
+    fit_pallets(matrix_shape,  poligons, eps)
+
+        # print([item.id for item in poligons])
+        
+                
+
+    # for item in poligonsBest:
+    #     print(item.lb_x, item.lb_y, item.rotation)
+    draw_all_pallets(understand_pallets(poligons), pallet_width, pallet_height, eps)
+    # draw_all_pallets(understand_pallets(items), pallet_width, pallet_height, eps)
+    return objVal
 
 
 g= generate.Generator(pallet_width, pallet_height, numPoligons )
@@ -291,8 +364,8 @@ items = g.start(eps)
 
 t = time.time()
 # l = np.zeros((pallet_width, pallet_height), dtype = np.uint16)
-pal = fit_pallets(pal.shape, items, eps )
-# print(locSearch(pal.shape , items2, eps))
+# pal = fit_pallets(pal.shape, items, eps )
+print(locSearch(pal.shape , items, eps))
 print(time.time() - t)
 # print(pal[0])
 
@@ -302,7 +375,7 @@ print(time.time() - t)
 #     print(item.id)
 #     print(item.matrix)
 
-draw_all_pallets(understand_pallets(items), pallet_width, pallet_height, eps)
+# draw_all_pallets(understand_pallets(items), pallet_width, pallet_height, eps)
 # for item in items:
     
 #     print(item.points)
