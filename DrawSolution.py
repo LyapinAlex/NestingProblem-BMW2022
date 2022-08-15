@@ -2,6 +2,7 @@ from matplotlib import pyplot as plt
 from matplotlib import patches
 import numpy as np
 import math
+import random
 
 def draw_pallet(items, pallet_width, pallet_height, h):
     fig, ax = plt.subplots()
@@ -79,6 +80,7 @@ def draw_pallet(items, pallet_width, pallet_height, h):
 
         matrix = item.listMatrix[r]
 
+        random_color = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
         for j in range(matrix.shape[1]):
             for i in range(matrix.shape[0]):
                 if matrix[i][j] > 0:
@@ -86,7 +88,7 @@ def draw_pallet(items, pallet_width, pallet_height, h):
                     for i in range(sqver.shape[0]):
                         sqver[i][0] += item.lb_x
                         sqver[i][1] += item.lb_y
-                    polygon = patches.Polygon(sqver, linewidth=1, facecolor='silver', edgecolor='black', alpha = 0.33)
+                    polygon = patches.Polygon(sqver, linewidth=1, facecolor=random_color, edgecolor='black', alpha = 0.33)
                     ax.add_patch(polygon)
         polygon = patches.Polygon(item.points, linewidth=1, edgecolor='red', fill = False)
         ax.add_patch(polygon)

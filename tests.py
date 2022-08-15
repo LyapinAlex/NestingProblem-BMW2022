@@ -1,6 +1,10 @@
 import time
 import numpy as np
 from class_item import Item
+import random
+
+random_color = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
+print(type(random_color))
 
 # start_time = time.time()
 # it = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
