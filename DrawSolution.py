@@ -21,65 +21,41 @@ def draw_pallet(items, pallet_width, pallet_height, h):
     ax.set_ylim(-0.5, pallet_height + 2)
 
     for item in items:
-
         r = int(item.rotation*2 / math.pi)
-        item.surfPoint()
+        item.shift2zero()
         
         for point in item.points:
-
             point0_copy = point[0]
             point1_copy = point[1]
+
             if r == 0:
                 continue
-            if r == 1:
-
+            elif r == 1:
                 point[0] = -point1_copy
                 point[1] = point0_copy
-
-            if r == 2:
+            elif r == 2:
                 point[0] = -point0_copy
                 point[1] = -point1_copy
-            if r == 3:
-
+            elif r == 3:
                 point[0] = point1_copy
                 point[1] = -point0_copy
 
         for point in item.points:
-
-            
             if r == 0:
                 point[0] += item.lb_x
                 point[1] += item.lb_y
-            if r == 1:
-
+            elif r == 1:
                 point[0] += item.lb_x + h*len(item.matrix[0])
                 point[1] += item.lb_y
-
-            if r == 2:
+            elif r == 2:
                 point[0] += item.lb_x + h*len(item.matrix)
                 point[1] += item.lb_y + h*len(item.matrix[0])
-            if r == 3:
-
+            elif r == 3:
                 point[0] += item.lb_x
                 point[1] += item.lb_y + h*len(item.matrix)
 
-      
-
-
-
-
-        # for point in item.points:
-        #     point0_copy = point[0]
-        #     point[0] = math.cos(item.rotation)*point[0] - math.sin(item.rotation)*point[1]
-        #     point[1] = math.sin(item.rotation)*point0_copy + math.cos(item.rotation)*point[1]
-        
-        # item.surfPoint()
-        # for point in item.points:
-        #     point[0] += item.lb_x
-        #     point[1] += item.lb_y
-
-        matrix = item.listMatrix[r]
-
+        matrix = item.list_matrix[r]
+        # отрисовка растрового приближения
         random_color = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
         for j in range(matrix.shape[1]):
             for i in range(matrix.shape[0]):
@@ -93,10 +69,14 @@ def draw_pallet(items, pallet_width, pallet_height, h):
         polygon = patches.Polygon(item.points, linewidth=1, edgecolor='red', fill = False)
         ax.add_patch(polygon)
         
-    plt.savefig('pallet' + str(items[0].pallet_number) + '.png')
-    return fig, ax
+    plt.savefig('output\pallet' + str(items[0].pallet_number) + '.png')
+    return None
 
-def draw_all_pallets(packing, pallet_width, pallet_leight, h):
-    
+
+def draw_all_pallets(packing, pallet_width, pallet_height, h):
+
     for i in range(len(packing)):
-        draw_pallet(packing[i], pallet_width, pallet_leight, h)
+        draw_pallet(packing[i], pallet_width, pallet_height, h)
+    
+    return None
+    
