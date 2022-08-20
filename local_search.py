@@ -28,144 +28,118 @@ def understand_pallets(items):
     return packing
 
 
-def check_position(pal_pixel, item_pixel):
-    placed = True
-    shift = 1
+def check_pixel(pal_pixel, item_pixel):
+    """Если текущее расположение возможно (placed=True), возвращает то на сколько надо сдвинуться вправо (shift), 
+    чтоб проверить следущий пиксель пропуская пустоты предмета
     
+    Если текущее расположение невозможно (placed=False), возвращает то на сколько надо сдвинуться вправо (shift), 
+    чтоб выйти за пределы заполненности
+    
+    Returns:
+        placed, shift"""
+    placed = None
+    shift = None
 
-    if pal_pixel == 0:
+    if item_pixel < 0:
+        placed = True
+        shift = -item_pixel
+    elif pal_pixel == 0:
         placed = True
         shift = 1
     else:
-        if item_pixel > 0:
-            placed = False
-            shift = pal_pixel
-            
-        else:
-            if item_pixel in range(0, -pal_pixel, -1):
-                placed = False
-                shift = pal_pixel + item_pixel
-                
-            else:
-                placed = True
-                shift = 1
-
+        placed = False
+        shift = pal_pixel
     return placed, shift
 
 
-def check_item(pallet, itemMatrix):
+def check_item(pallet, item_matrix):
+    """Ищет место где можно расположить объект
+    
+    Returns:
+        placed_item, lb_x, lb_y"""
     lb_x = -1
     lb_y = -1
-
-    for i in range( len(pallet)):
+    placed_item = False
+    i = 0
+    while (i < pallet.shape[0] - item_matrix.shape[0]+1) and not placed_item:
         j = 0
-        while j < len( pallet[0]):
-            exit = False
-            check = check_position(pallet[i][j], itemMatrix[0][0])
-
-            # print(time.time() - t)
-            if check[0]:
-
-                if len(itemMatrix) + i <= len(pallet) and len(itemMatrix[0]) + j <= len(pallet[0]):
-
-                    # располагаем объект
-                    for p in range(len(itemMatrix)):
-
-                        for k in range(len(itemMatrix[0])):
-
-                            # решаем есть ли пересечение
-                            if pallet[i+p][j+k] > 0:
-
-                                if itemMatrix[p][k] > 0:
-                                    exit = True
-                                    break
-                        if exit:
-                            break
-                else:
-                    exit = True
-
-                # если пересечений нет и элемент влезает, то добавляем его
-                if not exit:
-                    lb_x = i
-                    lb_y = j    
-                    break
-
-            else:
-                exit = True
-            j+=check[1]
-                
-        if not exit:
-            break
-
-    return exit, lb_x, lb_y  
+        while (j < pallet.shape[1] - item_matrix.shape[1]+1) and not placed_item:
+            p = 0
+            placed_pixel = True
+            while (p < item_matrix.shape[0]) and placed_pixel:
+                k = 0
+                while (k < item_matrix.shape[1]) and placed_pixel:
+                    placed_pixel, shift = check_pixel(pallet[i+p][j+k], item_matrix[p][k])
+                    k+=shift
+                p+=1
+            if placed_pixel: 
+                placed_item = True
+                lb_x = i
+                lb_y = j 
+            j+=1
+        i+=1
+    return placed_item, lb_x, lb_y
 
 
-def fit_item(pallet, itemMatrix, i, j):
-
-    for p in range(len(itemMatrix)):
-
+def fit_item(pallet, item_matrix, i, j):
+    """Располагает предмет на палете"""
+    for p in range(item_matrix.shape[0]):
         k = 0
-        while k < len(itemMatrix[0]):
-
-            if  itemMatrix[p][k] > 0:
-                pallet[i+p][j+k] += itemMatrix[p][k]
-                k+=1
+        while k < item_matrix.shape[1]:
+            if  item_matrix[p][k] > 0:
+                pallet[i+p][j+k] += item_matrix[p][k]
+                k += 1
             else:
-                k-= itemMatrix[p][k]
-    
+                k -= item_matrix[p][k]
     return None
 
 
 def fit_item_all_route(pallet, item):
+    """Выбирает лучший поворот предмета и располагает его на палете"""
     list_matrix = item.list_matrix 
-    
-    bounder_y = pallet.shape[1]
-    bounder_x = pallet.shape[0]
-    
+    N_x = pallet.shape[0] + 1
+    N_y = pallet.shape[1] + 1
     rout = 0
-    exit = True
+    placed_item = False
     # r = 0
     for r in range(4):  
         sol = check_item(pallet,  list_matrix[r])
-        if sol[0] == False and ((sol[1] + len(list_matrix[r]) < bounder_x) or (sol[1] + len(list_matrix[r]) < bounder_x  and sol[2] < bounder_y)):
+        if sol[0] and ((sol[1] + len(list_matrix[r]) < N_x) or (sol[1] + len(list_matrix[r]) < N_x  and sol[2] < N_y)):
             item.lb_x = sol[1]
             item.lb_y = sol[2]
             item.rotation = r * math.pi / 2
-            exit = False
-            bounder_x = sol[1]  + len(list_matrix[r])
-            bounder_y = sol[2]  
+
+            N_x = sol[1]  + len(list_matrix[r])
+            N_y = sol[2]  
             rout = r
+            placed_item = True
 
-    if not exit:
-        fit_item(pallet, list_matrix[rout], item.lb_x, item.lb_y )
+    if placed_item:
+        fit_item(pallet, list_matrix[rout], item.lb_x, item.lb_y)
   
-    return pallet, exit
+    return not placed_item
 
-def find_lb_coordinates(items, eps):
+
+def find_lb_coordinates(items, h):
+    """Переводит растровые координаты в векторные"""
     for item in items:
-        item.lb_x = item.lb_x * eps
-        item.lb_y = item.lb_y * eps
+        item.lb_x = item.lb_x * h
+        item.lb_y = item.lb_y * h
     return items
 
 
-# # для того что бы убрать поворот, замени метод fit_item_all_route  на fit_item
+# для того что бы убрать поворот, замени метод fit_item_all_route  на fit_item
 def fit_pallets(matrix_shape, items, eps):
-    
     pallets = []
     pallets.append(np.zeros(matrix_shape, dtype = np.uint16))
     for item in items:
- 
         i=0
         exit = True
-        while exit and i<len(pallets):
-            # print(pallets[i].rot90(), i )
-           
-            pallets[i], exit = fit_item_all_route(pallets[i], item)
-            if exit and i==(len(pallets)-1):
-
+        while exit and i < len(pallets):
+            exit = fit_item_all_route(pallets[i], item)
+            if exit and i == (len(pallets)-1):
                 pallets.append(np.zeros(matrix_shape, dtype = np.uint16))
             if not exit:
-                
                 item.pallet_number = i
             i+=1
     
@@ -178,7 +152,7 @@ def swap(list, pos1, pos2):
     return list
 
 
-def locSearch(matrix_shape , poligons, eps):
+def locSearch(matrix_shape, poligons, eps):
 
     n = len( poligons)
     objVal = len(fit_pallets(matrix_shape,  poligons, eps))
@@ -230,10 +204,10 @@ def locSearch(matrix_shape , poligons, eps):
 
 
 if (__name__=='__main__'):
-    eps = 5
-    pallet_width = 20
+    eps = 1
+    pallet_width = 30
     pallet_height = 20
-    numPoligons = 10
+    numPoligons = 20
 
     pal = pallet.Pallet(0, pallet_width, pallet_height, eps)
     g = generate.Generator(pallet_width, pallet_height, numPoligons )
@@ -241,6 +215,7 @@ if (__name__=='__main__'):
 
     t = time.time()
 
-    print(locSearch(pal.shape , items, eps))
-
+    # print(locSearch(pal.shape , items, eps))
+    fit_pallets(pal.shape , items, eps)
     print(time.time() - t)
+    draw_all_pallets(understand_pallets(items), pallet_width, pallet_height, eps)

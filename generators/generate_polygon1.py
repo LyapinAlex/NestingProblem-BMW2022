@@ -89,4 +89,4 @@ def generate_polygon(center: Tuple[float, float], avg_radius: float,
     return points
 
 if (__name__=='__main__'):
-    generate_polygon(center=(250, 250), avg_radius=100, irregularity=0.35, spikiness=0.2, num_vertices=16)
+    print(generate_polygon(center=(250, 250), avg_radius=100, irregularity=0.35, spikiness=0.2, num_vertices=16))

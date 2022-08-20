@@ -17,33 +17,21 @@ class Generator():
     def start(self, e):
         data = []
         for id in range(self.number):
-            # t = time.time()
-            points = generate_polygon(center=(250, 250), avg_radius=100, irregularity=0.5, spikiness=0.5, num_vertices=random.randint(3, 8))
+            points = generate_polygon(center=(250, 250), avg_radius=100, irregularity=0.5, spikiness=0.75, num_vertices=random.randint(3, 8))
             # points = np.array(uc.arpol(uc.getPolygon(), 0.0, 1, 3))
             size = shift2zero(points)
-            # print(points)
             x = random.uniform(e, self.width)
             y = random.uniform(e, self.len)
-            x/=4
-            y /= 4
-            
-
+            x /= 2
+            y /= 2
 
             for point in points:
                 point[0] *= (x / size[0])
                 point[1] *= (y / size[1])
 
-            # print(points)
             item = class_item.Item(id, points)
-            # print(item.points)
             item.list_of_MixedShiftC_4R(e)
             data.append(item)
-            # print(item.matrix)
-            # item.show_item(e)
-            # for r in range(4):
-            #     print(item.listMatrix[r])
-            # print( time.time() - t)
-            # print(shift2zero(points))
         return data
         
 

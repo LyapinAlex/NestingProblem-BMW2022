@@ -75,7 +75,7 @@ def polygon2matrix(points, h):
                 else:
                     mat[i][k] = 1
                 if (flag == 0.5): flag = 0
-                else: flag = 0.5
+                elif ((edges[i][k] // 1.33) % 2 != 0): flag = 0.5
             if (flag > 0):  #заливка
                 mat[i][k] = 1
                 if ((flag == 1) and (k - 1 >= 0)):
@@ -122,4 +122,4 @@ def polygon2matrix(points, h):
     return mat
 
 if __name__=='__main__':
-    print(polygon2matrix(np.array([[0,2.05],[0.26,0],[2.7,1.74]]), 1))
+    print(polygon2matrix(np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]), 2.6))

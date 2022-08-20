@@ -3,8 +3,11 @@ import numpy as np
 from class_item import Item
 import random
 
-random_color = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
-print(type(random_color))
+mat = np.full((3,4), None)
+print(len(mat), mat.size, mat.shape)
+
+# random_color = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
+# print(type(random_color))
 
 # start_time = time.time()
 # it = Item(1, np.array([[0.3, 0], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
@@ -29,7 +32,7 @@ print(type(random_color))
 # print(1.3//0.5, int(1.4/0.5))
 # print(int(12.9))
 # print(round(3.75, 1))
-# print(7.3 % 2)
+# print((3.66 // 1.33)%2)
 # print( -1 % 4 )
 
 # print("fghj"+str(10))
