@@ -4,8 +4,8 @@ import numpy as np
 from class_pallet import Pallet
 from class_item import Item
 from data_rendering.draw_solution import draw_all_pallets
-from generators.create_list_of_items import create_list_of_items
-
+from input.create_list_of_items import create_list_of_items
+from input.svg_paths2polygons import svg_paths2polygons
 from greedy_algorithm.fit_pallets import fit_pallets
 
 
@@ -49,11 +49,11 @@ def locSearch(pallet, poligons):
     return objVal
 
 
-def main():
+def main1():
     pallet_width = 25
     pallet_height = 20
     num_polygons = 20
-    eps = 0.4
+    eps = 1.5
     
     pal = Pallet(pallet_width, pallet_height, eps)
 
@@ -71,6 +71,39 @@ def main():
     draw_all_pallets(items, pal)
     return None
 
+def main2():
+    t_start = time.time()
+    pallet_width = 1000
+    pallet_height = 500
+    eps = 21.5
+    
+    pal = Pallet(pallet_width, pallet_height, eps)
+    [polygons, num_polygons] = svg_paths2polygons('src/input/NEST001-108.svg')
+
+    t_convert = time.time()
+    print(round(t_convert - t_start, 6), ": cчитано", num_polygons, "предметов")
+    items = np.full(num_polygons, None)
+    for id in range(num_polygons):
+        item = Item(id, polygons[id])
+        item.list_of_MixedShiftC_4R(eps)
+        items[id] = item
+
+    t_packing = time.time()
+    print(round(t_packing - t_convert, 6), ": построение растровых приближений")
+    # print("Использованных палет:", locSearch(pal, items))
+    fit_pallets(pal.shape, items, eps)
+
+    t_draw = time.time()
+    print(round(t_draw - t_packing, 6), ": упаковка паллеты")
+    draw_all_pallets(items, pal)
+
+    t_end = time.time()
+    print(round(t_end - t_draw, 6), ": отрисовка решения")
+    print()
+    
+    print(round(t_end - t_start, 6), ": общее время работы")
+    return None
+
 
 if (__name__=='__main__'):
-    main()
+    main2()
