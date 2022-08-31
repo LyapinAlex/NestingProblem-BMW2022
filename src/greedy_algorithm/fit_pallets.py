@@ -26,4 +26,7 @@ def fit_pallets(matrix_shape, items, h):
         item.lb_x = item.lb_x * h
         item.lb_y = item.lb_y * h
     
+    # вычисление высоты 
+    print("Использованная площадь:", np.count_nonzero(np.sum(pallets[len(pallets)-1], axis = 1))*h,"x", matrix_shape[1]*h)
+
     return pallets

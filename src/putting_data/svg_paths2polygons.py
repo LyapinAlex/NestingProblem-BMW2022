@@ -28,7 +28,7 @@ def svg_paths2polygons(file_name):
                 polygon.append([e.start.real, e.start.imag])
         list_of_items.append(np.array(polygon))
     
-    return [np.array(list_of_items), len(list_of_items)]
+    return [np.array(list_of_items, dtype=object), len(list_of_items)]
 
 if __name__=='__main__':
-    print(svg_paths2polygons('test1.svg'))
+    print(svg_paths2polygons('src/input/NEST001-108.svg'))

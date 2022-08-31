@@ -4,8 +4,8 @@ import numpy as np
 from class_pallet import Pallet
 from class_item import Item
 from data_rendering.draw_solution import draw_all_pallets
-from input.create_list_of_items import create_list_of_items
-from input.svg_paths2polygons import svg_paths2polygons
+from putting_data.create_list_of_items import create_list_of_items
+from putting_data.svg_paths2polygons import svg_paths2polygons
 from greedy_algorithm.fit_pallets import fit_pallets
 
 
@@ -49,61 +49,51 @@ def locSearch(pallet, poligons):
     return objVal
 
 
-def main1():
-    pallet_width = 25
-    pallet_height = 20
-    num_polygons = 20
-    eps = 1.5
-    
-    pal = Pallet(pallet_width, pallet_height, eps)
-
-    polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
-    items = np.full(num_polygons, None)
-    for id in range(num_polygons):
-        item = Item(id, polygons[id])
-        item.list_of_MixedShiftC_4R(eps)
-        items[id] = item
-
-    t = time.time()
-    print("Использованных палет:", locSearch(pal, items))
-    # fit_pallets(pal.shape, items, eps)
-    print(time.time() - t)
-    draw_all_pallets(items, pal)
-    return None
-
-def main2():
+def main():
     t_start = time.time()
-    pallet_width = 1000
-    pallet_height = 500
-    eps = 21.5
-    
+    # Начальные данные
+    pallet_width = 2000
+    pallet_height = 1000
+    eps = 20
+    print("\nШаг сетки:", eps,"\n")
     pal = Pallet(pallet_width, pallet_height, eps)
-    [polygons, num_polygons] = svg_paths2polygons('src/input/NEST001-108.svg')
+
+    num_polygons = 100
+    polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
+    
+    # [polygons, num_polygons] = svg_paths2polygons('src/input/NEST003-432.svg')
 
     t_convert = time.time()
-    print(round(t_convert - t_start, 6), ": cчитано", num_polygons, "предметов")
+    print("Считано", num_polygons, "предметов за", round(t_convert - t_start, 2))
+    # преобразование данных (создание растровых приближений)
     items = np.full(num_polygons, None)
     for id in range(num_polygons):
         item = Item(id, polygons[id])
         item.list_of_MixedShiftC_4R(eps)
         items[id] = item
 
+    t_prep = time.time()
+    print("Построение растровых приближений:", round(t_prep - t_convert, 2))
+    # препроцессинги
+    items = sorted(items, key = lambda item: - item.matrix.size)
+
     t_packing = time.time()
-    print(round(t_packing - t_convert, 6), ": построение растровых приближений")
+    print("Сортировка решения:", round(t_packing - t_prep, 2))
+    # алгоритм упаковки
     # print("Использованных палет:", locSearch(pal, items))
     fit_pallets(pal.shape, items, eps)
 
     t_draw = time.time()
-    print(round(t_draw - t_packing, 6), ": упаковка паллеты")
+    print("Время работы жадного алгоритма:", round(t_draw - t_packing, 2))
+    # отрисовка решения
     draw_all_pallets(items, pal)
 
     t_end = time.time()
-    print(round(t_end - t_draw, 6), ": отрисовка решения")
+    print("Отрисовка решения:", round(t_end - t_draw, 2))
     print()
-    
-    print(round(t_end - t_start, 6), ": общее время работы")
+    print(round(t_end - t_start, 6), "- общее время работы")
     return None
 
 
 if (__name__=='__main__'):
-    main2()
+    main()
