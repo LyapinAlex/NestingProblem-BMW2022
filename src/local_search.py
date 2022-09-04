@@ -54,14 +54,14 @@ def main():
     # Начальные данные
     pallet_width = 2000
     pallet_height = 1000
-    eps = 20
+    eps = 21.5
     print("\nШаг сетки:", eps,"\n")
     pal = Pallet(pallet_width, pallet_height, eps)
 
-    num_polygons = 100
-    polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
+    # num_polygons = 100
+    # polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
     
-    # [polygons, num_polygons] = svg_paths2polygons('src/input/NEST003-432.svg')
+    [polygons, num_polygons] = svg_paths2polygons('src/input/NEST001-108.svg')
 
     t_convert = time.time()
     print("Считано", num_polygons, "предметов за", round(t_convert - t_start, 2))
