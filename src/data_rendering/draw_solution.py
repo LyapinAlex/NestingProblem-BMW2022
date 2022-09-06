@@ -1,10 +1,17 @@
+from turtle import color
 from matplotlib import pyplot as plt
 from matplotlib import patches
 import numpy as np
-import math
 import random
+import math
+import os
 
-def draw_pallet(items, pallet_width, pallet_height, h):
+if __name__=='__main__':
+    from understand_pallets import understand_pallets
+else:
+    from .understand_pallets import understand_pallets
+
+def draw_pallet(items, pallet_width, pallet_height, h, annotat = "No annotations"):
     fig, ax = plt.subplots()
     MAX_SIZE = 20
     if pallet_width > pallet_height:
@@ -14,7 +21,8 @@ def draw_pallet(items, pallet_width, pallet_height, h):
         fig.set_figheight(MAX_SIZE)
         fig.set_figwidth(MAX_SIZE * pallet_width/pallet_height)
 
-   
+    plt.text(0, pallet_height*1.01, annotat, fontsize=15, color = 'green')
+
     pallet = patches.Rectangle((0, 0), pallet_width, pallet_height, linewidth=2, facecolor='none', edgecolor='black')
     ax.add_patch(pallet)
     ax.set_xlim(-0.5, pallet_width + 2)
@@ -69,14 +77,21 @@ def draw_pallet(items, pallet_width, pallet_height, h):
         polygon = patches.Polygon(item.points, linewidth=1, edgecolor='red', fill = False)
         ax.add_patch(polygon)
         
-    plt.savefig('output\pallet' + str(items[0].pallet_number) + '.png')
+    plt.savefig('src\output\pallet' + str(items[0].pallet_number) + '.png')
     return None
 
 
-def draw_all_pallets(packing, pallet_width, pallet_height, h):
-
+def draw_all_pallets(items, pal):
+    # очистка директории от предыдущих решений
+    mydir = "src\output"
+    filelist = [ f for f in os.listdir(mydir) if f.endswith(".png") ]
+    for f in filelist:
+        os.remove(os.path.join(mydir, f))
+    
+    packing = understand_pallets(items)
+    # вывод текущего решения
     for i in range(len(packing)):
-        draw_pallet(packing[i], pallet_width, pallet_height, h)
+        draw_pallet(packing[i], pal.width, pal.height, pal.h)
     
     return None
     

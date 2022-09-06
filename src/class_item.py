@@ -9,7 +9,6 @@ from smth2matrix.polygon2matrix import polygon2matrix
 from smth2matrix.polyline2matrix import polyline2matrix
 from smth2matrix.shift2zero import shift2zero
 from shift_code.simple2mixed_shift import simple2mixed_shift
-import generate
 
 
 class Item:
@@ -35,6 +34,7 @@ class Item:
         self.pallet_number = None
         return None
 
+
     def set_rectangular_matrix(self, h):
         """Приближение объекта описанным прямоугольником"""
         x_max, y_max = np.amax(self.points, axis = 0)
@@ -45,10 +45,12 @@ class Item:
                               dtype="int")
         return None
 
+
     def set_matrix(self, h):
         """Приближение объекта пиксельным способом, с размером пискля - h"""
         self.matrix = polygon2matrix(self.points, h)
         return None
+
 
     def matrix_of_border(self, h):
         """Приближение границы объекта пиксельным способом, с размером пискля - h"""
@@ -76,20 +78,16 @@ class Item:
         if self.empty_matrix():
             self.set_matrix(h)
 
-        self.matix = self.matrix.transpose()
-
         li = np.array([None, None, None, None])
         for i in range(0, 4):
             li[i] = np.rot90(simple2mixed_shift(np.rot90(self.matrix, 3 + i)))
             # li[i] = simple2mixed_shift(np.rot90(self.matrix, i ))
         self.list_matrix = li
-
-        self.matix = self.matrix.transpose()
         return None
 
     
     def empty_matrix(self):
-        return self.matrix == None
+        return self.matrix == None #!фигню написал, удалить
 
 
     def shift2zero(self):
@@ -151,8 +149,12 @@ class Item:
 if (__name__=='__main__'):
     h = 0.1
 
-    start_time = time.time()
-    eq1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]))
-    eq1.list_of_MixedShiftC_4R(h)
-    print(time.time() - start_time, " seconds")
-    eq1.draw_polygon(h, 1)
+    # start_time = time.time()
+    eq1 = Item(1, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
+    eq1.set_matrix(h)
+    print(eq1.matrix)
+    # eq1.list_of_MixedShiftC_4R(h)
+    # print(time.time() - start_time, " seconds")
+
+    # print(int(eq1.matrix.shape[0]))
+    # eq1.draw_polygon(h)
