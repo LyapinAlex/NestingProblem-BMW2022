@@ -9,7 +9,6 @@ from smth2matrix.polygon2matrix import polygon2matrix
 from smth2matrix.polyline2matrix import polyline2matrix
 from smth2matrix.shift2zero import shift2zero
 from shift_code.simple2mixed_shift import simple2mixed_shift
-import generate
 
 
 class Item:
@@ -155,4 +154,4 @@ if (__name__=='__main__'):
     eq1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]))
     eq1.list_of_MixedShiftC_4R(h)
     print(time.time() - start_time, " seconds")
-    eq1.draw_polygon(h, 1)
+    eq1.draw_polygon(h)
