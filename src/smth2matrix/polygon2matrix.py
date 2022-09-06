@@ -6,13 +6,14 @@ if __name__=='__main__':
 else:
     from .shift2zero import shift2zero
 
-INACCURACY = 0.000001
+
 
 def polygon2matrix(points, h):
     # вычисление размера массива
     size_of_sides = shift2zero(points)
     n_x = math.ceil(size_of_sides[0] / h)
     n_y = math.ceil(size_of_sides[1] / h)
+
     # заполнение массива пересечений с осями параллельными оси абсцисс
     edges = np.zeros((n_x + 1, n_y))
     for k in range(0, n_y):
@@ -22,16 +23,16 @@ def polygon2matrix(points, h):
                     and (k * h <= max(points[i][1], points[j][1]))):
                 i1 = np.copy(points[i])  # i - номер точки i1
                 i2 = np.copy(points[j])  # j - номер точки i2
-                if (i2[1] == i1[1]):  # ребро параллельно оси абсцисс
+                if (i2[1] - i1[1] == 0):  #ребро параллельно оси абсцисс
                     if (i1[0] > i2[0]):
                         fr = i1[0]
                         i1[0] = i2[0]
                         i2[0] = fr
                     edges[math.floor(i1[0] / h)][k] += 1.33
                     if (i2[0] % h != 0):
-                        edges[math.floor(i2[0] / h + h * INACCURACY)][k] += 1.33
+                        edges[math.floor(i2[0] / h + h / 100)][k] += 1.33
                     else:
-                        edges[math.floor(i2[0] / h + h * INACCURACY)][k] += 1.33
+                        edges[math.floor(i2[0] / h + h / 100)][k] += 1.33
 
                 else:  #x+ay+b=0
                     a = -(i2[0] - i1[0]) / (i2[1] - i1[1])
@@ -41,13 +42,17 @@ def polygon2matrix(points, h):
                     # проверка положения по разные стороны
                     if (x_p == i1[0]):
                         # относительно первой точки
-                        if ((i2[1] - y_p) *(points[(i - 1) % (points).shape[0]][1] - y_p) < 0):
-                            edges[math.floor(i1[0] / h + h * INACCURACY)][k] += 1
-                        elif ((i2[1] - y_p) * (points[(i - 1) % (points).shape[0]][1] - y_p) > 0):
-                            edges[math.floor(i1[0] / h + h * INACCURACY)][k] += 2
+                        if ((i2[1] - y_p) *
+                            (points[(i - 1) %
+                                    (points).shape[0]][1] - y_p) < 0):
+                            edges[math.floor(i1[0] / h + h / 100)][k] += 1
+                        elif ((i2[1] - y_p) *
+                              (points[(i - 1) %
+                                      (points).shape[0]][1] - y_p) > 0):
+                            edges[math.floor(i1[0] / h + h / 100)][k] += 2
                     elif (x_p != i2[0]):
-                        edges[math.floor(x_p / h + h * INACCURACY)][k] += 1
-    # закрашивание внутренности и почти всей границы
+                        edges[math.floor(x_p / h + h / 100)][k] += 1
+    # создание растровой копии
     mat = np.zeros((n_x + 1, n_y + 1), dtype="int")
     for k in range(0, n_y):
         flag = 0.0
