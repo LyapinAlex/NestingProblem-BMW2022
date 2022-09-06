@@ -1,4 +1,3 @@
-from turtle import color
 from matplotlib import pyplot as plt
 from matplotlib import patches
 import numpy as np
@@ -11,7 +10,7 @@ if __name__=='__main__':
 else:
     from .understand_pallets import understand_pallets
 
-def draw_pallet(items, pallet_width, pallet_height, h, annotat = "No annotations"):
+def draw_pallet(items, pallet_width, pallet_height, h):
     fig, ax = plt.subplots()
     MAX_SIZE = 20
     if pallet_width > pallet_height:
@@ -21,7 +20,6 @@ def draw_pallet(items, pallet_width, pallet_height, h, annotat = "No annotations
         fig.set_figheight(MAX_SIZE)
         fig.set_figwidth(MAX_SIZE * pallet_width/pallet_height)
 
-    plt.text(0, pallet_height*1.01, annotat, fontsize=15, color = 'green')
 
     pallet = patches.Rectangle((0, 0), pallet_width, pallet_height, linewidth=2, facecolor='none', edgecolor='black')
     ax.add_patch(pallet)
