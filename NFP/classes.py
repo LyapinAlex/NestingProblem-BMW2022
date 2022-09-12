@@ -52,3 +52,16 @@ if __name__=='__main__':
     print(p2.get_normal())
     # print((p2.edges[0][0]).coordinate)
     # print(p2.get_neighboring_vertex())
+
+
+class Edge:
+    def __init__(self, end, norm):
+        """
+        Args:
+            end(np.array):
+                две координаты (real) конца ребра
+            norm( np.array):
+                две координаты вектора нормали к данному ребру
+        """
+        self.end = end
+        self.norm = norm
