@@ -22,11 +22,13 @@ class Item:
         self.matrix = None
         self.list_matrix = None
         self.new_shift = None
+        self.list_new_shift = None
 
         self.raster_coord = None
         self.lb_x = None
         self.lb_y = None
         self.rotation = 0.0
+        self.reflection = False
         self.pallet_number = None
 
     def clear_coordinat(self):
@@ -34,6 +36,7 @@ class Item:
         self.lb_x = None
         self.lb_y = None
         self.rotation = 0.0
+        self.reflection = False
         self.pallet_number = None
         return None
 
@@ -59,6 +62,7 @@ class Item:
         """Приближение границы объекта пиксельным способом, с размером пискля - h"""
         mat = polyline2matrix(self.points, h)
         return mat
+
 
     def rotationMatrix(self):
         # self.rotation = math.ceil(rotate / math.pi * 90)
@@ -149,8 +153,8 @@ if (__name__=='__main__'):
 
     # start_time = time.time()
     eq1 = Item(1, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
-    eq1.set_matrix(h)
-    print(eq1.matrix)
+    eq1.matrix = eq1.matrix_of_border(h)
+    eq1.draw_polygon(h)
     # eq1.list_of_MixedShiftC_4R(h)
     # print(time.time() - start_time, " seconds")
 

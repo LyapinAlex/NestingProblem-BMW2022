@@ -1,7 +1,10 @@
 from turtle import right
 import numpy as np
+import time
+import math
 
 from putting_data.create_list_of_items import create_list_of_items
+from putting_data.svg_paths2polygons import svg_paths2polygons
 from class_item import Item
 from class_pallet import Pallet
 
@@ -19,6 +22,13 @@ def my_print(li: list, start=None, iter=0):
             for j in range(i, 0, 1):
                 print(j, end=' ')
     print()
+
+
+def print_item(item):
+    for i in range(0,item.shape[0]):
+        print(item[i])
+    print()
+
 
 
 def create_line_code(matrix):
@@ -258,6 +268,23 @@ def fit_item(pallet, item, x, y):
     for i in range(item.shape[0]):
         fit_line(pallet[y+i],item[i],x)
 
+###
+def choosing_turn(pallet, pallet_shape, item, x=0, y=0):
+    """Ищет расположение предмета для всех поворотов и выбирает лучшый из них"""
+    placed_item = False
+    x_b = pallet_shape[0] + 1
+    y_b = pallet_shape[1] + 1
+    rout = 0
+
+    for i in range(4):
+        placed_item, x_0, y_0 = find_position(item.list_new_shift[i], item.matrix.shape[(i+1)%2], pallet, pallet_shape[0], x, y)
+        if placed_item and ((y_0 + item.matrix.shape[i%2] < y_b) or ((y_0 + item.matrix.shape[i%2] == y_b)  and x_0 < x_b)):
+            placed_item = True
+            x_b = x_0
+            y_b = y_0 + item.matrix.shape[i%2]
+            rout = i
+    return placed_item, x_b, y_b - item.matrix.shape[rout%2], rout
+###
 
 def create_pallet(pallet_shape):
     pallet = np.full(pallet_shape[1], None)
@@ -292,6 +319,38 @@ def new_fit_pallets(pallet_shape, items, h):
 
     return pallets
 
+###
+def new_fit_pallets_with_rout(pallet_shape, items, h):
+    pallets = []
+    pallets.append(create_pallet(pallet_shape))
+    for item in items:
+        x = 0
+        y = 0
+        rout = 0
+        i=-1
+        placed_item = False
+        while not placed_item and i < len(pallets) - 1:
+            i+=1
+            placed_item, x, y, rout = choosing_turn(pallets[i], pallet_shape, item)
+            
+        if not placed_item:
+            pallets.append(create_pallet(pallet_shape))
+            i += 1
+            placed_item, x, y, rout = choosing_turn(pallets[i], pallet_shape, item)
+
+        if not placed_item:
+            print("Предмет не влазит в паллету")
+        else:
+            item.pallet_number = i
+            item.raster_coord = (x, y)
+            item.lb_x = y * h
+            item.lb_y = x * h
+            item.rotation = rout * math.pi / 2
+            fit_item(pallets[i], item.list_new_shift[rout], x, y)
+            
+    # print("Использованная площадь: хз пока")
+    return pallets
+###
 
 from turtle import color
 from matplotlib import pyplot as plt
@@ -360,13 +419,13 @@ def draw_pallet(items, pallet_width, pallet_height, h, annotat = "No annotations
     plt.savefig('src\output\pallet' + str(items[0].pallet_number) + '.png')
     return None
 
-def draw_all_pallets(items, pal):
-    packing = understand_pallets(items)
-    # вывод текущего решения
-    for i in range(len(packing)):
-        draw_pallet(packing[i], pal.height, pal.width, pal.h)
+# def draw_all_pallets(items, pal):
+#     packing = understand_pallets(items)
+#     # вывод текущего решения
+#     for i in range(len(packing)):
+#         draw_pallet(packing[i], pal.height, pal.width, pal.h)
     
-    return None
+#     return None
 
 
 
@@ -502,24 +561,17 @@ def main3():
     
 
 def main4():
+    t_start = time.time()
     # Начальные данные
-    pallet_width = 30
-    pallet_height = 50
-    eps = 1
+    pallet_width = 1000
+    pallet_height = 2000
+    eps = 20
 
     pal = Pallet(pallet_width, pallet_height, eps)
 
     num_polygons = 50
     polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
 
-    # polygons = [np.array([[0.01950205, 1.91209608],[0.0, 0.0],[1.37037521, 2.04113187]]),
-    #     np.array([[2.0647501 , 0.0],[2.02282679, 1.81566804],[0.71079648, 2.26761315],[0.39739195, 1.94988996],[0.        , 0.23347083]]),
-    #     np.array([[1.74241957, 1.09714382],[3.26024357, 0.0],[4.22879563, 0.63751876],[3.42406131, 2.62739726],[3.56711314, 5.22042994],[1.7150428 , 3.21836948],[0.        , 1.19321938]]),
-    #     np.array([[ 6.94255125,  0.        ],[10.92131419,  8.48771944],[ 0.        , 12.21175777]]),
-    #     np.array([[2.18946478, 0.        ],[3.33738602, 6.22776785],[2.37570264, 6.99040337],[0.        , 5.35131183]]) ,
-    #     np.array([[2.64398219, 4.23888636],[0.        , 4.07240617],[1.99817698, 0.        ]])]
-        # np.array([[0.        , 4.16580497],[2.91281594, 0.        ],[1.19065422, 5.35907434]]) ,
-        # np.array([[0.        , 0.        ],[2.70082121, 1.01370252],[0.17095205, 2.72553846]])]
 
     # преобразование данных (создание растровых приближений)
     items = np.full(num_polygons, None)
@@ -529,50 +581,121 @@ def main4():
         item.new_shift = create_line_code(item.matrix)
         items[id] = item
 
+    # препроцессинги
+    items = sorted(items, key = lambda item: - item.matrix.size)
     # алгоритм упаковки
     # print("Использованных палет:", locSearch(pal, items))
-    new_fit_pallets(pal.shape, items, eps)
+    pallets = new_fit_pallets(pal.shape, items, eps)
+
     # отрисовка решения
     draw_all_pallets(items, pal)
 
+    t_end = time.time()
+
+    print(round(t_end - t_start, 6), "- общее время работы")
     return None
 
 
 def main5():
     # Начальные данные
-    pallet_width = 50
-    pallet_height = 50
-    eps = 1
+    pallet_width = 1000
+    pallet_height = 2000
+    eps = 25
 
     pal = Pallet(pallet_width, pallet_height, eps)
 
-    num_polygons = 3
+    num_polygons = 50
     polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
 
     # преобразование данных (создание растровых приближений)
     items = np.full(num_polygons, None)
     for id in range(num_polygons):
         item = Item(id, polygons[id])
-        item.list_of_MixedShiftC_4R(eps)
-        print(create_line_code(item.matrix))
+        item.set_matrix(eps)
         items[id] = item
 
-    # алгоритм упаковки
-    # print("Использованных палет:", locSearch(pal, items))
-    fit_pallets(pal.shape, items, eps)
+        li = np.full(4, None)
+        for i in range(0, 4):
+            li[i] = create_line_code(np.rot90(item.matrix, i))
+        item.list_new_shift = li
 
-    # отрисовка решения
-    draw_all_pallets(items, pal)
+
+    placed_item, x, y, rout = choosing_turn(create_pallet(pal.shape), pal.shape, item)
+
+    print(item.matrix)
+    print()
+    print_item(item.list_new_shift[rout])
+    print()
+
+    print(placed_item, x, y, rout)
+    print()
+
+    pallets = new_fit_pallets_with_rout(pal.shape, items, eps)
+
+    print(pallets[0])
+    print()
 
     return None
 
 
-if __name__ == '__main__':
-    main4()
+def main6():
+    t_start = time.time()
+    # Начальные данные
+    pallet_width = 2000
+    pallet_height = 1000
+    eps = 2.5
+    file_name = 'src/input/NEST003-432.svg'
 
-    # li = [1,2,3]
-    # print(li)
-    # li.insert(1,-2)
-    # print(li)
-    # li.pop(0)
-    # print(li)
+
+    print("\nШаг сетки:", eps,"\n")
+    pal = Pallet(pallet_height, pallet_width, eps)
+
+    num_polygons = 100
+    polygons = create_list_of_items(num_polygons, pallet_height, pallet_width, eps)
+
+    # [polygons, num_polygons] = svg_paths2polygons(file_name)
+
+    t_convert = time.time()
+    print("Считано", num_polygons, "предметов за", round(t_convert - t_start, 2))
+    # преобразование данных (создание растровых приближений)
+    items = np.full(num_polygons, None)
+    for id in range(num_polygons):
+        item = Item(id, polygons[id])
+        item.set_matrix(eps)
+        items[id] = item
+        li = np.full(4, None)
+        for i in range(0, 4):
+            li[i] = create_line_code(np.rot90(item.matrix, i))
+        item.list_new_shift = li
+
+    t_prep = time.time()
+    print("Построение растровых приближений:", round(t_prep - t_convert, 2))
+    # препроцессинги
+    items = sorted(items, key = lambda item: - item.matrix.size)
+
+    t_packing = time.time()
+    print("Сортировка решения:", round(t_packing - t_prep, 2))
+    # алгоритм упаковки
+    # print("Использованных палет:", locSearch(pal, items))
+    pallets = new_fit_pallets_with_rout(pal.shape, items, eps)
+    
+    # вычисление высоты 
+    i = 0
+    while i<pallets[0].shape[0] and pallets[0][i][0] != -pal.shape[0]: i+=1
+    print("Использованная площадь:", i*eps,"x", pal.shape[0]*eps)
+
+    t_draw = time.time()
+    print("Время работы жадного алгоритма:", round(t_draw - t_packing, 2))
+    # отрисовка решения
+    from data_rendering.draw_solution import draw_all_pallets
+    draw_all_pallets(items, pallet_width, pallet_height, eps)
+
+    t_end = time.time()
+    print("Отрисовка решения:", round(t_end - t_draw, 2))
+    print()
+    print(round(t_end - t_start, 6), "- общее время работы")
+    return None
+
+
+if __name__ == '__main__':
+    main6()

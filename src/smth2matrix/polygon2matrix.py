@@ -7,6 +7,7 @@ else:
     from .shift2zero import shift2zero
 
 def polygon2matrix(points, h):
+    # !!! тип пересечения 1.33 можно убрать, т.к. прохождение по границы включает в себя его
     _INACCURACY = h * 0.000001
     # вычисление размера массива
     size_of_sides = shift2zero(points)

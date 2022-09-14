@@ -1,3 +1,4 @@
+from operator import truediv
 import time
 import numpy as np
 
@@ -89,7 +90,7 @@ def main():
     t_draw = time.time()
     print("Время работы жадного алгоритма:", round(t_draw - t_packing, 2))
     # отрисовка решения
-    draw_all_pallets(items, pal)
+    draw_all_pallets(items, pallet_width, pallet_height, eps, True)
 
     t_end = time.time()
     print("Отрисовка решения:", round(t_end - t_draw, 2))
