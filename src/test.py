@@ -1,8 +1,7 @@
+from turtle import right
 import numpy as np
 
 from putting_data.create_list_of_items import create_list_of_items
-from data_rendering.draw_solution import draw_all_pallets
-from greedy_algorithm.fit_pallets import fit_pallets
 from class_item import Item
 from class_pallet import Pallet
 
@@ -46,7 +45,7 @@ def check_item0(item, len_it, pallet, len_pal):
     abs_uk = 0
     shift = 0
     placed = False
-    while (not placed) and (abs_uk + shift + len_it < len_pal):
+    while (not placed) and (abs_uk + shift + len_it <= len_pal):
         abs_uk += shift
         placed, shift = check_line(abs_uk, item, len_it, pallet)
 
@@ -124,12 +123,18 @@ def check_item(item, len_it: int, pallet, x: int, y: int):
 
 
 def find_position(item, len_it: int, pallet, len_pal: int, x=0, y=0):
+    """Ищет возможное расположение объекта по принципу жадного алгоритма "как можно ниже, как можно левее"
+    
+    Returns:
+        placed: bool 
+        x, y: int - растровые координаты возможного расположения"""
     shift = 0
     placed = False
     while (not placed) and (y + item.shape[0] <= pallet.shape[0]):
         while (not placed) and (x + shift + len_it <= len_pal):
             x += shift
             placed, shift = check_item(item, len_it, pallet, x, y)
+            # print(x, shift, len_it, len_pal)
         if not placed:
             y += 1
             x = 0
@@ -137,13 +142,242 @@ def find_position(item, len_it: int, pallet, len_pal: int, x=0, y=0):
     return placed, x, y
 
 
-def main():
-    pallet = [4, -6, 3, -3]
+def fit_unit(pallet, item, x_0, i_it):
+    """Производит подстановку положительной ячейки предмета (i_it) в отрицательную ячейку паллеты, по коодинате x_0"""
+    p_p, i_p = get_pixel(pallet, x_0)
+    left_r = pallet[i_p] - p_p
+    right_r = p_p + item[i_it]
+    
+    if 0 < i_p and i_p+1 < len(pallet):
+        if left_r == 0 and right_r == 0:
+            # случай 1.1
+            pallet[i_p - 1] += -pallet.pop(i_p)
+            pallet[i_p - 1] += pallet.pop(i_p)
+
+        elif left_r != 0 and right_r != 0:
+            # случай 1.2
+            pallet.insert(i_p + 1, right_r)
+            pallet[i_p] = item[i_it]
+            pallet.insert(i_p, left_r)
+
+        elif left_r == 0 and right_r != 0:
+            # случай 1.3
+            pallet[i_p] = right_r
+            pallet[i_p - 1] += item[i_it]
+
+        else:
+            # случай 1.4
+            pallet[i_p] = left_r
+            pallet[i_p + 1] += item[i_it]
+
+    elif i_p == 0 and len(pallet) != 1:
+        if left_r == 0 and right_r == 0:
+            # случай 2.1
+            pallet.pop(i_p)
+            pallet[i_p] += item[i_it]
+
+        elif left_r != 0 and right_r != 0:
+            # случай 2.2 (1.2)
+            pallet.insert(i_p + 1, right_r)
+            pallet[i_p] = item[i_it]
+            pallet.insert(i_p, left_r)
+
+        elif left_r == 0 and right_r != 0:
+            # случай 2.3 (4.3)
+            pallet[i_p] = right_r
+            pallet.insert(i_p, item[i_it])
+
+        else:
+            # случай 2.4 (1.4)
+            pallet[i_p] = left_r
+            pallet[i_p + 1] += item[i_it]
+
+    elif i_p == len(pallet) - 1 and len(pallet) != 1:
+        if left_r == 0 and right_r == 0:
+            # случай 3.1
+            pallet.pop(i_p)
+            pallet[i_p-1] += item[i_it]
+
+
+        elif left_r != 0 and right_r != 0:
+            # случай 3.2 (1.2)
+            pallet.insert(i_p + 1, right_r)
+            pallet[i_p] = item[i_it]
+            pallet.insert(i_p, left_r)
+
+        elif left_r == 0 and right_r != 0:
+            # случай 3.3 (1.3)
+            pallet[i_p] = right_r
+            pallet[i_p - 1] += item[i_it]
+
+        else:
+            # случай 3.4 (4.4)
+            pallet[i_p] = left_r
+            pallet.insert(i_p+1, item[i_it])
+
+    elif len(pallet)==1:
+        if left_r == 0 and right_r == 0:
+            # случай 4.1
+            pallet[i_p] *= -1
+
+        elif left_r != 0 and right_r != 0:
+            # случай 4.2 (1.2)
+            pallet.insert(i_p + 1, right_r)
+            pallet[i_p] = item[i_it]
+            pallet.insert(i_p, left_r)
+
+        elif left_r == 0 and right_r != 0:
+            # случай 4.3
+            pallet[i_p] = right_r
+            pallet.insert(i_p, item[i_it])
+
+        else:
+            # случай 4.4
+            pallet[i_p] = left_r
+            pallet.insert(i_p+1, item[i_it])
+    
+    else:
+        print("Ошибка заполнения паллеты/логики программы")
+
+
+def fit_line(pallet, item, x_0):
+    """Производит подстановку строки предмета в строку паллеты начиная с x_0 координаты строки паллеты"""
+    i_it = 0
+    if item[i_it]<0:
+        x_0 -= item[i_it]
+        i_it = 1
+    
+    for i in range(i_it,len(item),2):
+        fit_unit(pallet, item, x_0, i)
+        if i+2<len(item):
+            x_0 += item[i] + abs(item[i+1])
+
+
+def fit_item(pallet, item, x, y):
+    """Размещает объект на паллете по координатам (x,y), без проверки на возможность размещения"""
+    for i in range(item.shape[0]):
+        fit_line(pallet[y+i],item[i],x)
+
+
+def create_pallet(pallet_shape):
+    pallet = np.full(pallet_shape[1], None)
+    for i in range(pallet_shape[1]):
+        pallet[i] = [-pallet_shape[0]]
+    return pallet
+
+
+def new_fit_pallets(pallet_shape, items, h):
+    pallets = []
+    pallets.append(create_pallet(pallet_shape))
+    for item in items:
+        x = 0
+        y = 0
+        i=-1
+        placed_item = False
+        while not placed_item and i < len(pallets) - 1:
+            i+=1
+            placed_item, x, y = find_position(item.new_shift, item.matrix.shape[1], pallets[i], pallet_shape[0])
+            
+        if not placed_item:
+            pallets.append(create_pallet(pallet_shape))
+            i += 1
+            x = 0
+            y = 0
+
+        item.pallet_number = i
+        item.raster_coord = (x, y)
+        item.lb_x = y * h
+        item.lb_y = x * h
+        fit_item(pallets[i], item.new_shift, x, y)
+
+    return pallets
+
+
+from turtle import color
+from matplotlib import pyplot as plt
+from matplotlib import patches
+import numpy as np
+import random
+import os
+
+def understand_pallets(items):
+    """Разделяет объекты в массивы по номеру палет"""
+    packing = []
+    itemsCom = []
+    for item in items:
+        if item.pallet_number != None:
+            itemsCom.append(item)
+    usedNumPallet = max([item.pallet_number for item in  itemsCom])
+
+    for i in range(usedNumPallet  + 1):
+        packing.append([])
+
+    for i in range(usedNumPallet  + 1):
+        for item in itemsCom:
+            if item.pallet_number > len(packing):
+                packing.append([])
+            if item.pallet_number == i:
+                packing[i].append(item)
+    
+    return packing
+
+def draw_pallet(items, pallet_width, pallet_height, h, annotat = "No annotations"):
+    fig, ax = plt.subplots()
+    MAX_SIZE = 20
+    if pallet_width > pallet_height:
+        fig.set_figheight(MAX_SIZE * pallet_height/pallet_width)
+        fig.set_figwidth(MAX_SIZE)
+    else:
+        fig.set_figheight(MAX_SIZE)
+        fig.set_figwidth(MAX_SIZE * pallet_width/pallet_height)
+
+    plt.text(0, pallet_height*1.01, annotat, fontsize=15, color = 'green')
+
+    pallet = patches.Rectangle((0, 0), pallet_width, pallet_height, linewidth=2, facecolor='none', edgecolor='black')
+    ax.add_patch(pallet)
+    ax.set_xlim(-0.5, pallet_width + 2)
+    ax.set_ylim(-0.5, pallet_height + 2)
+
+    for item in items:
+        for point in item.points:
+            point[0] += item.lb_x
+            point[1] += item.lb_y
+        matrix = item.matrix
+        # отрисовка растрового приближения
+        random_color = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
+        for j in range(matrix.shape[1]):
+            for i in range(matrix.shape[0]):
+                if matrix[i][j] > 0:
+                    sqver = np.array([[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
+                    for i in range(sqver.shape[0]):
+                        sqver[i][0] += item.lb_x
+                        sqver[i][1] += item.lb_y
+                    polygon = patches.Polygon(sqver, linewidth=1, facecolor=random_color, edgecolor='black', alpha = 0.33)
+                    ax.add_patch(polygon)
+        polygon = patches.Polygon(item.points, linewidth=1, edgecolor='red', fill = False)
+        ax.add_patch(polygon)
+        
+    plt.savefig('src\output\pallet' + str(items[0].pallet_number) + '.png')
+    return None
+
+def draw_all_pallets(items, pal):
+    packing = understand_pallets(items)
+    # вывод текущего решения
+    for i in range(len(packing)):
+        draw_pallet(packing[i], pal.height, pal.width, pal.h)
+    
+    return None
+
+
+
+
+def main0():
+    pallet = [-2, 3, -3]
     len_pal = 0
     for i in pallet:
         len_pal += abs(i)
 
-    item = [3, -3, 2]
+    item = [3]
     len_it = 0
     for i in item:
         len_it += abs(i)
@@ -167,8 +401,8 @@ def main1():
         len_pal += abs(i)
 
     item = np.full(2, None)
-    item[0] = [-2, -1, -3]
-    item[1] = [2, -1, -2, -1]
+    item[0] = [-2, 5]
+    item[1] = [7]
 
     len_item = 0
     for i in item[0]:
@@ -180,12 +414,12 @@ def main1():
 
 
 def main2():
-    pallet = [4, -6, 3, -3]
+    pallet = [2,-3,1,-4]
     len_pal = 0
     for i in pallet:
         len_pal += abs(i)
 
-    item = [2, -4, 2]
+    item = [-1,1,-1,2,-1]
     len_it = 0
     for i in item:
         len_it += abs(i)
@@ -195,33 +429,116 @@ def main2():
     # print("Поиск вхождения:")
     my_print(pallet)
     my_print(item, abs_uk, 0)
-    # ---------
+
+    # ---------------------------------------------------------------
+    
     print(placed, abs_uk)
-    x_0 = abs_uk
     if placed:
-        a, i_p = get_pixel(pallet, x_0)
-        print(pallet[i_p], a, len(pallet), i_p)
-        print(pallet[i_p] - a)
+        fit_line(pallet, item, abs_uk)
+    
+    # ---------------------------------------------------------------
 
-        if 0 < i_p and i_p < len(pallet):
-            print("первый тип")
-
-        elif i_p == 0 and len(pallet) != 1:
-            print("второй тип")
-
-        elif i_p == len(pallet) - 1 and len(pallet) != 1:
-            print("третий тип")
-
-        else:  #len(pallet)==1
-            print("четвёртый тип")
+    my_print(pallet)
+    my_print(item, abs_uk, 0)
 
 
-# ---------
-# print("Подстановка:")
-# my_print(pallet)
+def main3():
+    pal = np.full(5, None)
+    pal[0] = [-1, 1, -1, 1, -1, 1, -1, 1, -1, 1]
+    pal[1] = [-4, 1, -5]
+    pal[2] = [-10]
+    pal[3] = [-10]
+    pal[4] = [-10]
 
+    len_pal = 0
+    for i in pal[0]:
+        len_pal += abs(i)
+
+    item = np.full(2, None)
+    item[0] = [3,-1, 1]
+    item[1] = [5]
+
+    len_item = 0
+    for i in item[0]:
+        len_item += abs(i)
+    
+    # ---------------------------------------------------------------
+
+    for i in range(0,pal.shape[0]):
+        print(pal[i])
+
+    # ---------------------------------------------------------------
+
+    placed_item, x, y = find_position(item, len_item, pal, len_pal)
+    print("Итог подстановки:", placed_item, x, y)
+    
+    if placed_item:
+        fit_item(pal, item, x, y)
+        
+    for i in range(0,pal.shape[0]):
+        print(pal[i])
+    
+    # ---------------------------------------------------------------
+
+    placed_item, x, y = find_position(item, len_item, pal, len_pal)
+    print("Итог подстановки:", placed_item, x, y)
+    
+    if placed_item:
+        fit_item(pal, item, x, y)
+        
+    for i in range(0,pal.shape[0]):
+        print(pal[i])
+    
+    # ---------------------------------------------------------------
+
+    placed_item, x, y = find_position(item, len_item, pal, len_pal)
+    print("Итог подстановки:", placed_item, x, y)
+    
+    if placed_item:
+        fit_item(pal, item, x, y)
+        
+    for i in range(0,pal.shape[0]):
+        print(pal[i])
+    
 
 def main4():
+    # Начальные данные
+    pallet_width = 30
+    pallet_height = 50
+    eps = 1
+
+    pal = Pallet(pallet_width, pallet_height, eps)
+
+    num_polygons = 50
+    polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
+
+    # polygons = [np.array([[0.01950205, 1.91209608],[0.0, 0.0],[1.37037521, 2.04113187]]),
+    #     np.array([[2.0647501 , 0.0],[2.02282679, 1.81566804],[0.71079648, 2.26761315],[0.39739195, 1.94988996],[0.        , 0.23347083]]),
+    #     np.array([[1.74241957, 1.09714382],[3.26024357, 0.0],[4.22879563, 0.63751876],[3.42406131, 2.62739726],[3.56711314, 5.22042994],[1.7150428 , 3.21836948],[0.        , 1.19321938]]),
+    #     np.array([[ 6.94255125,  0.        ],[10.92131419,  8.48771944],[ 0.        , 12.21175777]]),
+    #     np.array([[2.18946478, 0.        ],[3.33738602, 6.22776785],[2.37570264, 6.99040337],[0.        , 5.35131183]]) ,
+    #     np.array([[2.64398219, 4.23888636],[0.        , 4.07240617],[1.99817698, 0.        ]])]
+        # np.array([[0.        , 4.16580497],[2.91281594, 0.        ],[1.19065422, 5.35907434]]) ,
+        # np.array([[0.        , 0.        ],[2.70082121, 1.01370252],[0.17095205, 2.72553846]])]
+
+    # преобразование данных (создание растровых приближений)
+    items = np.full(num_polygons, None)
+    for id in range(num_polygons):
+        item = Item(id, polygons[id])
+        item.set_matrix(eps)
+        item.new_shift = create_line_code(item.matrix)
+        items[id] = item
+
+    # алгоритм упаковки
+    # print("Использованных палет:", locSearch(pal, items))
+    new_fit_pallets(pal.shape, items, eps)
+    # отрисовка решения
+    draw_all_pallets(items, pal)
+
+    return None
+
+
+def main5():
     # Начальные данные
     pallet_width = 50
     pallet_height = 50
@@ -230,8 +547,7 @@ def main4():
     pal = Pallet(pallet_width, pallet_height, eps)
 
     num_polygons = 3
-    polygons = create_list_of_items(num_polygons, pallet_width, pallet_height,
-                                    eps)
+    polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
 
     # преобразование данных (создание растровых приближений)
     items = np.full(num_polygons, None)
@@ -252,7 +568,8 @@ def main4():
 
 
 if __name__ == '__main__':
-    main2()
+    main4()
+
     # li = [1,2,3]
     # print(li)
     # li.insert(1,-2)

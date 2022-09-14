@@ -21,13 +21,16 @@ class Item:
 
         self.matrix = None
         self.list_matrix = None
+        self.new_shift = None
 
+        self.raster_coord = None
         self.lb_x = None
         self.lb_y = None
         self.rotation = 0.0
         self.pallet_number = None
 
     def clear_coordinat(self):
+        self.raster_coord = None
         self.lb_x = None
         self.lb_y = None
         self.rotation = 0.0
@@ -75,8 +78,7 @@ class Item:
             np.array[4]: содержит 4 поворота текущего объекта в формате кодировки с переходом
         """
 
-        if self.empty_matrix():
-            self.set_matrix(h)
+        self.set_matrix(h)
 
         li = np.array([None, None, None, None])
         for i in range(0, 4):
@@ -84,10 +86,6 @@ class Item:
             # li[i] = simple2mixed_shift(np.rot90(self.matrix, i ))
         self.list_matrix = li
         return None
-
-    
-    def empty_matrix(self):
-        return self.matrix == None #!фигню написал, удалить
 
 
     def shift2zero(self):
