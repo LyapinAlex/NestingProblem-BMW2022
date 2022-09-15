@@ -9,7 +9,7 @@ from smth2matrix.polygon2matrix import polygon2matrix
 from smth2matrix.polyline2matrix import polyline2matrix
 from smth2matrix.shift2zero import shift2zero
 from shift_code.simple2mixed_shift import simple2mixed_shift
-
+from preprocess.expand_polygon import expand_polygon
 
 class Item:
 
@@ -37,8 +37,8 @@ class Item:
 
     def set_rectangular_matrix(self, h):
         """Приближение объекта описанным прямоугольником"""
-        x_max, y_max = np.amax(self.points, axis = 0)
-        x_min, y_min = np.amin(self.points, axis = 0)
+        x_max, y_max = np.amax(self.shell_points, axis = 0)
+        x_min, y_min = np.amin(self.shell_points, axis = 0)
 
         self.matrix = np.ones((math.ceil(
             (x_max - x_min) / h), math.ceil((y_max - y_min) / h)),
@@ -48,13 +48,13 @@ class Item:
 
     def set_matrix(self, h):
         """Приближение объекта пиксельным способом, с размером пискля - h"""
-        self.matrix = polygon2matrix(self.points, h)
+        self.matrix = polygon2matrix(self.shell_points, h)
         return None
 
 
     def matrix_of_border(self, h):
         """Приближение границы объекта пиксельным способом, с размером пискля - h"""
-        mat = polyline2matrix(self.points, h)
+        mat = polyline2matrix(self.shell_points, h)
         return mat
 
     def rotationMatrix(self):
@@ -92,7 +92,7 @@ class Item:
 
     def shift2zero(self):
         """Перемещает объект в первую координатную четверть, вниз влево"""
-        return shift2zero(self.points)
+        return shift2zero(self.shell_points)
 
 
     def draw_polygon(self, h, code_type = 0):
@@ -140,9 +140,30 @@ class Item:
                         polygon = patches.Polygon(sqver, linewidth=1, edgecolor='black', facecolor = cmapout(self.list_matrix[0][i][j]*(-1)))
                         ax.add_patch(polygon)
         
-        polygon = patches.Polygon(self.points, linewidth=1, edgecolor='red', fill = False)
+        polygon = patches.Polygon(self.shell_points, linewidth=1, edgecolor='red', fill = False)
         ax.add_patch(polygon)
         plt.show()
+        return None
+
+    def creat_polygon_shell(self, drill_radius):
+        """
+        Создает облочку вокруг предмета с отсупом в drill_radius.
+        Перемещает фигуры и ее фигуру в первую координатную четверть, сохраняя корректное расположение фигуры внутри своей оболочки.
+        Инициализирует в Item атрибуты:
+        shell_points - точки описывающие оболочку
+        """
+
+
+        x_min_pol, y_min_pol = np.amin(self.points, axis = 0)
+        self.shell_points = expand_polygon(self.points, drill_radius)
+        x_min_shell, y_min_shell = np.amin(self.shell_points, axis = 0)
+        vector_surf = np.array([x_min_pol - x_min_shell, y_min_pol - y_min_shell])
+        shift2zero(self.shell_points)
+        shift2zero(self.points)
+
+        for point in self.points:
+            point+=  vector_surf
+
         return None
 
 

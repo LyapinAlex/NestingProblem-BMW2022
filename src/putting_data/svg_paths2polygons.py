@@ -2,6 +2,8 @@ from svg.path import parse_path
 from svg.path.path import Line
 from xml.dom import minidom
 import numpy as np
+import pdb
+
 
 def svg_paths2polygons(file_name):
     """Считывает входные данные из SVG-файла
@@ -20,12 +22,14 @@ def svg_paths2polygons(file_name):
 
     list_of_items = []
     # print the line draw commands
+    i = 0
     for path_string in path_strings:
         path = parse_path(path_string)
         polygon = []
         for e in path:
             if isinstance(e, Line):
                 polygon.append([e.start.real, e.start.imag])
+        
         list_of_items.append(np.array(polygon))
     
     return [np.array(list_of_items, dtype=object), len(list_of_items)]

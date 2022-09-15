@@ -52,10 +52,11 @@ def locSearch(pallet, poligons):
 def main():
     t_start = time.time()
     # Начальные данные
-    pallet_width = 2000
-    pallet_height = 1000
-    eps = 21.5
-    file_name = 'src/input/NEST003-432.svg'
+    pallet_width = 2000 - 2.1
+    pallet_height = 1000 - 2.1
+    eps = 23/4
+    drill_radius = 2
+    file_name = 'src/input/NEST001-108.svg'
 
 
     print("\nШаг сетки:", eps,"\n")
@@ -65,6 +66,8 @@ def main():
     # polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
     
     [polygons, num_polygons] = svg_paths2polygons(file_name)
+    
+    # print([polygons[6], np.share(polygons[6])])
 
     t_convert = time.time()
     print("Считано", num_polygons, "предметов за", round(t_convert - t_start, 2))
@@ -72,6 +75,7 @@ def main():
     items = np.full(num_polygons, None)
     for id in range(num_polygons):
         item = Item(id, polygons[id])
+        item.creat_polygon_shell(drill_radius)
         item.list_of_MixedShiftC_4R(eps)
         items[id] = item
 
