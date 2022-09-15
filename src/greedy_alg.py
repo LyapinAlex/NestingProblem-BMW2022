@@ -40,11 +40,11 @@ def old_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, dri
     print("Упаковка:", round(time.time() - t_packing, 2))
 
     print("\n ------------------------------------ \n")
-    return items, time.time() - t_convert, i*eps
+    return items, time.time() - t_convert, i*eps, pal.shape[1]*eps
 
 
 def new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, drill_radius):
-    print("\n ------ Новый жадный алгоритм ------ \n")
+    # print("\n ------ Новый жадный алгоритм ------ \n")
     pal = Pallet(pallet_height, pallet_width, eps)
 
     t_convert = time.time()
@@ -58,13 +58,13 @@ def new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, dri
 
 
     t_prep = time.time()
-    print("Построение растровых приближений:", round(t_prep - t_convert, 2))
+    # print("Построение растровых приближений:", round(t_prep - t_convert, 2))
     # препроцессинги
     items = sorted(items, key = lambda item: - item.matrix.size)
 
 
     t_packing = time.time()
-    print("Сортировка решения:", round(t_packing - t_prep, 2))
+    # print("Сортировка решения:", round(t_packing - t_prep, 2))
     # упаковка
     pallets = fit_pallets_with_rout(pal.shape, items, eps)
     
@@ -72,10 +72,10 @@ def new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, dri
     i = 0
     while i<pallets[len(pallets)-1].shape[0] and pallets[len(pallets)-1][i][0] != -pal.shape[0]: i+=1
     print("Использованная площадь:", i*eps,"x", pal.shape[0]*eps)
-    print("Упаковка:", round(time.time() - t_packing, 2))
+    # print("Упаковка:", round(time.time() - t_packing, 2))
 
-    print("\n ----------------------------------- \n")
-    return items, time.time() - t_convert, i*eps
+    # print("\n ----------------------------------- \n")
+    return items, time.time() - t_convert, i*eps, pal.shape[0]*eps
 
 
 def main():
@@ -87,7 +87,9 @@ def main():
 
     eps = 23/4
     file_name = None
-    file_name = 'src/input/NEST003-432.svg'
+    file_name = 'src/input/NEST001-108.svg'
+    # file_name = 'src/input/NEST002-216.svg'
+    # file_name = 'src/input/NEST003-432.svg'
 
     #Инициализация предметов
     if file_name == None:
@@ -97,18 +99,20 @@ def main():
         [polygons, num_polygons] = svg_paths2polygons(file_name)
 
     print("\nШаг сетки:", eps)
-    print("Считано", num_polygons, "предметов за", round(time.time() - t_start, 2))
+    # print("Считано", num_polygons, "предметов за", round(time.time() - t_start, 2))
 
-    items, work_time, height = new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, drill_radius)
+    items, work_time, height, width = new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, drill_radius)
 
+    print("Время работы жадного алгоритма:",round(work_time, 2))
     t_draw = time.time()
     # отрисовка решения
-    draw_all_pallets(items, pallet_width, pallet_height, eps)
+    ann = "S = " + str(height) + " x " + str(width) + ";  time = " + str(round(work_time, 2)) + ";  Num_item = " + str(num_polygons) + ";  eps = " + str(eps)
+    draw_all_pallets(items, pallet_width, pallet_height, eps, draw_pixels = False, annotations = ann)
 
     t_end = time.time()
-    print("Отрисовка решения:", round(t_end - t_draw, 2))
+    # print("Отрисовка решения:", round(t_end - t_draw, 2))
     print()
-    print(round(t_end - t_start, 6), "- общее время работы")
+    # print(round(t_end - t_start, 6), "- общее время работы")
     return None
 
 

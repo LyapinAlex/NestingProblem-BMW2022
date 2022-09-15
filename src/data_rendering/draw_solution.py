@@ -11,7 +11,7 @@ if __name__=='__main__':
 else:
     from .understand_pallets import understand_pallets
 
-def draw_pallet(items, pallet_width, pallet_height, h, draw_pixels = False, annotat = "No annotations"):
+def draw_pallet(items, pallet_width, pallet_height, h, draw_pixels = False, annotations = "No annotations"):
     fig, ax = plt.subplots()
     MAX_SIZE = 20
     if pallet_width > pallet_height:
@@ -21,7 +21,7 @@ def draw_pallet(items, pallet_width, pallet_height, h, draw_pixels = False, anno
         fig.set_figheight(MAX_SIZE)
         fig.set_figwidth(MAX_SIZE * pallet_width/pallet_height)
 
-    plt.text(0, pallet_height*1.01, annotat, fontsize=15, color = 'green')
+    plt.text(0, pallet_height*1.015, annotations, fontsize=15, color = 'green')
 
     pallet = patches.Rectangle((0, 0), pallet_width, pallet_height, linewidth=2, facecolor='none', edgecolor='black')
     ax.add_patch(pallet)
@@ -84,7 +84,7 @@ def draw_pallet(items, pallet_width, pallet_height, h, draw_pixels = False, anno
     return None
 
 
-def draw_all_pallets(items, pallet_width, pallet_height, h, draw_pixels = False):
+def draw_all_pallets(items, pallet_width, pallet_height, h, draw_pixels = False, annotations = "No annotations"):
     # очистка директории от предыдущих решений
     mydir = "src\output"
     filelist = [ f for f in os.listdir(mydir) if f.endswith(".png") ]
@@ -94,7 +94,7 @@ def draw_all_pallets(items, pallet_width, pallet_height, h, draw_pixels = False)
     packing = understand_pallets(items)
     # вывод текущего решения
     for i in range(len(packing)):
-        draw_pallet(packing[i], pallet_width, pallet_height, h, draw_pixels)
+        draw_pallet(packing[i], pallet_width, pallet_height, h, draw_pixels, annotations)
     
     return None
     
