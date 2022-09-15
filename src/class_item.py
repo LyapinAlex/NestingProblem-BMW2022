@@ -9,6 +9,7 @@ from smth2matrix.polygon2matrix import polygon2matrix
 from smth2matrix.polyline2matrix import polyline2matrix
 from smth2matrix.shift2zero import shift2zero
 from shift_code.simple2mixed_shift import simple2mixed_shift
+from shift_code.classic2new_shift import classic2new_shift
 
 
 class Item:
@@ -91,6 +92,21 @@ class Item:
         self.list_matrix = li
         return None
 
+
+    def list_of_new_shift_code(self, h):
+        """Приближение объекта пиксельным способом (кодировкой с переходом), с размером пискля - h
+        
+        Returns:
+            np.array[4]: содержит 4 поворота текущего объекта в формате кодировки с переходом (новая)
+        """
+
+        self.set_matrix(h)
+
+        li = np.full(4, None)
+        for i in range(0, 4):
+            li[i] = classic2new_shift(np.rot90(self.matrix, i))
+        self.list_new_shift = li
+        return None
 
     def shift2zero(self):
         """Перемещает объект в первую координатную четверть, вниз влево"""

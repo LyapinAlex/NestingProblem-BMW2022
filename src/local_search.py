@@ -56,7 +56,7 @@ def main():
     pallet_width = 2000
     pallet_height = 1000
     eps = 21.5
-    file_name = 'src/input/NEST003-432.svg'
+    file_name = 'src/input/NEST001-108.svg'
 
 
     print("\nШаг сетки:", eps,"\n")

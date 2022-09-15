@@ -1,4 +1,3 @@
-from turtle import right
 import numpy as np
 import time
 import math
@@ -8,6 +7,9 @@ from putting_data.svg_paths2polygons import svg_paths2polygons
 from class_item import Item
 from class_pallet import Pallet
 
+from new_greedy_alg.find_position_with_rout.find_position_with_rout import find_position_with_rout
+from new_greedy_alg.placed_item.fit_item import fit_item
+from new_greedy_alg.fit_pallets_with_rout import fit_pallets_with_rout
 
 def my_print(li: list, start=None, iter=0):
     """Созданно для однозначных чисел"""
@@ -29,8 +31,7 @@ def print_item(item):
         print(item[i])
     print()
 
-
-
+####
 def create_line_code(matrix):
     line_code = np.full(matrix.shape[0], None, dtype=list)
     for j in range(0, matrix.shape[0]):
@@ -49,7 +50,7 @@ def create_line_code(matrix):
         line.append(sum)
         line_code[j] = line
     return line_code
-
+####
 
 def check_item0(item, len_it, pallet, len_pal):
     abs_uk = 0
@@ -150,6 +151,9 @@ def find_position(item, len_it: int, pallet, len_pal: int, x=0, y=0):
             x = 0
             shift = 0
     return placed, x, y
+
+
+######
 
 
 def fit_unit(pallet, item, x_0, i_it):
@@ -283,6 +287,7 @@ def choosing_turn(pallet, pallet_shape, item, x=0, y=0):
             x_b = x_0
             y_b = y_0 + item.matrix.shape[i%2]
             rout = i
+        # print(y_b - item.matrix.shape[rout%2])
     return placed_item, x_b, y_b - item.matrix.shape[rout%2], rout
 ###
 
@@ -331,12 +336,12 @@ def new_fit_pallets_with_rout(pallet_shape, items, h):
         placed_item = False
         while not placed_item and i < len(pallets) - 1:
             i+=1
-            placed_item, x, y, rout = choosing_turn(pallets[i], pallet_shape, item)
+            placed_item, x, y, rout = find_position_with_rout(pallets[i], pallet_shape, item)
             
         if not placed_item:
             pallets.append(create_pallet(pallet_shape))
             i += 1
-            placed_item, x, y, rout = choosing_turn(pallets[i], pallet_shape, item)
+            placed_item, x, y, rout = find_position_with_rout(pallets[i], pallet_shape, item)
 
         if not placed_item:
             print("Предмет не влазит в паллету")
@@ -637,23 +642,22 @@ def main5():
 
     return None
 
-
 def main6():
     t_start = time.time()
     # Начальные данные
     pallet_width = 2000
     pallet_height = 1000
-    eps = 2.5
-    file_name = 'src/input/NEST003-432.svg'
+    eps = 21.5
+    file_name = 'src/input/NEST002-216.svg'
 
 
     print("\nШаг сетки:", eps,"\n")
     pal = Pallet(pallet_height, pallet_width, eps)
 
-    num_polygons = 100
-    polygons = create_list_of_items(num_polygons, pallet_height, pallet_width, eps)
+    # num_polygons = 100
+    # polygons = create_list_of_items(num_polygons, pallet_height, pallet_width, eps)
 
-    # [polygons, num_polygons] = svg_paths2polygons(file_name)
+    [polygons, num_polygons] = svg_paths2polygons(file_name)
 
     t_convert = time.time()
     print("Считано", num_polygons, "предметов за", round(t_convert - t_start, 2))
@@ -661,12 +665,8 @@ def main6():
     items = np.full(num_polygons, None)
     for id in range(num_polygons):
         item = Item(id, polygons[id])
-        item.set_matrix(eps)
+        item.list_of_new_shift_code(eps)
         items[id] = item
-        li = np.full(4, None)
-        for i in range(0, 4):
-            li[i] = create_line_code(np.rot90(item.matrix, i))
-        item.list_new_shift = li
 
     t_prep = time.time()
     print("Построение растровых приближений:", round(t_prep - t_convert, 2))
@@ -677,7 +677,7 @@ def main6():
     print("Сортировка решения:", round(t_packing - t_prep, 2))
     # алгоритм упаковки
     # print("Использованных палет:", locSearch(pal, items))
-    pallets = new_fit_pallets_with_rout(pal.shape, items, eps)
+    pallets = fit_pallets_with_rout(pal.shape, items, eps)
     
     # вычисление высоты 
     i = 0
@@ -688,7 +688,7 @@ def main6():
     print("Время работы жадного алгоритма:", round(t_draw - t_packing, 2))
     # отрисовка решения
     from data_rendering.draw_solution import draw_all_pallets
-    draw_all_pallets(items, pallet_width, pallet_height, eps)
+    draw_all_pallets(items, pallet_width, pallet_height, eps, True)
 
     t_end = time.time()
     print("Отрисовка решения:", round(t_end - t_draw, 2))
