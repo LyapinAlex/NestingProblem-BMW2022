@@ -11,7 +11,7 @@ if __name__=='__main__':
 else:
     from .understand_pallets import understand_pallets
 
-def draw_pallet(items, pallet_width, pallet_height, h, annotat = "No annotations"):
+def draw_pallet(items, pallet_width, pallet_height, h, draw_pixels = False, annotat = "No annotations"):
     fig, ax = plt.subplots()
     MAX_SIZE = 20
     if pallet_width > pallet_height:
@@ -62,18 +62,21 @@ def draw_pallet(items, pallet_width, pallet_height, h, annotat = "No annotations
                 point[0] += item.lb_x
                 point[1] += item.lb_y + h*len(item.matrix)
 
-        matrix = item.list_matrix[r]
         # отрисовка растрового приближения
-        random_color = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
-        for j in range(matrix.shape[1]):
-            for i in range(matrix.shape[0]):
-                if matrix[i][j] > 0:
-                    sqver = np.array([[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
-                    for i in range(sqver.shape[0]):
-                        sqver[i][0] += item.lb_x
-                        sqver[i][1] += item.lb_y
-                    polygon = patches.Polygon(sqver, linewidth=1, facecolor=random_color, edgecolor='black', alpha = 0.33)
-                    ax.add_patch(polygon)
+        if draw_pixels:
+            matrix = np.rot90(item.matrix, r)
+            random_color = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
+            for j in range(matrix.shape[1]):
+                for i in range(matrix.shape[0]):
+                    if matrix[i][j] > 0:
+                        sqver = np.array([[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
+                        for i in range(sqver.shape[0]):
+                            sqver[i][0] += item.lb_x
+                            sqver[i][1] += item.lb_y
+                        polygon = patches.Polygon(sqver, linewidth=1, facecolor=random_color, edgecolor='black', alpha = 0.33)
+                        ax.add_patch(polygon)
+        
+
         polygon = patches.Polygon(item.points, linewidth=1, edgecolor='red', fill = False)
         ax.add_patch(polygon)
         
@@ -81,7 +84,7 @@ def draw_pallet(items, pallet_width, pallet_height, h, annotat = "No annotations
     return None
 
 
-def draw_all_pallets(items, pal):
+def draw_all_pallets(items, pallet_width, pallet_height, h, draw_pixels = False):
     # очистка директории от предыдущих решений
     mydir = "src\output"
     filelist = [ f for f in os.listdir(mydir) if f.endswith(".png") ]
@@ -91,7 +94,7 @@ def draw_all_pallets(items, pal):
     packing = understand_pallets(items)
     # вывод текущего решения
     for i in range(len(packing)):
-        draw_pallet(packing[i], pal.width, pal.height, pal.h)
+        draw_pallet(packing[i], pallet_width, pallet_height, h, draw_pixels)
     
     return None
     

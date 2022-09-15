@@ -1,3 +1,4 @@
+from operator import truediv
 import time
 import numpy as np
 
@@ -6,7 +7,7 @@ from class_item import Item
 from data_rendering.draw_solution import draw_all_pallets
 from putting_data.create_list_of_items import create_list_of_items
 from putting_data.svg_paths2polygons import svg_paths2polygons
-from greedy_algorithm.fit_pallets import fit_pallets
+from old_greedy_alg.fit_pallets import fit_pallets
 
 
 def swap(list, pos1, pos2):
@@ -93,7 +94,7 @@ def main():
     t_draw = time.time()
     print("Время работы жадного алгоритма:", round(t_draw - t_packing, 2))
     # отрисовка решения
-    draw_all_pallets(items, pal)
+    draw_all_pallets(items, pallet_width, pallet_height, eps, True)
 
     t_end = time.time()
     print("Отрисовка решения:", round(t_end - t_draw, 2))

@@ -10,6 +10,8 @@ from smth2matrix.polyline2matrix import polyline2matrix
 from smth2matrix.shift2zero import shift2zero
 from shift_code.simple2mixed_shift import simple2mixed_shift
 from preprocess.expand_polygon import expand_polygon
+from shift_code.classic2new_shift import classic2new_shift
+
 
 class Item:
 
@@ -21,16 +23,22 @@ class Item:
 
         self.matrix = None
         self.list_matrix = None
+        self.new_shift = None
+        self.list_new_shift = None
 
+        self.raster_coord = None
         self.lb_x = None
         self.lb_y = None
         self.rotation = 0.0
+        self.reflection = False
         self.pallet_number = None
 
     def clear_coordinat(self):
+        self.raster_coord = None
         self.lb_x = None
         self.lb_y = None
         self.rotation = 0.0
+        self.reflection = False
         self.pallet_number = None
         return None
 
@@ -57,6 +65,7 @@ class Item:
         mat = polyline2matrix(self.shell_points, h)
         return mat
 
+
     def rotationMatrix(self):
         # self.rotation = math.ceil(rotate / math.pi * 90)
         # if (self.rotation % 90 == 0):
@@ -75,8 +84,7 @@ class Item:
             np.array[4]: содержит 4 поворота текущего объекта в формате кодировки с переходом
         """
 
-        if self.empty_matrix():
-            self.set_matrix(h)
+        self.set_matrix(h)
 
         li = np.array([None, None, None, None])
         for i in range(0, 4):
@@ -85,10 +93,21 @@ class Item:
         self.list_matrix = li
         return None
 
-    
-    def empty_matrix(self):
-        return self.matrix == None #!фигню написал, удалить
 
+    def list_of_new_shift_code(self, h):
+        """Приближение объекта пиксельным способом (кодировкой с переходом), с размером пискля - h
+        
+        Returns:
+            np.array[4]: содержит 4 поворота текущего объекта в формате кодировки с переходом (новая)
+        """
+
+        self.set_matrix(h)
+
+        li = np.full(4, None)
+        for i in range(0, 4):
+            li[i] = classic2new_shift(np.rot90(self.matrix, i))
+        self.list_new_shift = li
+        return None
 
     def shift2zero(self):
         """Перемещает объект в первую координатную четверть, вниз влево"""
@@ -172,8 +191,8 @@ if (__name__=='__main__'):
 
     # start_time = time.time()
     eq1 = Item(1, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
-    eq1.set_matrix(h)
-    print(eq1.matrix)
+    eq1.matrix = eq1.matrix_of_border(h)
+    eq1.draw_polygon(h)
     # eq1.list_of_MixedShiftC_4R(h)
     # print(time.time() - start_time, " seconds")
 
