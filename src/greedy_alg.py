@@ -7,7 +7,7 @@ from putting_data.svg_paths2polygons import svg_paths2polygons
 from class_item import Item
 from class_pallet import Pallet
 from new_greedy_alg.fit_pallets_with_rout import fit_pallets_with_rout
-from greedy_algorithm.fit_pallets import fit_pallets
+from old_greedy_alg.fit_pallets import fit_pallets
 
 
 

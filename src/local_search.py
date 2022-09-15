@@ -7,7 +7,7 @@ from class_item import Item
 from data_rendering.draw_solution import draw_all_pallets
 from putting_data.create_list_of_items import create_list_of_items
 from putting_data.svg_paths2polygons import svg_paths2polygons
-from greedy_algorithm.fit_pallets import fit_pallets
+from old_greedy_alg.fit_pallets import fit_pallets
 
 
 def swap(list, pos1, pos2):
