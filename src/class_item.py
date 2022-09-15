@@ -165,14 +165,12 @@ class Item:
         return None
 
     def creat_polygon_shell(self, drill_radius):
-        """
-        Создает облочку вокруг предмета с отсупом в drill_radius.
+        """Создает облочку вокруг предмета с отсупом в drill_radius.
         Перемещает фигуры и ее фигуру в первую координатную четверть, сохраняя корректное расположение фигуры внутри своей оболочки.
+        
         Инициализирует в Item атрибуты:
         shell_points - точки описывающие оболочку
         """
-
-
         x_min_pol, y_min_pol = np.amin(self.points, axis = 0)
         self.shell_points = expand_polygon(self.points, drill_radius)
         x_min_shell, y_min_shell = np.amin(self.shell_points, axis = 0)

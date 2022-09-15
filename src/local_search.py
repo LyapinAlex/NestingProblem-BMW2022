@@ -55,7 +55,7 @@ def main():
     # Начальные данные
     pallet_width = 2000 - 2.1
     pallet_height = 1000 - 2.1
-    eps = 23/4
+    eps = 23
     drill_radius = 2
     file_name = 'src/input/NEST001-108.svg'
 

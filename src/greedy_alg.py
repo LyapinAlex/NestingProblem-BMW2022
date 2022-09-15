@@ -11,7 +11,7 @@ from old_greedy_alg.fit_pallets import fit_pallets
 
 
 
-def old_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps):
+def old_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, drill_radius):
     print("\n ------ Старый жадный алгоритм ------ \n")
     pal = Pallet(pallet_width, pallet_height, eps)
 
@@ -20,6 +20,7 @@ def old_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps):
     items = np.full(num_polygons, None)
     for id in range(num_polygons):
         item = Item(id, polygons[id])
+        item.creat_polygon_shell(drill_radius)
         item.list_of_MixedShiftC_4R(eps)
         items[id] = item
 
@@ -42,7 +43,7 @@ def old_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps):
     return items, time.time() - t_convert, i*eps
 
 
-def new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps):
+def new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, drill_radius):
     print("\n ------ Новый жадный алгоритм ------ \n")
     pal = Pallet(pallet_height, pallet_width, eps)
 
@@ -51,6 +52,7 @@ def new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps):
     items = np.full(num_polygons, None)
     for id in range(num_polygons):
         item = Item(id, polygons[id])
+        item.creat_polygon_shell(drill_radius)
         item.list_of_new_shift_code(eps)
         items[id] = item
 
@@ -79,11 +81,13 @@ def new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps):
 def main():
     t_start = time.time()
     # Начальные данные
-    pallet_width = 2000
-    pallet_height = 1000
-    eps = 21.5
+    pallet_width = 2000 - 2.1
+    pallet_height = 1000 - 2.1
+    drill_radius = 2
+
+    eps = 23/4
     file_name = None
-    file_name = 'src/input/NEST002-216.svg'
+    file_name = 'src/input/NEST003-432.svg'
 
     #Инициализация предметов
     if file_name == None:
@@ -92,14 +96,14 @@ def main():
     else:
         [polygons, num_polygons] = svg_paths2polygons(file_name)
 
-    print("\nШаг сетки:", eps,"\n")
+    print("\nШаг сетки:", eps)
     print("Считано", num_polygons, "предметов за", round(time.time() - t_start, 2))
 
-    items, work_time, height = new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps)
+    items, work_time, height = new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, drill_radius)
 
     t_draw = time.time()
     # отрисовка решения
-    draw_all_pallets(items, pallet_width, pallet_height, eps, True)
+    draw_all_pallets(items, pallet_width, pallet_height, eps)
 
     t_end = time.time()
     print("Отрисовка решения:", round(t_end - t_draw, 2))
