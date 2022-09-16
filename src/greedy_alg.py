@@ -71,24 +71,25 @@ def main():
     # file_name = 'src/input/NEST002-216.svg'
     # file_name = 'src/input/NEST003-432.svg'
 
-    #Инициализация предметов
+    # Инициализация предметов
     if file_name == None:
         polygons = create_list_of_items(100, pallet_height, pallet_width, eps)
     else:
         polygons = svg_paths2polygons(file_name)
 
+    # Жадный алгоритм
     print("\nШаг сетки:", eps)
 
-    items, work_time, height, width = old_greedy_alg(polygons, pallet_width, pallet_height, eps, drill_radius)
+    items, work_time, height, width = new_greedy_alg(polygons, pallet_width, pallet_height, eps, drill_radius)
 
     print("Использованная площадь:", height, "x", width)
     print("Время работы жадного алгоритма:", round(work_time, 2))
+    print()
     
-    # отрисовка решения
+    # Отрисовка решения
     ann = "S = " + str(height) + " x " + str(width) + ";  time = " + str(round(work_time, 2)) + ";  Num_item = " + str(polygons.shape[0]) + ";  eps = " + str(eps)
     draw_all_pallets(items, pallet_width, pallet_height, eps, draw_pixels = False, annotations = ann)
 
-    print()
     return None
 
 
