@@ -12,7 +12,6 @@ from old_greedy_alg.fit_pallets import fit_pallets
 
 
 def old_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, drill_radius):
-    print("\n ------ Старый жадный алгоритм ------ \n")
     pal = Pallet(pallet_width, pallet_height, eps)
 
     t_convert = time.time()
@@ -24,27 +23,18 @@ def old_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, dri
         item.list_of_MixedShiftC_4R(eps)
         items[id] = item
 
-    t_prep = time.time()
-    print("Построение растровых приближений:", round(t_prep - t_convert, 2))
     # препроцессинги
     items = sorted(items, key = lambda item: - item.matrix.size)
 
-    t_packing = time.time()
-    print("Сортировка решения:", round(t_packing - t_prep, 2))
     # алгоритм упаковки
     pallets = fit_pallets(pal.shape, items, eps)
 
     # вычисление высоты 
     i = np.count_nonzero(np.sum(pallets[len(pallets)-1], axis = 1))
-    print("Использованная площадь:", i*eps,"x", pal.shape[1]*eps)
-    print("Упаковка:", round(time.time() - t_packing, 2))
-
-    print("\n ------------------------------------ \n")
     return items, time.time() - t_convert, i*eps, pal.shape[1]*eps
 
 
 def new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, drill_radius):
-    # print("\n ------ Новый жадный алгоритм ------ \n")
     pal = Pallet(pallet_height, pallet_width, eps)
 
     t_convert = time.time()
@@ -56,30 +46,21 @@ def new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, dri
         item.list_of_new_shift_code(eps)
         items[id] = item
 
-
-    t_prep = time.time()
-    # print("Построение растровых приближений:", round(t_prep - t_convert, 2))
     # препроцессинги
     items = sorted(items, key = lambda item: - item.matrix.size)
 
-
-    t_packing = time.time()
-    # print("Сортировка решения:", round(t_packing - t_prep, 2))
     # упаковка
     pallets = fit_pallets_with_rout(pal.shape, items, eps)
     
     # вычисление высоты первой паллеты
     i = 0
-    while i<pallets[len(pallets)-1].shape[0] and pallets[len(pallets)-1][i][0] != -pal.shape[0]: i+=1
-    print("Использованная площадь:", i*eps,"x", pal.shape[0]*eps)
-    # print("Упаковка:", round(time.time() - t_packing, 2))
-
-    # print("\n ----------------------------------- \n")
+    while (i<pallets[len(pallets)-1].shape[0]) and (pallets[len(pallets)-1][i][0] != -pal.shape[0]): 
+        i+=1
+    
     return items, time.time() - t_convert, i*eps, pal.shape[0]*eps
 
 
 def main():
-    t_start = time.time()
     # Начальные данные
     pallet_width = 2000 - 2.1
     pallet_height = 1000 - 2.1
@@ -96,23 +77,21 @@ def main():
         num_polygons = 100
         polygons = create_list_of_items(num_polygons, pallet_height, pallet_width, eps)
     else:
-        [polygons, num_polygons] = svg_paths2polygons(file_name)
+        polygons = svg_paths2polygons(file_name)
+        num_polygons = polygons.shape[0]
 
     print("\nШаг сетки:", eps)
-    # print("Считано", num_polygons, "предметов за", round(time.time() - t_start, 2))
 
     items, work_time, height, width = new_greedy_alg(num_polygons, polygons, pallet_width, pallet_height, eps, drill_radius)
 
-    print("Время работы жадного алгоритма:",round(work_time, 2))
-    t_draw = time.time()
+    print("Использованная площадь:", height, "x", width)
+    print("Время работы жадного алгоритма:", round(work_time, 2))
+    
     # отрисовка решения
     ann = "S = " + str(height) + " x " + str(width) + ";  time = " + str(round(work_time, 2)) + ";  Num_item = " + str(num_polygons) + ";  eps = " + str(eps)
     draw_all_pallets(items, pallet_width, pallet_height, eps, draw_pixels = False, annotations = ann)
 
-    t_end = time.time()
-    # print("Отрисовка решения:", round(t_end - t_draw, 2))
     print()
-    # print(round(t_end - t_start, 6), "- общее время работы")
     return None
 
 
