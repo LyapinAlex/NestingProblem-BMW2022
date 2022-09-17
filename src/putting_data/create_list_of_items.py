@@ -27,7 +27,7 @@ def rotation(points):
     x_max, y_max = np.amax(points, axis=0)
     x_min, y_min = np.amin(points, axis=0)
 
-    if (x_max - x_min > y_max - y_min):
+    if (x_max - x_min < y_max - y_min):
         for point in points:
             point0_copy = point[0]
             point[0] = -point[1]
@@ -43,20 +43,14 @@ def create_list_of_items(num_items, max_width = 1, max_height = 1, min_wl = 0.1)
 
     data = np.full(num_items, None)
     for id in range(num_items): # здесь потом можно будет добавить круги и т.д.
-        num_corners = random.randint(3, 8)
+        num_corners = random.randint(4, 13)
         points = generate_polygon(center=(100, 100),
-                                  avg_radius=random.uniform(razmer/4, razmer),
-                                  irregularity=0.55,
-                                  spikiness=0.55,
+                                  avg_radius=random.uniform(razmer/6, razmer),
+                                  irregularity=0.3,
+                                  spikiness=0.4,
                                   num_vertices=num_corners)
         rotation(points)
         size = shift2zero(points)
-
-        # x = random.uniform(min_wl, max_width / 2) / size[0]
-        # y = random.uniform(min_wl, max_height / 2) / size[1]
-        # for point in points:
-        #     point[0] *= x
-        #     point[1] *= y
 
         data[id] = points
     return data
@@ -80,6 +74,6 @@ def draw_polygon(points):
 
 
 if __name__ == "__main__":
-    li = create_list_of_items(2)
+    li = create_list_of_items(3)
     for p in li:
         draw_polygon(p)

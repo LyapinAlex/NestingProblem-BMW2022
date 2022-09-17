@@ -1,5 +1,4 @@
 import math
-import time
 import random
 import numpy as np
 from matplotlib import patches
@@ -23,8 +22,9 @@ class Item:
 
         self.matrix = None
         self.list_matrix = None
-        self.new_shift = None
         self.list_new_shift = None
+        self.list_check_order = None
+        self.pixel_area = None
 
         self.raster_coord = None
         self.lb_x = None
@@ -32,6 +32,7 @@ class Item:
         self.rotation = 0.0
         self.reflection = False
         self.pallet_number = None
+
 
     def clear_coordinat(self):
         self.raster_coord = None
@@ -104,10 +105,37 @@ class Item:
         self.set_matrix(h)
 
         li = np.full(4, None)
+        li1 = np.full(4, None)
         for i in range(0, 4):
             li[i] = classic2new_shift(np.rot90(self.matrix, i))
+            li1[i] = self.check_orders_in_new_shift(li[i])
         self.list_new_shift = li
+        self.list_check_order = li1
+
+        self.culc_pixel_area(self.list_new_shift[0])
         return None
+
+
+    def culc_pixel_area(self, new_shift):
+        self.pixel_area = 0
+        for li in new_shift:
+            for i in li:
+                if i > 0:
+                    self.pixel_area += i
+
+
+    def check_orders_in_new_shift(self, new_shift):
+        mat = np.zeros((new_shift.shape[0], 2), dtype=int)
+        for j in range(new_shift.shape[0]):
+            m_el = - self.matrix.shape[0]
+            for i in new_shift[j]:
+                m_el = max(i,m_el)
+            mat[j][0] = j
+            mat[j][1] = m_el
+        mat = mat[np.argsort(mat[:,1])]
+        mat = mat[:, 0]
+        mat = np.flip(mat)
+        return mat
 
     def shift2zero(self):
         """Перемещает объект в первую координатную четверть, вниз влево"""
@@ -164,6 +192,7 @@ class Item:
         plt.show()
         return None
 
+
     def creat_polygon_shell(self, drill_radius):
         """Создает облочку вокруг предмета с отсупом в drill_radius.
         Перемещает фигуры и ее фигуру в первую координатную четверть, сохраняя корректное расположение фигуры внутри своей оболочки.
@@ -186,13 +215,6 @@ class Item:
 
 if (__name__=='__main__'):
     h = 0.1
-
-    # start_time = time.time()
     eq1 = Item(1, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
-    eq1.matrix = eq1.matrix_of_border(h)
+    eq1.list_of_new_shift_code(h)
     eq1.draw_polygon(h)
-    # eq1.list_of_MixedShiftC_4R(h)
-    # print(time.time() - start_time, " seconds")
-
-    # print(int(eq1.matrix.shape[0]))
-    # eq1.draw_polygon(h)

@@ -65,11 +65,11 @@ def main():
     pallet_height = 1000 - 2.1
     drill_radius = 2
 
-    eps = 23/4
+    eps = 23/4/4
     file_name = None
-    file_name = 'src/input/NEST001-108.svg'
+    # file_name = 'src/input/NEST001-108.svg'
     # file_name = 'src/input/NEST002-216.svg'
-    # file_name = 'src/input/NEST003-432.svg'
+    file_name = 'src/input/NEST003-432.svg'
 
     # Инициализация предметов
     if file_name == None:

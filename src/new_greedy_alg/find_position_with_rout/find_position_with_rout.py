@@ -12,7 +12,7 @@ def find_position_with_rout(pallet, pallet_shape, item, x=0, y=0):
     rout = 0
 
     for i in range(4):
-        placed_item, x_0, y_0 = find_position(item.list_new_shift[i], item.matrix.shape[(i + 1) % 2], pallet, pallet_shape[0], x, y)
+        placed_item, x_0, y_0 = find_position(item.list_new_shift[i], item.matrix.shape[(i + 1) % 2], item.list_check_order[i], pallet, pallet_shape[0], x, y)
         if placed_item and ((y_0 + item.matrix.shape[i % 2] < y_b) or ((y_0 + item.matrix.shape[i % 2] == y_b) and x_0 < x_b)):
             placed_item = True
             x_b = x_0
