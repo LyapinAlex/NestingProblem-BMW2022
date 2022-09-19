@@ -7,7 +7,6 @@ else:
     from .shift2zero import shift2zero
 
 
-
 def polyline2matrix(points, h):
     # вычисление размера массива
     size_of_sides = shift2zero(points)
@@ -25,14 +24,14 @@ def polyline2matrix(points, h):
 
         step_x = 1
         step_y = 1
-        check = 1
+        check = 1 # смотрим на пересечение с верхней линеей (x_p)
         if (j1[0] > j2[0]):
             step_x = -1
         elif (j1[0] == j2[0]):
             step_x = 0
         if (j1[1] > j2[1]):
             step_y = -1
-            check = 0
+            check = 0 # смотрим на пересечение с нижней линеей (x_p)
         elif (j1[1] == j2[1]):
             step_y = 0
 
