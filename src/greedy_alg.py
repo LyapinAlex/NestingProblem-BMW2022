@@ -23,13 +23,13 @@ def old_greedy_alg(polygons, pallet_width, pallet_height, eps, drill_radius):
         items[id] = item
 
     # препроцессинги
-    items = sorted(items, key = lambda item: - item.matrix.size)
+    items = sorted(items, key=lambda item: - item.matrix.size)
 
     # алгоритм упаковки
     pallets = fit_pallets(pal.shape, items, eps)
 
-    # вычисление высоты 
-    i = np.count_nonzero(np.sum(pallets[len(pallets)-1], axis = 1))
+    # вычисление высоты
+    i = np.count_nonzero(np.sum(pallets[len(pallets)-1], axis=1))
     return items, time.time() - t_convert, i*eps, pal.shape[1]*eps
 
 
@@ -46,16 +46,16 @@ def new_greedy_alg(polygons, pallet_width, pallet_height, eps, drill_radius):
         items[id] = item
 
     # препроцессинги
-    items = sorted(items, key = lambda item: - item.matrix.size)
+    items = sorted(items, key=lambda item: - item.matrix.size)
 
     # упаковка
     pallets = fit_pallets_with_rout(pal.shape, items, eps)
-    
+
     # вычисление высоты первой паллеты
     i = 0
-    while (i<pallets[len(pallets)-1].shape[0]) and (pallets[len(pallets)-1][i][0] != -pal.shape[0]): 
-        i+=1
-    
+    while (i < pallets[len(pallets)-1].shape[0]) and (pallets[len(pallets)-1][i][0] != -pal.shape[0]):
+        i += 1
+
     return items, time.time() - t_convert, i*eps, pal.shape[0]*eps
 
 
@@ -67,9 +67,9 @@ def main():
 
     eps = 23/4
     file_name = None
-    file_name = 'src/input/NEST001-108.svg'
+    #file_name = 'src/input/NEST001-108.svg'
     # file_name = 'src/input/NEST002-216.svg'
-    # file_name = 'src/input/NEST003-432.svg'
+    #file_name = 'src/input/NEST003-432.svg'
 
     # Инициализация предметов
     if file_name == None:
@@ -80,16 +80,18 @@ def main():
     # Жадный алгоритм
     print("\nШаг сетки:", eps)
 
-    items, work_time, height, width = new_greedy_alg(polygons, pallet_width, pallet_height, eps, drill_radius)
+    items, work_time, height, width = new_greedy_alg(
+        polygons, pallet_width, pallet_height, eps, drill_radius)
 
     print("Использованная площадь:", height, "x", width)
     print("Время работы жадного алгоритма:", round(work_time, 2))
     print()
-    
-    # Отрисовка решения
-    ann = "S = " + str(height) + " x " + str(width) + ";  time = " + str(round(work_time, 2)) + ";  Num_item = " + str(polygons.shape[0]) + ";  eps = " + str(eps)
-    draw_all_pallets(items, pallet_width, pallet_height, eps, draw_pixels = False, annotations = ann)
 
+    # Отрисовка решения
+    ann = "S = " + str(height) + " x " + str(width) + ";  time = " + str(round(
+        work_time, 2)) + ";  Num_item = " + str(polygons.shape[0]) + ";  eps = " + str(eps)
+    draw_all_pallets(items, pallet_width, pallet_height,
+                     eps, draw_pixels=False, annotations=ann)
     return None
 
 
