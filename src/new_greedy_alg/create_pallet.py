@@ -2,7 +2,7 @@ import numpy as np
 
 
 def create_pallet(pallet_shape):
-    pallet = np.full(pallet_shape[1], None)
+    pallet_shift_code = np.full(pallet_shape[1], None)
     for i in range(pallet_shape[1]):
-        pallet[i] = [-pallet_shape[0]]
-    return pallet
+        pallet_shift_code[i] = [-pallet_shape[0]]
+    return pallet_shift_code
