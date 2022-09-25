@@ -12,7 +12,6 @@ def polygon2matrix(points, h):
     size_of_sides = shift2zero(points)
     n_x = ceil(size_of_sides[0] / h)
     n_y = ceil(size_of_sides[1] / h)
-
     # заполнение массива пересечений с осями параллельными оси абсцисс
     edges = np.zeros((n_x + 1, n_y), dtype='int')
     for k in range(0, n_y):

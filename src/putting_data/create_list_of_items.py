@@ -35,18 +35,18 @@ def rotation(points):
     return None
 
 
-def create_list_of_items(num_items, max_width = 1, max_height = 1, min_wl = 0.1):
+def create_list_of_items(num_items, max_width = 20, max_height = 20):
     """
     Создание массива вертикально ориентированных объектов без растрового представления
     """
-    razmer = (max_width + max_height)/20
+    radius = min(max_width, max_height)/2
 
     data = np.full(num_items, None)
     for id in range(num_items): # здесь потом можно будет добавить круги и т.д.
-        num_corners = random.randint(4, 13)
+        num_corners = random.randint(4, 16)
         points = generate_polygon(center=(100, 100),
-                                  avg_radius=random.uniform(razmer/6, razmer),
-                                  irregularity=0.3,
+                                  avg_radius=random.uniform(radius/25, radius/4),
+                                  irregularity=0.05,
                                   spikiness=0.4,
                                   num_vertices=num_corners)
         rotation(points)

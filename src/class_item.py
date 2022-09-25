@@ -109,14 +109,12 @@ class Item:
         self.culc_pixel_area(self.list_new_shift[0])
         return None
 
-
     def culc_pixel_area(self, new_shift):
         self.pixel_area = 0
         for li in new_shift:
             for i in li:
                 if i > 0:
                     self.pixel_area += i
-
 
     def check_orders_in_new_shift(self, new_shift):
         mat = np.zeros((new_shift.shape[0], 2), dtype=int)
@@ -219,8 +217,18 @@ class Item:
 
 
 if (__name__ == '__main__'):
-    h = 0.05
-    eq1 = Item(1, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
+    h = 0.5
+    # eq1 = Item(1, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
+    eq1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]))
+
     eq1.creat_polygon_shell(0)
-    eq1.set_matrix(h)
+    eq1.list_of_new_shift_code(h)
+    # print(eq1.matrix)
+    for i in eq1.list_new_shift:
+        for j in i:
+            print(j)
+        print()
+    print()
+    for i in eq1.list_check_order:
+        print(i)
     eq1.draw_polygon(h)
