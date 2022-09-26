@@ -18,24 +18,24 @@ def fit_pallets_with_rotation(pallet_shape, items, h):
         x = 0
         y = 0
         rotation = 0
-        pallet_number = -1
+        pallet_id = -1
         is_placed_item = False
-        while not is_placed_item and pallet_number < len(pallets.pallets) - 1:
-            pallet_number += 1
-            is_placed_item, x, y, rotation = find_position_with_rotation(pallets.pallets[pallet_number], pallet_shape, item)
+        while not is_placed_item and pallet_id < len(pallets.pallets) - 1:
+            pallet_id += 1
+            is_placed_item, x, y, rotation = find_position_with_rotation(pallets.pallets[pallet_id], pallet_shape, item)
 
         if not is_placed_item:
             pallets.add_pallet()
-            pallet_number += 1
-            is_placed_item, x, y, rotation = find_position_with_rotation(pallets.pallets[pallet_number], pallet_shape, item)
+            pallet_id += 1
+            is_placed_item, x, y, rotation = find_position_with_rotation(pallets.pallets[pallet_id], pallet_shape, item)
 
         if not is_placed_item:
             print("Предмет не влазит в паллету")
         else:
-            item.pallet_number = pallet_number
+            item.pallet_id = pallet_id
             item.raster_coord = (x, y)
-            item.lb_x = y * h
-            item.lb_y = x * h
-            item.rotation = rotation * math.pi / 2
-            fit_item(pallets.pallets[pallet_number], item.list_new_shift[rotation], x, y)
+            item.optimal_x = y * h
+            item.optimal_y = x * h
+            item.rotation = rotation
+            fit_item(pallets.pallets[pallet_id], item.list_new_shift[rotation], x, y)
     return pallets.pallets

@@ -13,4 +13,4 @@ def createDXF(items, pallet_width, pallet_height):
         msp.add_polyline2d(item.points)
     msp.add_polyline2d([(0, 0), (0, pallet_height),
                        (pallet_width, pallet_height), (pallet_width, 0), (0, 0)])
-    doc.saveas('src\output\pallet' + str(items[0].pallet_number)+'.dxf')
+    doc.saveas('src\output\pallet' + str(items[0].pallet_id)+'.dxf')

@@ -27,20 +27,20 @@ class Item:
         self.pixel_area = None
 
         self.raster_coord = None
-        self.lb_x = None
-        self.lb_y = None
-        self.rotation = 0.0
+        self.optimal_x = None
+        self.optimal_y = None
+        self.rotation = 0
         self.reflection = False
-        self.pallet_number = None
+        self.pallet_id = None
 
 
     def clear_coordinat(self):
         self.raster_coord = None
-        self.lb_x = None
-        self.lb_y = None
-        self.rotation = 0.0
+        self.optimal_x = None
+        self.optimal_y = None
+        self.rotation = 0
         self.reflection = False
-        self.pallet_number = None
+        self.pallet_id = None
         return None
 
 
@@ -174,26 +174,26 @@ class Item:
         fig, ax = plt.subplots()
         MAX_SIZE = 7
         if self.matrix.shape[0] > self.matrix.shape[1]:
-            fig.set_figheight(
-                MAX_SIZE * self.matrix.shape[1]/self.matrix.shape[0])
-            fig.set_figwidth(MAX_SIZE)
-        else:
             fig.set_figheight(MAX_SIZE)
             fig.set_figwidth(
                 MAX_SIZE * self.matrix.shape[0]/self.matrix.shape[1])
+        else:
+            fig.set_figheight(
+                MAX_SIZE * self.matrix.shape[1]/self.matrix.shape[0])
+            fig.set_figwidth(MAX_SIZE)
 
         pallet = patches.Rectangle(
-            (0, 0), h*self.matrix.shape[0], h*self.matrix.shape[1], linewidth=2, facecolor='none', edgecolor='black')
+            (0, 0), h*self.matrix.shape[1], h*self.matrix.shape[0], linewidth=2, facecolor='none', edgecolor='black')
         ax.add_patch(pallet)
-        ax.set_xlim(-1, h*self.matrix.shape[0] + 1)
-        ax.set_ylim(-1, h*self.matrix.shape[1] + 1)
+        ax.set_xlim(-1, h*self.matrix.shape[1] + 1)
+        ax.set_ylim(-1, h*self.matrix.shape[0] + 1)
 
         if not code_type:
             random_color = "#" + \
                 ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
-            for j in range(self.matrix.shape[1]):
-                for i in range(self.matrix.shape[0]):
-                    if self.matrix[i][j]:
+            for i in range(self.matrix.shape[1]):
+                for j in range(self.matrix.shape[0]):
+                    if self.matrix[j][i]:
                         sqver = np.array(
                             [[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
                         polygon = patches.Polygon(
@@ -229,18 +229,16 @@ class Item:
 
 
 if (__name__ == '__main__'):
-    h = 0.5
-    # eq1 = Item(1, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
-    eq1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]))
+    h = 0.02
+    eq1 = Item(1, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
+    # eq1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]))
 
     eq1.creat_polygon_shell(0)
     eq1.list_of_new_shift_code(h)
-    # print(eq1.matrix)
+    print(eq1.matrix)
     for i in eq1.list_new_shift:
         for j in i:
             print(j)
         print()
     print()
-    for i in eq1.list_check_order:
-        print(i)
     eq1.draw_polygon(h)

@@ -12,8 +12,7 @@ from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
 
 
 def new_greedy_alg0(polygons, pallet_width, pallet_height, eps, drill_radius):
-    pal = Packing(pallet_height, pallet_width, eps, drill_radius)
-
+    pal = Packing(pallet_width, pallet_height, eps, drill_radius)
     # преобразование данных (создание растровых приближений)
     items = np.full(polygons.shape[0], None)
     for id in range(polygons.shape[0]):
@@ -62,7 +61,6 @@ def drow_stats(x, y, y_min, y_max, y_disp, xlabel="", ylabel="", annotations="No
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(True)
-    ax.set_yscale('log', base=1.86)
     ax.set_xscale('log', base=2)
 
     plt.plot(x, y, label = 'Среднее время решения')
