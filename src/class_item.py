@@ -16,7 +16,7 @@ class Item:
 
     def __init__(self,
                  id: int,
-                 points: list):
+                 points):
         self.id = id
         self.points = points
 
@@ -43,51 +43,33 @@ class Item:
         self.pallet_number = None
         return None
 
-    def set_rectangular_matrix(self, h):
-        """Приближение объекта описанным прямоугольником"""
-        x_max, y_max = np.amax(self.shell_points, axis=0)
-        x_min, y_min = np.amin(self.shell_points, axis=0)
 
-        self.matrix = np.ones((math.ceil(
-            (x_max - x_min) / h), math.ceil((y_max - y_min) / h)),
-            dtype="int")
+    def creat_polygon_shell(self, drill_radius):
+        """Создает облочку вокруг предмета с отсупом в drill_radius.
+        Перемещает фигуры и ее фигуру в первую координатную четверть, сохраняя корректное расположение фигуры внутри своей оболочки.
+
+        Инициализирует в Item атрибуты:
+        shell_points - точки описывающие оболочку
+        """
+        x_min_pol, y_min_pol = np.amin(self.points, axis=0)
+        self.shell_points = expand_polygon(self.points, drill_radius)
+        x_min_shell, y_min_shell = np.amin(self.shell_points, axis=0)
+        vector_surf = np.array(
+            [x_min_pol - x_min_shell, y_min_pol - y_min_shell])
+        shift2zero(self.shell_points)
+        shift2zero(self.points)
+
+        for point in self.points:
+            point += vector_surf
+
         return None
+
 
     def set_matrix(self, h):
         """Приближение объекта пиксельным способом, с размером пискля - h"""
         self.matrix = polygon2matrix(self.shell_points, h)
         return None
 
-    def matrix_of_border(self, h):
-        """Приближение границы объекта пиксельным способом, с размером пискля - h"""
-        mat = polyline2matrix(self.shell_points, h)
-        return mat
-
-    def rotationMatrix(self):
-        # self.rotation = math.ceil(rotate / math.pi * 90)
-        # if (self.rotation % 90 == 0):
-        #     self.matrix = np.rot90(self.matrix, self.rotation // 90)
-        # else:
-        #     print("Не прямой поворот:", self.rotation)
-        self.matrix = np.rot90(self.matrix)
-        return None
-
-    def list_of_MixedShiftC_4R(self, h):  # крутит против часовой стрелки
-        """
-        Приближение объекта пиксельным способом (кодировкой с переходом), с размером пискля - h
-
-        Returns:
-            np.array[4]: содержит 4 поворота текущего объекта в формате кодировки с переходом
-        """
-
-        self.set_matrix(h)
-
-        li = np.array([None, None, None, None])
-        for i in range(0, 4):
-            li[i] = np.rot90(simple2mixed_shift(np.rot90(self.matrix, 3 + i)))
-            # li[i] = simple2mixed_shift(np.rot90(self.matrix, i ))
-        self.list_matrix = li
-        return None
 
     def list_of_new_shift_code(self, h):
         """Приближение объекта пиксельным способом (кодировкой с переходом), с размером пискля - h
@@ -109,12 +91,14 @@ class Item:
         self.culc_pixel_area(self.list_new_shift[0])
         return None
 
+
     def culc_pixel_area(self, new_shift):
         self.pixel_area = 0
         for li in new_shift:
             for i in li:
                 if i > 0:
                     self.pixel_area += i
+
 
     def check_orders_in_new_shift(self, new_shift):
         mat = np.zeros((new_shift.shape[0], 2), dtype=int)
@@ -129,9 +113,57 @@ class Item:
         mat = np.flip(mat)
         return mat
 
+
     def shift2zero(self):
         """Перемещает объект в первую координатную четверть, вниз влево"""
         return shift2zero(self.shell_points)
+
+# -----------------------------------  Trash   -----------------------------------
+
+    def set_rectangular_matrix(self, h):
+        """Приближение объекта описанным прямоугольником"""
+        x_max, y_max = np.amax(self.shell_points, axis=0)
+        x_min, y_min = np.amin(self.shell_points, axis=0)
+
+        self.matrix = np.ones((math.ceil(
+            (x_max - x_min) / h), math.ceil((y_max - y_min) / h)),
+            dtype="int")
+        return None
+
+
+    def matrix_of_border(self, h):
+        """Приближение границы объекта пиксельным способом, с размером пискля - h"""
+        mat = polyline2matrix(self.shell_points, h)
+        return mat
+
+
+    def rotationMatrix(self):
+        # self.rotation = math.ceil(rotate / math.pi * 90)
+        # if (self.rotation % 90 == 0):
+        #     self.matrix = np.rot90(self.matrix, self.rotation // 90)
+        # else:
+        #     print("Не прямой поворот:", self.rotation)
+        self.matrix = np.rot90(self.matrix)
+        return None
+
+
+    def list_of_MixedShiftC_4R(self, h):  # крутит против часовой стрелки
+        """
+        Приближение объекта пиксельным способом (кодировкой с переходом), с размером пискля - h
+
+        Returns:
+            np.array[4]: содержит 4 поворота текущего объекта в формате кодировки с переходом
+        """
+
+        self.set_matrix(h)
+
+        li = np.array([None, None, None, None])
+        for i in range(0, 4):
+            li[i] = np.rot90(simple2mixed_shift(np.rot90(self.matrix, 3 + i)))
+            # li[i] = simple2mixed_shift(np.rot90(self.matrix, i ))
+        self.list_matrix = li
+        return None
+
 
     def draw_polygon(self, h, code_type=0):
         """
@@ -194,26 +226,6 @@ class Item:
         plt.show()
         return None
 
-
-    def creat_polygon_shell(self, drill_radius):
-        """Создает облочку вокруг предмета с отсупом в drill_radius.
-        Перемещает фигуры и ее фигуру в первую координатную четверть, сохраняя корректное расположение фигуры внутри своей оболочки.
-
-        Инициализирует в Item атрибуты:
-        shell_points - точки описывающие оболочку
-        """
-        x_min_pol, y_min_pol = np.amin(self.points, axis=0)
-        self.shell_points = expand_polygon(self.points, drill_radius)
-        x_min_shell, y_min_shell = np.amin(self.shell_points, axis=0)
-        vector_surf = np.array(
-            [x_min_pol - x_min_shell, y_min_pol - y_min_shell])
-        shift2zero(self.shell_points)
-        shift2zero(self.points)
-
-        for point in self.points:
-            point += vector_surf
-
-        return None
 
 
 if (__name__ == '__main__'):

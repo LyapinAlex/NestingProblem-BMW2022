@@ -5,7 +5,6 @@ from putting_data.txt2polygons import txt2polygons
 def main():
     num_pallets = 1
     for i in range(num_pallets):
-        print(123)
         polygons = txt2polygons(r'src\input\test' + str(i) + '.txt')
         drow_pallet_with_polygons(
             polygons, 2000, 2000,

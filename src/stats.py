@@ -7,12 +7,12 @@ from data_rendering.draw_solution import draw_all_pallets
 from putting_data.create_list_of_items import create_list_of_items
 from putting_data.svg_paths2polygons import svg_paths2polygons
 from class_item import Item
-from class_pallet import Pallet
-from new_greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
+from class_packing import Packing
+from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
 
 
 def new_greedy_alg0(polygons, pallet_width, pallet_height, eps, drill_radius):
-    pal = Pallet(pallet_height, pallet_width, eps)
+    pal = Packing(pallet_height, pallet_width, eps, drill_radius)
 
     # преобразование данных (создание растровых приближений)
     items = np.full(polygons.shape[0], None)
@@ -27,16 +27,16 @@ def new_greedy_alg0(polygons, pallet_width, pallet_height, eps, drill_radius):
 
     t_convert = time.time()
     # упаковка
-    pallets = fit_pallets_with_rotation(pal.shape, items, eps)
+    pallets = fit_pallets_with_rotation(pal.pallet_shape, items, eps)
 
     # вычисление высоты первой паллеты
     i = 0
     while (i < pallets[len(pallets) - 1].shape[0]) and (
-            pallets[len(pallets) - 1][i][0] != -pal.shape[0]):
+            pallets[len(pallets) - 1][i][0] != -pal.pallet_shape[0]):
         i += 1
 
 
-    return time.time() - t_convert, (i + pal.shape[1] * (len(pallets) - 1)) * eps
+    return time.time() - t_convert, (i + pal.pallet_shape[1] * (len(pallets) - 1)) * eps
 
 
 def moment(mas, n=1):
@@ -163,6 +163,6 @@ def main2(num_exp = 10, num_item = 50, num_eps = 8):
 
 
 if __name__ == '__main__':
-    stats_t, stats_h = main2(num_exp = 10, num_item = 30, num_eps = 10)
+    stats_t, stats_h = main2(num_exp = 10, num_item = 30, num_eps = 4)
 
     

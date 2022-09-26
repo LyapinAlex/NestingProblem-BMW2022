@@ -2,12 +2,12 @@ from operator import truediv
 import time
 import numpy as np
 
-from class_pallet import Pallet
+from greedy_alg.class_pallets import Pallets
 from class_item import Item
 from data_rendering.draw_solution import draw_all_pallets
 from putting_data.create_list_of_items import create_list_of_items
 from putting_data.svg_paths2polygons import svg_paths2polygons
-from new_greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
+from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
 
 
 def swap(list, pos1, pos2):
@@ -61,7 +61,7 @@ def main():
 
 
     print("\nШаг сетки:", eps,"\n")
-    pal = Pallet(pallet_width, pallet_height, eps)
+    pal = Pallets(pallet_width, pallet_height, eps)
 
     # num_polygons = 100
     # polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
