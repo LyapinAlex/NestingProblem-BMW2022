@@ -7,7 +7,7 @@ from class_item import Item
 from data_rendering.draw_solution import draw_all_pallets
 from putting_data.create_list_of_items import create_list_of_items
 from putting_data.svg_paths2polygons import svg_paths2polygons
-from old_greedy_alg.fit_pallets import fit_pallets
+from new_greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
 
 
 def swap(list, pos1, pos2):
@@ -16,7 +16,7 @@ def swap(list, pos1, pos2):
 
 
 def locSearch(pallet, poligons):
-    objVal = len(fit_pallets(pallet.shape,  poligons, pallet.h))
+    objVal = len(fit_pallets_with_rotation(pallet.shape,  poligons, pallet.h))
 
     num_items = len(poligons)
     stop = False
@@ -30,7 +30,7 @@ def locSearch(pallet, poligons):
             for j in range(i + 1, num_items):
                 for poligon in poligons:
                     poligon.clear_coordinat()
-                pal = fit_pallets(pallet.shape, swap(poligons, i, j), pallet.h)
+                pal = fit_pallets_with_rotation(pallet.shape, swap(poligons, i, j), pallet.h)
                 iter+=1
                 swap(poligons, i, j)
                 val = len(pal)
@@ -41,12 +41,12 @@ def locSearch(pallet, poligons):
                     
             print(iter, ':', objVal, 't :', time.time() - t)
         if betterNeighboor != (0,0):
-            fit_pallets(pallet.shape, swap(poligons, betterNeighboor[0], betterNeighboor[1]), pallet.h)
+            fit_pallets_with_rotation(pallet.shape, swap(poligons, betterNeighboor[0], betterNeighboor[1]), pallet.h)
             
     for poligon in poligons:
         poligon.clear_coordinat()
 
-    fit_pallets(pallet.shape,  poligons, pallet.h)
+    fit_pallets_with_rotation(pallet.shape,  poligons, pallet.h)
     return objVal
 
 
@@ -89,7 +89,7 @@ def main():
     print("Сортировка решения:", round(t_packing - t_prep, 2))
     # алгоритм упаковки
     # print("Использованных палет:", locSearch(pal, items))
-    fit_pallets(pal.shape, items, eps)
+    fit_pallets_with_rotation(pal.shape, items, eps)
 
     t_draw = time.time()
     print("Время работы жадного алгоритма:", round(t_draw - t_packing, 2))

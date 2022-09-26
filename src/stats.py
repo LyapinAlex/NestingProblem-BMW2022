@@ -164,10 +164,5 @@ def main2(num_exp = 10, num_item = 50, num_eps = 8):
 
 if __name__ == '__main__':
     stats_t, stats_h = main2(num_exp = 10, num_item = 30, num_eps = 10)
-    # f = open('output\stats.txt','w')
-    # f.write("123")
-    # print("\ntime:\n",stats_t)
-    # print("\nheight:\n",stats_h)
-    # f.close()
 
     
