@@ -31,6 +31,7 @@ def fit_pallets_with_rotation(pallet_shape, items, h):
 
         if not is_placed_item:
             print("Предмет не влазит в паллету")
+            print(item.points)
         else:
             item.pallet_id = pallet_id
             item.raster_coord = (x, y)

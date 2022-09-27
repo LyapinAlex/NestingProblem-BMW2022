@@ -2,15 +2,13 @@ from matplotlib import pyplot as plt
 from matplotlib import patches
 import numpy as np
 import random
-import math
-import os
 
-from data_rendering.create_dxf import createDXF
+from data_rendering.items2DXF import items2DXF
 
 if __name__ == '__main__':
-    from understand_pallets import understand_pallets
+    from split_items import split_items
 else:
-    from .understand_pallets import understand_pallets
+    from .split_items import split_items
 
 
 def draw_pallet(items, packaging, draw_pixels=False):
@@ -79,18 +77,11 @@ def draw_pallet(items, packaging, draw_pixels=False):
     return None
 
 
-def draw_all_pallets(items, packaging, draw_pixels=False):
-    # очистка директории от предыдущих решений
-    mydir = "src\output"
-    filelist = [f for f in os.listdir(
-        mydir) if f.endswith(".png") or f.endswith(".dxf")]
-    for f in filelist:
-        os.remove(os.path.join(mydir, f))
-
-    packing = understand_pallets(items)
+def draw_all_pallets(packaging, draw_pixels = False):
+    split_pal = split_items(packaging)
     # вывод текущего решения
-    for i in range(len(packing)):
-        draw_pallet(packing[i], packaging, draw_pixels)
-        createDXF(packing[i], packaging.pallet_width, packaging.pallet_height)
+    for i in range(packaging.num_pallets):
+        draw_pallet(split_pal[i], packaging, draw_pixels)
+        items2DXF(split_pal[i], packaging.pallet_width, packaging.pallet_height)
 
     return None

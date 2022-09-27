@@ -3,7 +3,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 import time
 
-from data_rendering.draw_solution import draw_all_pallets
 from putting_data.create_list_of_items import create_list_of_items
 from putting_data.svg_paths2polygons import svg_paths2polygons
 from class_item import Item

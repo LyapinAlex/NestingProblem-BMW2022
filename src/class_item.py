@@ -14,24 +14,27 @@ from shift_code.classic2new_shift import classic2new_shift
 
 class Item:
 
-    def __init__(self,
-                 id: int,
-                 points):
+    def __init__(self, id: int, points):
         self.id = id
         self.points = points
+        self.shell_points = None
 
+        # ----------  Code   -----------
         self.matrix = None
-        self.list_matrix = None
         self.list_new_shift = None
         self.list_check_order = None
         self.pixel_area = None
 
+        # --------  Position   ---------
         self.raster_coord = None
         self.optimal_x = None
         self.optimal_y = None
         self.rotation = 0
         self.reflection = False
         self.pallet_id = None
+
+        # ----------  Trash   ----------
+        self.list_matrix = None
 
 
     def clear_coordinat(self):

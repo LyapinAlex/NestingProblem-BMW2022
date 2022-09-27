@@ -1,45 +1,37 @@
-from fileinput import filename
 import numpy as np
 
 
-class DxfReader:
+def dxf2polygons(path):
+    file = open(path)
+    polygonsList = []
 
-    def __init__(self, path):
-        self.path = path
-        self.polygonsList = []
+    x = 0
+    y = 0
+    polygon = []
+    beforeLine = ""
 
-    def readDXF(self):
-        self.file = open(self.path)
+    for line in file:
 
-        x = 0
-        y = 0
-        polygon = []
-        beforeLine = ""
+        if line.strip() == "POLYLINE" and len(polygon) != 0:
+            polygon.pop()
+            polygonsList.append(np.array(polygon))
+            polygon = []
 
-        for line in self.file:
+        if beforeLine.strip() == "10":
+            x = float(line.strip())
 
-            if line.strip() == "POLYLINE" and len(polygon) != 0:
-                polygon.pop()
-                self.polygonsList.append(np.array(polygon))
-                polygon = []
+        if beforeLine.strip() == "20":
+            y = float(line.strip())
+            polygon.append([x, y])
 
-            if beforeLine.strip() == "10":
-                x = float(line.strip())
+        beforeLine = line
 
-            if beforeLine.strip() == "20":
-                y = float(line.strip())
-                polygon.append([x, y])
-
-            beforeLine = line
-
-        self.file.close()
-
-        self.polygonsList = np.array(self.polygonsList, dtype=object)
+    file.close()
+    return np.array(polygonsList, dtype=object)
 
 
 if __name__ == "__main__":
-    reader = DxfReader(
-        r"C:\Users\1\Desktop\NestingProblem-BMW2022\src\input\NEST001-108.DXF")
-    reader.readDXF()
-
-    print(reader.polygonsList[1])
+    print(
+        dxf2polygons(
+            r"C:\Users\1\Desktop\NestingProblem-BMW2022\src\input\NEST001-108.DXF"
+        ))
