@@ -3,15 +3,8 @@ from matplotlib import patches
 import numpy as np
 import random
 
-from data_rendering.items2DXF import items2DXF
 
-if __name__ == '__main__':
-    from split_items import split_items
-else:
-    from .split_items import split_items
-
-
-def draw_pallet(items, packaging, draw_pixels=False):
+def items2png(path, items, packaging, draw_pixels=False):
     fig, ax = plt.subplots()
     MAX_SIZE = 20
     if packaging.pallet_width > packaging.pallet_height:
@@ -30,29 +23,6 @@ def draw_pallet(items, packaging, draw_pixels=False):
     ax.set_ylim(-0.5, packaging.pallet_height + 2)
 
     for item in items:
-        item.shift2zero()
-
-        for point in item.points:
-            point0_copy = point[0]
-            point1_copy = point[1]
-
-            if item.rotation == 0:
-                point[0] = point1_copy
-                point[1] = point0_copy
-            elif item.rotation == 1:
-                point[0] = -point0_copy + packaging.h*len(item.matrix[0])
-                point[1] = point1_copy
-            elif item.rotation == 2:
-                point[0] = -point1_copy + packaging.h*len(item.matrix)
-                point[1] = -point0_copy + packaging.h*len(item.matrix[0])
-            elif item.rotation == 3:
-                point[0] = point0_copy
-                point[1] = -point1_copy + packaging.h*len(item.matrix)
-
-        for point in item.points:
-            point[0] += item.optimal_x
-            point[1] += item.optimal_y
-
         # отрисовка растрового приближения
         if draw_pixels:
             matrix = np.rot90(item.matrix, item.rotation)
@@ -69,19 +39,9 @@ def draw_pallet(items, packaging, draw_pixels=False):
                         polygon = patches.Polygon(
                             sqver, linewidth=1, facecolor=random_color, edgecolor='black', alpha=0.33)
                         ax.add_patch(polygon)
-
+        # отрисовка предмета
         polygon = patches.Polygon(item.points, linewidth=1, edgecolor='red', fill=False)
         ax.add_patch(polygon)
-
-    plt.savefig('src\output\pallet' + str(items[0].pallet_id) + '.png')
+    plt.savefig(path[:-4] + str(items[0].pallet_id) + '.png')
     return None
 
-
-def draw_all_pallets(packaging, draw_pixels = False):
-    split_pal = split_items(packaging)
-    # вывод текущего решения
-    for i in range(packaging.num_pallets):
-        draw_pallet(split_pal[i], packaging, draw_pixels)
-        items2DXF(split_pal[i], packaging.pallet_width, packaging.pallet_height)
-
-    return None

@@ -4,7 +4,7 @@ import numpy as np
 
 from greedy_alg.class_pallets import Pallets
 from class_item import Item
-from data_rendering.draw_solution import draw_all_pallets
+from data_rendering.items2png import draw_all_pallets
 from putting_data.create_list_of_items import create_list_of_items
 from putting_data.svg_paths2polygons import svg_paths2polygons
 from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation

@@ -1,8 +1,9 @@
-def items2txt(items,
-             path='src\output\items.txt',
-             duplicate_first_point_to_end=True):
+def items2txt(path, items, duplicate_first_point_to_end=True, is_in_one_file = False):
     """Создаёт файл содержащий многоугольники из массива"""
-    f = open(path, 'w')
+    if is_in_one_file:
+        f = open(path, 'w')
+    else:
+        f = open(path[:-4] + str(items[0].pallet_id) + '.txt', 'w')
     f.write(str(len(items)) + '\n')
     for item in items:
         s = ''

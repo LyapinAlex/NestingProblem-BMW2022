@@ -1,37 +1,37 @@
-from data_rendering.polygons2txt import polygons2txt
-from data_rendering.items2txt import items2txt
 from class_packing import Packing
+
 
 def main():
     # Начальные данные
-    pallet_width = 2000
-    pallet_height = 1000
-    drill_radius = 0
-
-    packaging = Packing(pallet_width, pallet_height, drill_radius)
-    num_items = 150
-    file_name = None
-    # file_name = r'src/input/NEST001-108.DXF'
-    # file_name = r'src/input/NEST002-216.svg'
-    # file_name = r'src/input/NEST003-432.svg'
-
+    packaging = Packing(width=2000, height=1000, drill_radius=0)
     # Инициализация предметов
+    num_items = 401
+    file_name = None
+    file_name = r'NEST001-108.dxf'
+    # file_name = r'NEST002-216.svg'
+    # file_name = r'NEST003-432.svg'
+    file_name = r"items401.txt"
     if file_name == None:
         packaging.create_random_polygons(num_items)
     else:
         packaging.read_polygons_from_file(file_name)
 
     # Жадный алгоритм
+
     packaging.make_items()
+    packaging.save_items_in_file('items' + str(packaging.num_items) + '.txt')
     packaging.sort_items()
     packaging.greedy_packing()
 
-    # polygons2txt(polygons, path=r'src\output\polygons' + str(len(polygons)) + '.txt')
-    # items2txt(packaging.items, path=r'src\output\items'+str(len(polygons))+'.txt')
-
     # Результаты упаковки
+
     packaging.print_stats()
-    packaging.draw_solution()
+    packaging.change_position()
+
+    packaging.clear_output()
+    # packaging.save_pallets_in_files('pallet.dxf')
+    # packaging.save_pallets_in_files('pallet.txt')
+    packaging.save_pallets_in_files('pallet.png')
     return None
 
 

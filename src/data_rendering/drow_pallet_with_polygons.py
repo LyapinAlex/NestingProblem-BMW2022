@@ -1,4 +1,3 @@
-from turtle import color
 from matplotlib import pyplot as plt
 from matplotlib import patches
 

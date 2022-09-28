@@ -31,7 +31,4 @@ def dxf2polygons(path):
 
 
 if __name__ == "__main__":
-    print(
-        dxf2polygons(
-            r"C:\Users\1\Desktop\NestingProblem-BMW2022\src\input\NEST001-108.DXF"
-        ))
+    print(dxf2polygons(r"src\input\NEST001-108.DXF"))
