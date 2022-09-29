@@ -1,4 +1,5 @@
 import math
+from tkinter import E
 
 
 class Point:
@@ -49,11 +50,18 @@ class Point:
         return self
 
     def angle(self):
-        fi1 = math.acos(self.x/abs(self))
-        fi2 = math.asin(self.y/abs(self))
-        return fi1, fi2
-
+        """[-pi;pi)"""
+        fi1 = math.acos(self.x / abs(self))
+        fi2 = math.asin(self.y / abs(self))
+        answer = 0
+        if fi1 < math.pi / 2:
+            answer = fi2
+        elif fi2 > 0:
+            answer = fi1
+        else:
+            answer = -fi1
+        return answer
 
 if __name__ == "__main__":
-    a = Point(1, -2)
-    print(a.angle())
+    a = Point(-1, 0)
+    print(a.angle()*180/math.pi)
