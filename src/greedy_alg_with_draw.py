@@ -19,7 +19,7 @@ def main():
     # Жадный алгоритм
 
     packaging.make_items()
-    packaging.save_items_in_file('items' + str(packaging.num_items) + '.txt')
+    # packaging.save_items_in_file('items' + str(packaging.num_items) + '.txt')
     packaging.sort_items()
     packaging.greedy_packing()
 
