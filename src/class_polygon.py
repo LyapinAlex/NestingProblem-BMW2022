@@ -1,3 +1,4 @@
+from lib2to3.pgen2 import driver
 import math
 from class_vector import Vector
 
@@ -37,6 +38,9 @@ class Polygon:
         else:
             return self.points[i - 1]
 
+    def get_side(self, num_side):
+        return self.next(num_side) - self.point(num_side)
+
     def minXY(self):
         min_x = min(self.point(0).x, self.point(1).x)
         min_y = min(self.point(0).y, self.point(1).y)
@@ -52,6 +56,18 @@ class Polygon:
             max_x = max(max_x, self.point(i).x)
             max_y = max(max_y, self.point(i).y)
         return Vector(max_x, max_y)
+
+    def resize(self):
+        self.size = self.maxXY() - self.minXY()
+        return self.size
+
+    def round_points(self, ndigits=8):
+        for point in self.points:
+            point.x = round(point.x, ndigits)
+            point.y = round(point.y, ndigits)
+        return self
+
+# ---------------------------  Structure changes  -----------------------------
 
     def sort_points(self):
         """Первой вершиной становится самая нижняя (если таких несколько, то из них самая левая), 
@@ -73,32 +89,55 @@ class Polygon:
             for i in range(self.num_sides):
                 new_points.append(self.point((i + num_first) % self.num_sides))
         self.points = new_points
-        return self
+        return 
 
-    def resize(self):
-        self.size = self.maxXY() - self.minXY()
-        return self.size
+    def del_points_on_one_line(self):
+        if not self.get_side(0).is_collinear(self.get_side(self.num_sides - 1)):
+            new_points = [self.points[0]]
+        else:
+            new_points = []
+        for i in range(1, self.num_sides):
+            if not self.get_side(i).is_collinear(self.get_side(i - 1)):
+                new_points.append(self.point(i))
+        self.points = new_points
+        self.num_sides = len(self.points)
+        return 
 
-    def round_points(self, ndigits=8):
-        for point in self.points:
-            point.x = round(point.x, ndigits)
-            point.y = round(point.y, ndigits)
-        return self
+    def del_duplicate_points(self):
+        new_points = [self.points[0]]
+        new_prev_point = self.points[0]
+        for i in range(1, self.num_sides):
+            if not abs(new_prev_point - self.point(i)) < 0.001: #длина меньше микромерта
+                new_points.append(self.point(i))
+                new_prev_point = self.points[i]
+        self.points = new_points
+        self.num_sides = len(self.points)
+        return        
+
+    def bring_points2normal_appearance(self):
+        """Удаляет дублирующиеся точки, потом удаляет среднюю из трёх соседствующих точек лежащих на одной прямой, 
+        далее упорядочивает их так, что первой вершиной становится самая нижняя (если таких несколько, то из них самая левая), 
+        дальше идут вершины против часовой стрелки"""
+        self.del_duplicate_points()
+        self.del_points_on_one_line()
+        self.sort_points()
+        return
 
 # ------------------------------  Calculations   -------------------------------
 
     def side_length(self, num_side):
-        return abs(self.next(num_side) - self.point(num_side))
+        return abs(self.get_side(num_side))
 
     def side_angle(self, num_side):
-        return (self.next(num_side) - self.point(num_side)).angle()
+        return self.get_side(num_side).angle()
 
-    def calc_area(self, with_sign = False):
+    def calc_area(self, without_sign=True):
         area_value = 0
         for i in range(self.num_sides):
-            area_value += self.point(i).x * self.next(i).y - self.next(i).x * self.point(i).y
+            area_value += self.point(i).x * self.next(i).y - self.next(
+                i).x * self.point(i).y
         area_value /= 2
-        if not with_sign: 
+        if without_sign:
             area_value = abs(area_value)
         return area_value
 
@@ -107,12 +146,13 @@ class Polygon:
         return self.size.x * self.size.y
 
     def calc_centroid(self):
-        centroid = Vector(0,0)
+        centroid = Vector(0, 0)
         for i in range(self.num_sides):
-            area_value = self.point(i).x * self.next(i).y - self.next(i).x * self.point(i).y
-            centroid.x = (self.point(i).x + self.next(i).x) * area_value
-            centroid.y = (self.point(i).y + self.next(i).y) * area_value
-        centroid /= 6 * self.calc_area(True)
+            area_value = self.point(i).x * self.next(i).y - self.next(
+                i).x * self.point(i).y
+            centroid.x += (self.point(i).x + self.next(i).x) * area_value
+            centroid.y += (self.point(i).y + self.next(i).y) * area_value
+        centroid /= 6 * self.calc_area(False)
         return centroid
 
     def choose_best_turn1(self):
@@ -176,7 +216,7 @@ class Polygon:
     def move_to_origin(self):
         return self.move_to(Vector(0, 0))
 
-# ---------------------------------  Output   ----------------------------------
+# ---------------------------------   Output   ---------------------------------
 
     def points_to_list(self):
         list_of_points = []
@@ -195,8 +235,9 @@ class Polygon:
             fig.set_figheight(MAX_SIZE * self.size.y / self.size.x)
             fig.set_figwidth(MAX_SIZE)
 
-        ax.set_xlim(self.minXY().x - 1, self.maxXY().x + 1)
-        ax.set_ylim(self.minXY().y - 1, self.maxXY().y + 1)
+        INDENT = 1
+        ax.set_xlim(self.minXY().x - INDENT, self.maxXY().x + INDENT)
+        ax.set_ylim(self.minXY().y - INDENT, self.maxXY().y + INDENT)
 
         circumscribed_rectangle = patches.Rectangle(self.minXY().to_tuple(),
                                                     self.size.x,
@@ -212,23 +253,22 @@ class Polygon:
                                   fill=False)
         ax.add_patch(polygon)
         bar = self.calc_centroid()
-        plt.plot(bar.x, bar.y,'co')
+        plt.plot(bar.x, bar.y, 'co')
         plt.show()
 
 if __name__ == '__main__':
     p1 = Polygon([
-        Vector(3, 4),
         Vector(2, 2),
-        Vector(0, 1),
+        Vector(1, 1),
         Vector(-4, 2),
-        Vector(5, 13)
+        Vector(5, 13),
+        Vector(4.0012, 4),
+        Vector(4.0006, 4),
+        Vector(4, 4)
     ])
-    # p1 = Polygon([
-    #     Vector(1, 1),
-    #     Vector(2, 2),
-    #     Vector(3, 1),
-    #     Vector(2, 0),
-    # ])
-    p1.sort_points().draw()
-    p1.choose_best_turn1().draw()
-    p1.choose_best_turn2().draw()
+    print(p1)
+    p1.draw()
+    p1.bring_points2normal_appearance()
+    print(p1)
+    p1.draw()
+
