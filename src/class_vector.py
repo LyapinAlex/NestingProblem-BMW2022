@@ -29,6 +29,22 @@ class Vector:
         self.y -= other.y
         return self
 
+    def __mul__(self, scalar): # *
+        return Vector(self.x * scalar, self.y * scalar)
+
+    def __rmul__(self, scalar): # *
+        return self*scalar
+
+    def __imul__(self, scalar): # *=
+        self.x *= scalar
+        self.y *= scalar
+        return self
+
+    def __itruediv__(self, scalar): # /=
+        self.x /= scalar
+        self.y /= scalar
+        return self
+
     def __abs__(self):  # длинна
         return math.hypot(self.x, self.y)
 
@@ -38,6 +54,9 @@ class Vector:
     def __neg__(self):  # отражение относительно начала координат
         return Vector(-self.x, -self.y)
 
+    def __lt__(self, other):
+        return (self.y < other.y) or ((self.y == other.y) and self.x < other.x)
+
     def to_tuple(self):
         return (self.x, self.y)
 
@@ -45,9 +64,10 @@ class Vector:
         return Vector(self.y, -self.x).normalize()
 
     def normalize(self):
-        len = abs(self)
-        self.x /= len
-        self.y /= len
+        if self:
+            len = abs(self)
+            self.x /= len
+            self.y /= len
         return self
 
     def rotate(self, angle):
@@ -59,7 +79,7 @@ class Vector:
 
     def angle(self):
         """[0;2pi)"""
-        if abs(self) == 0: return 0
+        if not self: return 0
         fi1 = math.acos(self.x / abs(self))
         fi2 = math.asin(self.y / abs(self))
         answer = 0
@@ -73,15 +93,12 @@ class Vector:
             answer += 2 * math.pi
         return answer
 
-    def is_horizontal(self, other):
-        return self.y == other.y
-
-    def is_vertical(self, other):
-        return self.x == other.x
-
 
 if __name__ == "__main__":
-    a = Vector(1, 2)
-    print(a.normalize())
-    print(a.get_orthogonal())
-    print(a)
+    a = Vector(2, 2)
+    b = Vector(1, 2)
+    print(b*2)
+    print(2*b)
+    print(b)
+    b*=2
+    print(b)
