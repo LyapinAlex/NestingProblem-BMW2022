@@ -102,6 +102,7 @@ class Vector:
         if angle_difference > math.pi: angle_difference-=math.pi
         return angle_difference < 0.0001
 
+
 if __name__ == "__main__":
     a = Vector(1.0001, 2)
     b = Vector(1, 2)

@@ -9,7 +9,12 @@ from matplotlib import pyplot as plt
 class Polygon:
 
     def __init__(self, points):
-        self.points = points
+        if type(points[0]) == type(Vector(0, 0)):
+            self.points = points
+        else:
+            self.points = []
+            for point in points:
+                self.points.append(Vector(point[0], point[1]))
         self.num_sides = len(points)
         self.size = self.resize()
         self.area = self.calc_area()
@@ -38,7 +43,13 @@ class Polygon:
             return self.points[i - 1]
 
     def get_side(self, num_side):
-        return self.next(num_side) - self.point(num_side)
+        """-1 <= num_side <= self.num_sides"""
+        if num_side == self.num_sides:
+            return self.next(0) - self.point(0)
+        elif num_side == -1:
+            return self.point(0) - self.prev(0)
+        else:
+            return self.next(num_side) - self.point(num_side)
 
     def minXY(self):
         min_x = min(self.point(0).x, self.point(1).x)
@@ -60,7 +71,7 @@ class Polygon:
         self.size = self.maxXY() - self.minXY()
         return self.size
 
-    def round_points(self, ndigits=8):
+    def round_points(self, ndigits=4):
         for point in self.points:
             point.x = round(point.x, ndigits)
             point.y = round(point.y, ndigits)
@@ -88,10 +99,11 @@ class Polygon:
             for i in range(self.num_sides):
                 new_points.append(self.point((i + num_first) % self.num_sides))
         self.points = new_points
-        return 
+        return
 
     def del_points_on_one_line(self):
-        if not self.get_side(0).is_collinear(self.get_side(self.num_sides - 1)):
+        if not self.get_side(0).is_collinear(
+                self.get_side(self.num_sides - 1)):
             new_points = [self.points[0]]
         else:
             new_points = []
@@ -100,18 +112,19 @@ class Polygon:
                 new_points.append(self.point(i))
         self.points = new_points
         self.num_sides = len(self.points)
-        return 
+        return
 
     def del_duplicate_points(self):
         new_points = [self.points[0]]
         new_prev_point = self.points[0]
         for i in range(1, self.num_sides):
-            if not abs(new_prev_point - self.point(i)) < 0.001: #длина меньше микромерта
+            if not abs(new_prev_point -
+                       self.point(i)) < 0.001:  #длина меньше микромерта
                 new_points.append(self.point(i))
                 new_prev_point = self.points[i]
         self.points = new_points
         self.num_sides = len(self.points)
-        return        
+        return
 
     def bring_points2normal_appearance(self):
         """Удаляет дублирующиеся точки, потом удаляет среднюю из трёх соседствующих точек лежащих на одной прямой, 
@@ -182,6 +195,17 @@ class Polygon:
         self.rotate_on_side(target_side)
         return self
 
+    def expand_polygon(self, indent):
+        self.bring_points2normal_appearance()
+        exp_points = []
+        for i in range(self.num_sides):
+            v1 = self.get_side(i - 1).normalize()
+            v2 = -self.get_side(i).normalize()
+            v = (v1 + v2)
+            v *= indent / math.sin(math.pi - (v1.angle() - v2.angle()))
+            exp_points.append(self.point(i) + v)
+        return Polygon(exp_points)
+
     def is_horizontal_intersection(self, num_side, height):
         """Пересекает ли сторона num_side прямую: y = height"""
         return (self.point(num_side).x - height) * (self.next(num_side).x -
@@ -215,6 +239,7 @@ class Polygon:
     def move_to_origin(self):
         return self.move_to(Vector(0, 0))
 
+
 # ---------------------------------   Output   ---------------------------------
 
     def points_to_list(self):
@@ -223,7 +248,10 @@ class Polygon:
             list_of_points.append([point.x, point.y])
         return list_of_points
 
-    def draw(self):
+    def points_to_array(self):
+        return np.array(self.points_to_list)
+
+    def draw(self, indent_expand_polygon=0.5):
         fig, ax = plt.subplots()
         MAX_SIZE = 4
         self.resize()
@@ -234,7 +262,10 @@ class Polygon:
             fig.set_figheight(MAX_SIZE * self.size.y / self.size.x)
             fig.set_figwidth(MAX_SIZE)
 
-        INDENT = 1
+        fig.set_figheight(MAX_SIZE)
+        fig.set_figwidth(MAX_SIZE)
+
+        INDENT = 5
         ax.set_xlim(self.minXY().x - INDENT, self.maxXY().x + INDENT)
         ax.set_ylim(self.minXY().y - INDENT, self.maxXY().y + INDENT)
 
@@ -251,23 +282,51 @@ class Polygon:
                                   edgecolor='red',
                                   fill=False)
         ax.add_patch(polygon)
+
+        exp_polygon = patches.Polygon(
+            self.expand_polygon(indent_expand_polygon).points_to_list(),
+            linewidth=1,
+            edgecolor='green',
+            fill=False)
+        ax.add_patch(exp_polygon)
+
         bar = self.calc_centroid()
         plt.plot(bar.x, bar.y, 'co')
         plt.show()
 
 if __name__ == '__main__':
-    p1 = Polygon([
-        Vector(2, 2),
-        Vector(1, 1),
-        Vector(-4, 2),
-        Vector(5, 13),
-        Vector(4.0012, 4),
-        Vector(4.0006, 4),
-        Vector(4, 4)
-    ])
-    print(p1)
-    p1.draw()
-    p1.bring_points2normal_appearance()
-    print(p1)
-    p1.draw()
+    # p2 = Polygon([
+    #     Vector(2, 2),
+    #     Vector(1, 1),
+    #     Vector(-4, 2),
+    #     Vector(5, 13),
+    #     Vector(4.00012, 4),
+    #     Vector(4.00006, 4),
+    #     Vector(4, 4)
+    # ])
 
+    list_points = [[592.205, 683.901], [593.992, 680.914], [594.958, 680.656],
+                   [596.495, 679.457], [596.705, 677.52], [577.463, 644.192],
+                   [575.68, 643.405], [573.874, 644.137], [573.167, 644.845],
+                   [569.687, 644.898], [538.79, 627.06], [537.097, 624.02],
+                   [537.356, 623.054], [537.087, 621.123], [535.514, 619.973],
+                   [497.03, 619.973], [495.457, 621.123], [495.188, 623.053],
+                   [495.447, 624.02], [493.754, 627.06], [462.857, 644.898],
+                   [459.377, 644.844], [458.67, 644.138], [456.864, 643.405],
+                   [455.081, 644.192], [435.839, 677.52], [436.049, 679.457],
+                   [437.586, 680.655], [438.553, 680.915], [440.339, 683.901],
+                   [440.339, 719.577], [438.553, 722.564], [437.586, 722.824],
+                   [436.049, 724.021], [435.839, 725.959], [455.081, 759.286],
+                   [456.864, 760.073], [458.67, 759.341], [459.377, 758.634],
+                   [462.857, 758.58], [493.754, 776.418], [495.447, 779.459],
+                   [495.188, 780.426], [495.457, 782.355], [497.03, 783.506],
+                   [535.514, 783.506], [537.087, 782.355], [537.356, 780.425],
+                   [537.097, 779.459], [538.79, 776.418], [569.687, 758.58],
+                   [573.167, 758.634], [573.874, 759.342], [575.68, 760.073],
+                   [577.463, 759.286], [596.705, 725.959], [596.495, 724.021],
+                   [594.958, 722.823], [593.992, 722.565], [592.205, 719.577],
+                   [592.205, 683.9]]
+    p1 = Polygon(list_points)
+
+    p1.bring_points2normal_appearance()
+    p1.draw(-15)

@@ -200,6 +200,6 @@ def expand_polygon(list_points, eps):
 
 
 if __name__=='__main__':
-    show2Polygons(list_points, expand_polygon(list_points, 1.50))
+    show2Polygons(list_points, expand_polygon(list_points, -1.50))
 
 
