@@ -217,12 +217,13 @@ class Item:
 
 
 if (__name__ == '__main__'):
-    h = 0.5
+    h = 0.2
     # eq1 = Item(1, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]))
-    eq1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]))
+    eq1 = Item(1, np.array([[2.5, 0], [3, 4], [0, 3]]))
 
     eq1.creat_polygon_shell(0)
     eq1.list_of_new_shift_code(h)
+    eq1.list_of_MixedShiftC_4R(h)
     # print(eq1.matrix)
     for i in eq1.list_new_shift:
         for j in i:
@@ -231,4 +232,4 @@ if (__name__ == '__main__'):
     print()
     for i in eq1.list_check_order:
         print(i)
-    eq1.draw_polygon(h)
+    eq1.draw_polygon(h, 1)

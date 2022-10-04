@@ -75,14 +75,15 @@ def main():
 
     # Инициализация предметов
     if file_name == None:
-        polygons = create_list_of_items(60, pallet_height, pallet_width)
+        polygons = create_list_of_items(100, pallet_height, pallet_width, eps)
     else:
         polygons = svg_paths2polygons(file_name)
 
     # Жадный алгоритм
     print("\nШаг сетки:", eps)
 
-    items, work_time, height, width = new_greedy_alg(polygons, pallet_width, pallet_height, eps, drill_radius)
+    items, work_time, height, width = new_greedy_alg(
+        polygons, pallet_width, pallet_height, eps, drill_radius)
 
     print("Использованная площадь:", height, "x", width)
     print("Время работы жадного алгоритма:", round(work_time, 2))

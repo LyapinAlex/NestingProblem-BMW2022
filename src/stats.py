@@ -4,11 +4,35 @@ from matplotlib import pyplot as plt
 import time
 
 from data_rendering.draw_solution import draw_all_pallets
+from old_greedy_alg.fit_pallets import fit_pallets
 from putting_data.create_list_of_items import create_list_of_items
 from putting_data.svg_paths2polygons import svg_paths2polygons
 from class_item import Item
 from class_pallet import Pallet
 from new_greedy_alg.fit_pallets_with_rout import fit_pallets_with_rout
+
+
+def old_greedy_alg(polygons, pallet_width, pallet_height, eps, drill_radius):
+    pal = Pallet(pallet_width, pallet_height, eps)
+
+    t_convert = time.time()
+    # преобразование данных (создание растровых приближений)
+    items = np.full(polygons.shape[0], None)
+    for id in range(polygons.shape[0]):
+        item = Item(id, polygons[id])
+        item.creat_polygon_shell(drill_radius)
+        item.list_of_MixedShiftC_4R(eps)
+        items[id] = item
+
+    # препроцессинги
+    items = sorted(items, key=lambda item: - item.matrix.size)
+
+    # алгоритм упаковки
+    pallets = fit_pallets(pal.shape, items, eps)
+
+    # вычисление высоты
+    i = np.count_nonzero(np.sum(pallets[len(pallets)-1], axis=1))
+    return time.time() - t_convert, i*eps
 
 
 def new_greedy_alg0(polygons, pallet_width, pallet_height, eps, drill_radius):
@@ -34,7 +58,6 @@ def new_greedy_alg0(polygons, pallet_width, pallet_height, eps, drill_radius):
     while (i < pallets[len(pallets) - 1].shape[0]) and (
             pallets[len(pallets) - 1][i][0] != -pal.shape[0]):
         i += 1
-
 
     return time.time() - t_convert, (i + pal.shape[1] * (len(pallets) - 1)) * eps
 
@@ -62,7 +85,25 @@ def drow_stats(x, y, y_min, y_max, y_disp, xlabel="", ylabel="", annotations="No
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(True)
-    ax.set_yscale('log', base=1.86)
+
+    plt.plot(x, y, label = 'Среднее время решения')
+    plt.plot(x, y,'b.')
+    plt.plot(x, y + y_disp, 'k:', label = 'Стандартное откланение')
+    plt.plot(x, y - y_disp, 'k:')
+    plt.plot(x, y_max,'r.', label = 'Max/min время решения')
+    plt.plot(x, y_min,'r.')
+
+    ax.legend()
+    plt.savefig(path)
+
+def drow_stats_ln(x, y, y_min, y_max, y_disp, xlabel="", ylabel="", annotations="No annotations", path = "src\output\stats.png"):
+    fig, ax = plt.subplots()
+    fig.set_figheight(7)
+    fig.set_figwidth(10)
+    plt.title(annotations)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.grid(True)
     ax.set_xscale('log', base=2)
 
     plt.plot(x, y, label = 'Среднее время решения')
@@ -85,7 +126,7 @@ def main1(num_it, num_eps=5):
     work_time = np.zeros(num_eps)
     height = np.zeros(num_eps)
 
-    eps = round(sqrt(pallet_height * pallet_width) / 50, 2)
+    eps = 100
     # ----------------------------------------------------------------------------------------
     for i in range(1, num_eps):
         eps0 = eps / i
@@ -112,7 +153,7 @@ def main2(num_exp = 10, num_item = 50, num_eps = 8):
         stats_t[i], stats_h[i] = main1(num_item, num_eps + 1)
         print(i+1, ':', num_exp)
 
-    eps = round(sqrt(1000 * 2000) / 50, 2)
+    eps = 100
     sr_time = 0
     eps_plt = np.zeros(num_eps)
     sr_time_plt = np.zeros(num_eps)
@@ -130,8 +171,8 @@ def main2(num_exp = 10, num_item = 50, num_eps = 8):
     
     sr_time_plt_min = np.amin(stats_t, axis = 0)
     sr_time_plt_max = np.amax(stats_t, axis = 0)
-    sr_height_plt_min = np.amin(stats_h, axis = 0)
-    sr_height_plt_max = np.amax(stats_h, axis = 0)
+    # sr_height_plt_min = np.amin(stats_h, axis = 0)
+    # sr_height_plt_max = np.amax(stats_h, axis = 0)
 
     print("В среднем на один цикл:", sr_time)
     print("В сумме на все циклы:", sr_time * num_exp)
@@ -149,26 +190,32 @@ def main2(num_exp = 10, num_item = 50, num_eps = 8):
                "\nКоличество фигур: " + str(num_item),
                path = r"src\output\time_stats.png")
     
-    drow_stats(eps_plt,
-               sr_height_plt,
-               sr_height_plt_min,
-               sr_height_plt_max,
-               disp_height,
+    drow_stats_ln(eps_plt,
+               sr_time_plt,
+               sr_time_plt_min,
+               sr_time_plt_max,
+               disp_time,
                xlabel="Шаг сетки",
-               ylabel="Средняя высота упаковки",
+               ylabel="Среднее время работы",
                annotations="Запусков: " + str(num_exp) +
-               " Фигур в упаковке: " + str(num_item) +
-               "\nРазмер паллеты: " + str(2000) + " x " + str(1000),
-               path = r"src\output\height_stats.png")
+               "\nКоличество фигур: " + str(num_item),
+               path = r"src\output\time_stats_ln.png")
+    
+    # drow_stats(eps_plt,
+    #            sr_height_plt,
+    #            sr_height_plt_min,
+    #            sr_height_plt_max,
+    #            disp_height,
+    #            xlabel="Шаг сетки",
+    #            ylabel="Средняя высота упаковки",
+    #            annotations="Запусков: " + str(num_exp) +
+    #            " Фигур в упаковке: " + str(num_item) +
+    #            "\nРазмер паллеты: " + str(2000) + " x " + str(1000),
+    #            path = r"src\output\height_stats.png")
     return stats_t, stats_h
 
 
 if __name__ == '__main__':
-    stats_t, stats_h = main2(num_exp = 10, num_item = 30, num_eps = 10)
-    # f = open('output\stats.txt','w')
-    # f.write("123")
-    # print("\ntime:\n",stats_t)
-    # print("\nheight:\n",stats_h)
-    # f.close()
+    main2(num_exp = 50, num_item = 50, num_eps = 8)
 
     
