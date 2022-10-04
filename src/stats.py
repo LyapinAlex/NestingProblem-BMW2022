@@ -8,7 +8,7 @@ from putting_data.create_list_of_items import create_list_of_items
 from putting_data.svg_paths2polygons import svg_paths2polygons
 from class_item import Item
 from class_pallet import Pallet
-from new_greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
+from new_greedy_alg.fit_pallets_with_rout import fit_pallets_with_rout
 
 
 def new_greedy_alg0(polygons, pallet_width, pallet_height, eps, drill_radius):
@@ -27,7 +27,7 @@ def new_greedy_alg0(polygons, pallet_width, pallet_height, eps, drill_radius):
 
     t_convert = time.time()
     # упаковка
-    pallets = fit_pallets_with_rotation(pal.shape, items, eps)
+    pallets = fit_pallets_with_rout(pal.shape, items, eps)
 
     # вычисление высоты первой паллеты
     i = 0
@@ -136,6 +136,7 @@ def main2(num_exp = 10, num_item = 50, num_eps = 8):
     print("В среднем на один цикл:", sr_time)
     print("В сумме на все циклы:", sr_time * num_exp)
     print()
+
 
     drow_stats(eps_plt,
                sr_time_plt,
