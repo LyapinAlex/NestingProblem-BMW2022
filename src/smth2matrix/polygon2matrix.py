@@ -13,7 +13,7 @@ def polygon2matrix(points, h):
     n_x = ceil(size_of_sides[0] / h)
     n_y = ceil(size_of_sides[1] / h)
     # заполнение массива пересечений с осями параллельными оси абсцисс
-    edges = np.zeros((n_y, n_x + 1), dtype='int')
+    edges = np.zeros((n_x + 1, n_y), dtype='int')
     for k in range(0, n_y):
         for i0 in range(0, points.shape[0]):
             i1 = (i0 + 1) % points.shape[0] # "% points.shape[0]" использую чтоб зациклить точки (случай первой и последней точки)
@@ -26,26 +26,26 @@ def polygon2matrix(points, h):
                 if (x_p == points[i0][0]):
                     # относительно первой точки
                     if ((points[i1][1] - y_p) * (points[(i0 - 1) % points.shape[0]][1] - y_p) < 0):
-                        edges[k][floor(x_p / h + _INACCURACY)] += 1
+                        edges[floor(x_p / h + _INACCURACY)][k] += 1
                     elif ((points[i1][1] - y_p) * (points[(i0 - 1) % points.shape[0]][1] - y_p) > 0):
-                        edges[k][floor(x_p / h + _INACCURACY)] += 2
+                        edges[floor(x_p / h + _INACCURACY)][k] += 2
                 elif (x_p != points[i1][0]):
-                    edges[k][floor(x_p / h + _INACCURACY)] += 1
+                    edges[floor(x_p / h + _INACCURACY)][k] += 1
 
     # закрашивание внутренности и почти всей границы
-    mat = np.zeros((n_y + 1, n_x + 1), dtype="int")
+    mat = np.zeros((n_x + 1, n_y + 1), dtype="int")
     for k in range(n_y):
         flag = False
         for i in range(n_x + 1):
-            if ((edges[k][i] % 2 == 0) and (edges[k][i] != 0)):  #если наталкнулись на угол и т.п.
-                mat[k][i] = 1
-            elif (edges[k][i] % 2 == 1):  #если наталкнулись на пересечение
-                mat[k][i] = 1
-                if k: mat[k - 1][i] = 1 # проверка на не выход за границы массива
+            if ((edges[i][k] % 2 == 0) and (edges[i][k] != 0)):  #если наталкнулись на угол и т.п.
+                mat[i][k] = 1
+            elif (edges[i][k] % 2 == 1):  #если наталкнулись на пересечение
+                mat[i][k] = 1
+                if k: mat[i][k - 1] = 1 # проверка на не выход за границы массива
                 flag = not flag 
             if flag:  #заливка
-                mat[k][i] = 1
-                if k: mat[k - 1][i] = 1 # проверка на не выход за границы массива
+                mat[i][k] = 1
+                if k: mat[i][k - 1] = 1 # проверка на не выход за границы массива
     
     # закрашивание границ
     for i in range(0, (points).shape[0]):
@@ -72,11 +72,11 @@ def polygon2matrix(points, h):
         p = [int(i1[0] / h), int(i1[1] / h)]  # двигается от j1 к j2
         if (j1[1] == j2[1]):  # вертикальная граница
             for i in range(0, abs(j1[0] - j2[0]) + 1):
-                mat[p[1], p[0]] = 1
+                mat[p[0], p[1]] = 1
                 p[0] += step_x
         else:
             for i in range(0, abs(j1[0] - j2[0]) + abs(j1[1] - j2[1]) + 1):
-                mat[p[1], p[0]] = 1
+                mat[p[0], p[1]] = 1
                 if (j2 != p):
                     a = -(i2[0] - i1[0]) / (i2[1] - i1[1])
                     b = -i1[0] - i1[1] * a
@@ -85,7 +85,7 @@ def polygon2matrix(points, h):
                         p[1] += step_y
                     else:
                         p[0] += step_x
-    mat = mat[0:n_y, 0:n_x] #срез матрицы
+    mat = mat[0:n_x, 0:n_y] #срез матрицы
     return mat
 
 if __name__=='__main__':

@@ -3,8 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# list_points = np.array([[53.045, 427.106], [53.045, 436.106], [48.295, 436.106], [48.295, 418.106], [138.295, 418.106], [138.295, 436.106], [133.545, 436.106], [133.545, 427.106], [131.92, 424.291], [128.67, 424.291], [127.045, 427.106], [127.045, 436.106], [59.545, 436.106], [59.545, 427.106], [57.9199, 424.291], [54.6699, 424.291], [53.0449, 427.106]])
 list_points = np.array([[592.205, 683.901], [593.992, 680.914], [594.958, 680.656], [596.495, 679.457], [596.705, 677.52], [577.463, 644.192], [575.68, 643.405], [573.874, 644.137], [573.167, 644.845], [569.687, 644.898], [538.79, 627.06], [537.097, 624.02], [537.356, 623.054], [537.087, 621.123], [535.514, 619.973], [497.03, 619.973], [495.457, 621.123], [495.188, 623.053], [495.447, 624.02], [493.754, 627.06], [462.857, 644.898], [459.377, 644.844], [458.67, 644.138], [456.864, 643.405], [455.081, 644.192], [435.839, 677.52], [436.049, 679.457], [437.586, 680.655], [438.553, 680.915], [440.339, 683.901], 
 [440.339, 719.577], [438.553, 722.564], [437.586, 722.824], [436.049, 724.021], [435.839, 725.959], [455.081, 759.286], [456.864, 760.073], [458.67, 759.341], [459.377, 758.634], [462.857, 758.58], [493.754, 776.418], [495.447, 779.459], [495.188, 780.426], [495.457, 782.355], [497.03, 783.506], [535.514, 783.506], [537.087, 782.355], [537.356, 780.425], [537.097, 779.459], [538.79, 776.418], [569.687, 758.58], [573.167, 758.634], [573.874, 759.342], [575.68, 760.073], [577.463, 759.286], [596.705, 725.959], [596.495, 724.021], [594.958, 722.823], [593.992, 722.565], [592.205, 719.577], [592.205, 683.9]])
+
+# list_points = [[286.985, 750.539], [277.642, 727.982], [255.085, 718.639], [232.529, 727.982], [223.185, 750.539], [232.529, 773.095], [255.085, 782.439], [277.642, 773.095], [286.985, 750.539]]
 
 def showPolygon(points):
  
@@ -30,6 +33,7 @@ def get_vec_sub(v_1, v_2):
 def show2Polygons(points_1, points_2):
  
        
+    # print(len(points_1), len(points_2))
     for i in range(len(points_1)- 1):
 
         v_1 = np.array([points_1[i][0], points_1[i+1][0]])
@@ -60,6 +64,8 @@ def get_orient(points):
 
     v_1 = get_vec_sub(points[1], points[0])
     v_2 = get_vec_sub(points[2], points[1])
+    # v_1 = [points[1][0] - points[0][0], points[1][1] - points[0][1]]
+    # v_2 = [points[2][0] - points[1][0], points[2][1] - points[1][1]]
 
     if v_1[0]*v_2[1] - v_1[1] * v_2[0] > 0:
         return True
@@ -101,19 +107,32 @@ def pereform_points(points, eps):
         
         v_1 = get_vec_sub(list_points_without_doupl[i + 1], list_points_without_doupl[i])
         v_2 = get_vec_sub(list_points_without_doupl[i + 2], list_points_without_doupl[i])
-        
+        # v_1 = [list_points_without_doupl[i + 1][0] - list_points_without_doupl[i][0], list_points_without_doupl[i + 1][1] - list_points_without_doupl[i][1]]
+        # v_2 = [list_points_without_doupl[i + 2][0] - list_points_without_doupl[i][0], list_points_without_doupl[i + 2][1] - list_points_without_doupl[i][1]]
+
         if v_1[0]*v_2[1] - v_1[1] * v_2[0] == 0:
             list_points_without_doupl.pop(i + 1)
 
     v_1 = get_vec_sub(list_points_without_doupl[0], list_points_without_doupl[-2])
     v_2 = get_vec_sub(list_points_without_doupl[-1], list_points_without_doupl[-2])
-    
+    # v_1 = [list_points_without_doupl[0][0] - list_points_without_doupl[-2][0], list_points_without_doupl[0][1] - list_points_without_doupl[-2][1]]
+    # v_2 = [list_points_without_doupl[-1][0] - list_points_without_doupl[-2][0], list_points_without_doupl[-1][1] - list_points_without_doupl[-2][1]]
+    # # v_1 = list_points_without_doupl[0] - list_points_without_doupl[-2]
+    # # v_2 = list_points_without_doupl[-1] - list_points_without_doupl[-2]
+
+    # print(v_1, v_2)
+    # print(v_1[0]*v_2[1] - v_1[1] * v_2[0])
     if v_1[0]*v_2[1] - v_1[1] * v_2[0] == 0:
         list_points_without_doupl.pop(-1)
 
     v_1 = get_vec_sub(list_points_without_doupl[1], list_points_without_doupl[-1])
     v_2 = get_vec_sub(list_points_without_doupl[0], list_points_without_doupl[-1])
-    
+    # v_1 = [list_points_without_doupl[1][0] - list_points_without_doupl[-1][0], list_points_without_doupl[1][1] - list_points_without_doupl[-1][1]]
+    # v_2 = [list_points_without_doupl[0][0] - list_points_without_doupl[-1][0], list_points_without_doupl[0][1] - list_points_without_doupl[-1][1]]
+    # v_1 = list_points_without_doupl[1] - list_points_without_doupl[-1]
+    # v_2 = list_points_without_doupl[0] - list_points_without_doupl[-1]
+
+    # print(v_1, v_2)
     if v_1[0]*v_2[1] - v_1[1] * v_2[0] == 0:
         list_points_without_doupl.pop(0)
     minpos = np.argmin(list_points, axis=0)[0]
@@ -126,7 +145,10 @@ def pereform_points(points, eps):
         if not convex:
             v_1 = get_vec_sub(points[0], points[1])
             v_2 = get_vec_sub(points[2], points[1])
-            
+            # v_1 = [points[0][0] - points[1][0], points[0][1] - points[1][1]]
+            # v_2 = [points[2][0] - points[1][0], points[2][1] - points[1][1]]
+            # v_1 = [list_points_without_doupl[i + 1][0] - list_points_without_doupl[i][0], list_points_without_doupl[i + 1][1] - list_points_without_doupl[i][1]]
+            # v_2 = [list_points_without_doupl[i + 2][0] - list_points_without_doupl[i][0], list_points_without_doupl[i + 2][1] - list_points_without_doupl[i][1]]
             if get_nor_vec(v_1) < eps or get_nor_vec(v_2) < eps:
                 
                 long = len(list_points_without_doupl)
@@ -143,6 +165,10 @@ def convex_angle(points, orient = True):
 
     v_1 = get_vec_sub(points[1], points[0])
     v_2 = get_vec_sub(points[2], points[1])
+    # v_1 = [points[1][0] - points[0][0], points[1][1] - points[0][1]]
+    # v_2 = [points[2][0] - points[1][0], points[2][1] - points[1][1]]
+    # v_1 = points[1] - points[0]
+    # v_2 = points[2] - points[1]
 
     if v_1[0]*v_2[1] - v_1[1] * v_2[0] > 0:
         return orient
@@ -200,6 +226,6 @@ def expand_polygon(list_points, eps):
 
 
 if __name__=='__main__':
-    show2Polygons(list_points, expand_polygon(list_points, -1.50))
+    show2Polygons(list_points, expand_polygon(list_points, 1.50))
 
 
