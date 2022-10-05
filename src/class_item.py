@@ -175,18 +175,38 @@ class Item:
 
             for j in range(self.list_matrix[0].shape[1]):
                 for i in range(self.list_matrix[0].shape[0]):
-                    if self.list_matrix[0][i][j] > 0:
-                        sqver = np.array(
-                            [[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
-                        polygon = patches.Polygon(
-                            sqver, linewidth=1, edgecolor='black', facecolor=cmapin(self.list_matrix[0][i][j]))
-                        ax.add_patch(polygon)
+                    if j == 0:
+                        if self.list_matrix[0][i][j] > 0:
+                            sqver = np.array(
+                                [[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
+                            polygon = patches.Polygon(
+                                sqver, linewidth=1, edgecolor='black', facecolor=cmapin(self.list_matrix[0][i][j]))
+                            ax.add_patch(polygon)
+                        else:
+                            sqver = np.array(
+                                [[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
+                            polygon = patches.Polygon(sqver, linewidth=1, edgecolor='black', facecolor=cmapout(
+                                self.list_matrix[0][i][j]*(-1)))
+                            ax.add_patch(polygon)
+                    elif self.list_matrix[0][i][j] * self.list_matrix[0][i][j-1] < 0:
+                        if self.list_matrix[0][i][j] > 0:
+                            sqver = np.array(
+                                [[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
+                            polygon = patches.Polygon(
+                                sqver, linewidth=1, edgecolor='black', facecolor=cmapin(self.list_matrix[0][i][j]))
+                            ax.add_patch(polygon)
+                        else:
+                            sqver = np.array(
+                                [[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
+                            polygon = patches.Polygon(sqver, linewidth=1, edgecolor='black', facecolor=cmapout(
+                                self.list_matrix[0][i][j]*(-1)))
+                            ax.add_patch(polygon)
                     else:
                         sqver = np.array(
                             [[i, j], [i+1, j], [i+1, j+1], [i, j+1]])*h
-                        polygon = patches.Polygon(sqver, linewidth=1, edgecolor='black', facecolor=cmapout(
-                            self.list_matrix[0][i][j]*(-1)))
+                        polygon = patches.Polygon(sqver, linewidth=1, edgecolor='black', facecolor='silver', alpha=0.33)
                         ax.add_patch(polygon)
+                        
 
         polygon = patches.Polygon(
             self.shell_points, linewidth=1, edgecolor='red', fill=False)
