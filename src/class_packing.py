@@ -4,6 +4,7 @@ import time
 import os
 
 from class_item import Item
+from class_polygon import Polygon
 from putting_data.create_list_of_items import create_list_of_items
 from putting_data.svg_paths2polygons import svg_paths2polygons
 from data_rendering.items2txt import items2txt
@@ -80,16 +81,31 @@ class Packing():
 
 # --------------------------------  Calculations   --------------------------------
 
-    def make_items(self, h = 0):
+    def make_items(self, h = 0, num_rout = 0):
         if h == 0:
             self.h = round(sqrt(self.pallet_width * self.pallet_height) / 50, 2) / 4
         else:
             self.h = h
+
+        
         self.pallet_shape = (int(self.pallet_height / self.h),
                              int(self.pallet_width / self.h)
                              )  # округление вниз
         t_convert = time.time()
         for item in self.items:
+            if num_rout != 0:
+                poly = Polygon(item.points)
+                poly.bring_points2normal_appearance()
+                if num_rout == 1: # не очень
+                    poly.choose_best_turn3()
+                elif num_rout == 2: # не очень
+                    poly.rotate_on_side(0)
+                elif num_rout == 3: # неплохо
+                    poly.choose_best_turn1()
+                elif num_rout == 4: # пока лучший
+                    poly.choose_best_turn2()
+                item.points = poly.points_to_array()
+            
             item.creat_polygon_shell(self.drill_radius)
             item.list_of_new_shift_code(self.h)
         self.time_convert_data = round(time.time() - t_convert, 3)
@@ -111,7 +127,7 @@ class Packing():
                 pallets[self.num_pallets - 1][i][0] != -self.pallet_shape[0]):
             i += 1
 
-        self.num_packing_items += self.num_items
+        self.num_packing_items += self.num_items #пока формально стоит
         self.target_width = round(self.pallet_shape[0] * self.h, 1)
         self.target_height = round(
             (i + self.pallet_shape[1] * (self.num_pallets - 1)) * self.h, 1)
@@ -201,6 +217,9 @@ class Packing():
               self.target_width)
         print("Время растрирования предметов:", self.time_convert_data)
         print("Время работы жадного алгоритма:", self.time_packing, '\n')
+
+    def get_stats(self):
+        return [self.h, self.target_height, self.time_convert_data + self.time_packing]
 
     def get_annotation(self):
         annotation = "S = " + str(self.target_height) + " x " + str(

@@ -66,7 +66,7 @@ class Vector:
 
     def angle(self):
         """[0;2pi)"""
-        if not self: return 0
+        if abs(self)==0: return 0.0
         fi1 = math.acos(self.x / abs(self))
         fi2 = math.asin(self.y / abs(self))
         answer = 0
@@ -84,7 +84,7 @@ class Vector:
         return Vector(self.y, -self.x).normalize()
 
     def normalize(self):
-        if self:
+        if abs(self)!=0:
             len = abs(self)
             self.x /= len
             self.y /= len
@@ -102,10 +102,14 @@ class Vector:
         if angle_difference > math.pi: angle_difference-=math.pi
         return angle_difference < 0.0001
 
+    def copy(self):
+        return Vector(self.x, self.y)
+
 
 if __name__ == "__main__":
     a = Vector(1.0001, 2)
     b = Vector(1, 2)
+    print(type(b.x))
     print(b*2)
     print(2*b)
     print(b)
