@@ -219,7 +219,7 @@ class Packing():
         print("Время работы жадного алгоритма:", self.time_packing, '\n')
 
     def get_stats(self):
-        return [self.h, self.target_height, self.time_convert_data + self.time_packing]
+        return [self.target_height, self.time_packing]
 
     def get_annotation(self):
         annotation = "S = " + str(self.target_height) + " x " + str(
