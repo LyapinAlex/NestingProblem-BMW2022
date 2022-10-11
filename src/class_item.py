@@ -17,6 +17,7 @@ class Item:
     def __init__(self, id: int, points):
         self.id = id
         self.points = points
+        self.area = None
         self.shell_points = None
 
         # ----------  Code   -----------

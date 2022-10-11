@@ -93,8 +93,8 @@ class Packing():
                              )  # округление вниз
         t_convert = time.time()
         for item in self.items:
+            poly = Polygon(item.points)
             if num_rout != 0:
-                poly = Polygon(item.points)
                 poly.bring_points2normal_appearance()
                 if num_rout == 1: # не очень
                     poly.choose_best_turn3()
@@ -105,7 +105,7 @@ class Packing():
                 elif num_rout == 4: # пока лучший
                     poly.choose_best_turn2()
                 item.points = poly.points_to_array()
-            
+            item.area = poly.area
             item.creat_polygon_shell(self.drill_radius)
             item.list_of_new_shift_code(self.h)
         self.time_convert_data = round(time.time() - t_convert, 3)
@@ -114,6 +114,10 @@ class Packing():
     def sort_items(self):
         """Сортировка по неубыванию"""
         self.items = sorted(self.items, key=lambda item: -item.matrix.size)
+
+    def sort_items_1(self):
+        """Сортировка по неубыванию по площади фигур"""
+        self.items = sorted(self.items, key=lambda item: -item.area)
 
     def greedy_packing(self):
         t_packing = time.time()

@@ -10,20 +10,19 @@ def main():
     # file_name = r'NEST001-108.dxf'
     # file_name = r'NEST002-216.svg'
     # file_name = r'NEST003-432.svg'
-    # file_name = r"items401.txt"
+    file_name = r"items401.txt"
     if file_name == None:
         packaging.create_random_polygons(num_items)
     else:
         packaging.read_polygons_from_file(file_name)
-    h = 50
+    h = 16.01
     # Жадный алгоритм
-    for i in range(5):
-        packaging.make_items(h/(i+1), 4)
-        # packaging.save_items_in_file('items' + str(packaging.num_items) + '.txt')
-        packaging.sort_items()
-        packaging.greedy_packing()
+    packaging.make_items(h, 4)
+    # packaging.save_items_in_file('items' + str(packaging.num_items) + '.txt')
+    packaging.sort_items_1()
+    packaging.greedy_packing()
 
-        packaging.print_stats()
+    packaging.print_stats()
     # Результаты упаковки
 
     packaging.change_position()
