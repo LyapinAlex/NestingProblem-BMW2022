@@ -1,3 +1,5 @@
+from math import ceil, floor
+
 import numpy as np
 
 
@@ -7,6 +9,9 @@ class Pallets():
         """h - grid step length"""
         self.shape = pallet_shape
         self.pallets = []
+        # ----------  Segments packing   -----------
+        self.grid_step = None
+        self.pallet_lines = None
 
 
     def add_pallet(self):
@@ -15,3 +20,12 @@ class Pallets():
             pallet_shift_code[i] = [-self.shape[0]]
         self.pallets.append(pallet_shift_code)
         return
+
+    def add_pallet_lines(self):
+        pallet = []
+        n_y = floor(self.shape[1] / self.grid_step)
+        for _ in range(n_y + 1):
+            pallet.append([])
+        self.pallet_lines.append(pallet)
+        return
+

@@ -10,6 +10,7 @@ from smth2matrix.shift2zero import shift2zero
 from shift_code.simple2mixed_shift import simple2mixed_shift
 from preprocess.expand_polygon import expand_polygon
 from shift_code.classic2new_shift import classic2new_shift
+from src.smth2lines.polygon2segments import polygon2segments
 
 
 class Item:
@@ -24,6 +25,7 @@ class Item:
         self.list_new_shift = None
         self.list_check_order = None
         self.pixel_area = None
+        self.segments = None
 
         # --------  Position   ---------
         self.raster_coord = None
@@ -73,6 +75,10 @@ class Item:
         self.matrix = polygon2matrix(self.shell_points, h)
         return None
 
+    def set_segments(self, h):
+        """Приближение объекта отрезками, с размером пискля - h"""
+        self.segments = polygon2segments(self.points, h)
+        return None
 
     def list_of_new_shift_code(self, h):
         """Приближение объекта пиксельным способом (кодировкой с переходом), с размером пискля - h
