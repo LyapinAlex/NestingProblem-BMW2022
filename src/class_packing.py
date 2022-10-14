@@ -61,7 +61,6 @@ class Packing():
             polygons = txt2polygons(path)
         else:
             raise Exception("Ошибка в названии файла")
-
         self.num_items = polygons.shape[0]
         self.items = np.full(self.num_items, None)
         for id in range(self.num_items):
@@ -111,13 +110,17 @@ class Packing():
         self.time_convert_data = round(time.time() - t_convert, 3)
         return
 
-    def sort_items(self):
-        """Сортировка по неубыванию"""
-        self.items = sorted(self.items, key=lambda item: -item.matrix.size)
-
-    def sort_items_1(self):
-        """Сортировка по неубыванию по площади фигур"""
-        self.items = sorted(self.items, key=lambda item: -item.area)
+    def sort_items(self, num_sort = 0):
+        """Сортировка в порядке неубывания по\n
+        0 - количеству пикселей в растровой кодировке\n
+        1 - по площади растрового приближения\n
+        2 - площади фигур"""
+        if num_sort == 0:
+            self.items = sorted(self.items, key=lambda item: -item.matrix.size)
+        elif num_sort == 1:
+            self.items = sorted(self.items, key=lambda item: -item.pixel_area)
+        elif num_sort == 2:
+            self.items = sorted(self.items, key=lambda item: -item.area)
 
     def greedy_packing(self):
         t_packing = time.time()
@@ -229,5 +232,5 @@ class Packing():
         annotation = "S = " + str(self.target_height) + " x " + str(
             self.target_width) + ";  time = " + str(
                 self.time_packing) + ";  Num_item = " + str(
-                    self.num_packing_items) + ";  eps = " + str(self.h)
+                    self.num_packing_items) + ";  eps = " + str(self.h) + ";  drill_diametr = " + str(self.drill_radius * 2) 
         return annotation

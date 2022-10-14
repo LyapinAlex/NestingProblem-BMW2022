@@ -12,7 +12,7 @@ def dxf2polygons(path):
 
     for line in file:
 
-        if line.strip() == "POLYLINE" and len(polygon) != 0:
+        if line.strip() == "SEQEND" and len(polygon) != 0:
             polygon.pop()
             polygonsList.append(np.array(polygon))
             polygon = []
@@ -31,4 +31,4 @@ def dxf2polygons(path):
 
 
 if __name__ == "__main__":
-    print(dxf2polygons(r"src\input\NEST001-108.DXF"))
+    print(len(dxf2polygons(r"src\input\NEST001-108.DXF")))

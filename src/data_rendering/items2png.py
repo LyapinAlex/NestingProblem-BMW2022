@@ -18,6 +18,11 @@ def items2png(path, items, packaging, draw_pixels=False):
 
     pallet = patches.Rectangle(
         (0, 0), packaging.pallet_width, packaging.pallet_height, linewidth=2, facecolor='none', edgecolor='black')
+
+    # pallet = patches.Rectangle(
+    #     (-1.1, -1.1), 2000, 1000, linewidth=2, facecolor='none', edgecolor='black')
+
+
     ax.add_patch(pallet)
     ax.set_xlim(-0.5, packaging.pallet_width + 2)
     ax.set_ylim(-0.5, packaging.pallet_height + 2)

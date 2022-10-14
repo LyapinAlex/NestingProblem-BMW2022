@@ -1,4 +1,4 @@
-def get_pixel(li: list, iter: int):
+def get_pixel(li: list, iter: int): #Decompression
     """
     По номеру пикселя в строке, возвращет содержание этого пикселя и номер ячейки в которой он содержится
     Returns:
