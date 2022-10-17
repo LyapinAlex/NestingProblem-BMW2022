@@ -2,10 +2,9 @@ from svg.path import parse_path
 from svg.path.path import Line
 from xml.dom import minidom
 import numpy as np
-import pdb
 
 
-def svg_paths2polygons(file_name):
+def svg2polygons(file_name):
     """Считывает входные данные из SVG-файла
 
     Args:
@@ -35,4 +34,4 @@ def svg_paths2polygons(file_name):
     return np.array(list_of_items, dtype=object)
 
 if __name__=='__main__':
-    print(svg_paths2polygons('src/input/NEST001-108.svg')[0])
+    print(svg2polygons('src/input/NEST001-108.svg')[0])

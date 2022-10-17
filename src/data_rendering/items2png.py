@@ -4,7 +4,7 @@ import numpy as np
 import random
 
 
-def items2png(path, items, packaging, draw_pixels=False):
+def items2png(path, items, packaging, indent, draw_pixels=False):
     fig, ax = plt.subplots()
     MAX_SIZE = 20
     if packaging.pallet_width > packaging.pallet_height:
@@ -14,18 +14,16 @@ def items2png(path, items, packaging, draw_pixels=False):
         fig.set_figheight(MAX_SIZE)
         fig.set_figwidth(MAX_SIZE * packaging.pallet_width/packaging.pallet_height)
 
-    plt.text(0, packaging.pallet_height*1.015, packaging.get_annotation(), fontsize=15, color='green')
-
+    indent = 0
+    if packaging.border_distance > packaging.drill_radius:
+        indent = packaging.border_distance - packaging.drill_radius
+    
     pallet = patches.Rectangle(
-        (0, 0), packaging.pallet_width, packaging.pallet_height, linewidth=2, facecolor='none', edgecolor='black')
-
-    # pallet = patches.Rectangle(
-    #     (-1.1, -1.1), 2000, 1000, linewidth=2, facecolor='none', edgecolor='black')
-
-
+        (-indent,-indent), packaging.pallet_width + 2*indent, packaging.pallet_height + 2*indent, linewidth=1, facecolor='none', edgecolor='black')
     ax.add_patch(pallet)
-    ax.set_xlim(-0.5, packaging.pallet_width + 2)
-    ax.set_ylim(-0.5, packaging.pallet_height + 2)
+
+    ax.set_xlim(-indent - packaging.pallet_width*0.015, packaging.pallet_width*1.015 + indent)
+    ax.set_ylim(-indent - packaging.pallet_height*0.015, packaging.pallet_height*1.015 + indent)
 
     for item in items:
         # отрисовка растрового приближения
@@ -45,8 +43,10 @@ def items2png(path, items, packaging, draw_pixels=False):
                             sqver, linewidth=1, facecolor=random_color, edgecolor='black', alpha=0.33)
                         ax.add_patch(polygon)
         # отрисовка предмета
-        polygon = patches.Polygon(item.points, linewidth=1, edgecolor='red', fill=False)
+        polygon = patches.Polygon(item.points, linewidth=0.5, edgecolor='red', fill=False)
         ax.add_patch(polygon)
+
+    plt.text(0, (packaging.pallet_height + indent*2)*1.025, packaging.get_annotation(), fontsize=15, color='green')
     plt.savefig(path[:-4] + str(items[0].pallet_id) + '.png')
     return None
 

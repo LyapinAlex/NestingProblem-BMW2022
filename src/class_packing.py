@@ -6,24 +6,29 @@ import os
 from class_item import Item
 from class_polygon import Polygon
 from putting_data.create_list_of_items import create_list_of_items
-from putting_data.svg_paths2polygons import svg_paths2polygons
-from data_rendering.items2txt import items2txt
 from putting_data.dxf2polygons import dxf2polygons
-from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
-from data_rendering.items2png import items2png
-from data_rendering.items2DXF import items2DXF
+from putting_data.svg2polygons import svg2polygons
 from putting_data.txt2polygons import txt2polygons
+from data_rendering.items2DXF import items2DXF
+from data_rendering.items2svg import items2svg
+from data_rendering.items2png import items2png
+from data_rendering.items2txt import items2txt
+from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
 
 
 class Packing():
 
-    def __init__(self, width, height, drill_radius):
+    def __init__(self, width, height, drill_radius = 0, border_distance = 0):
         # -------  Initial data  -------
+        if border_distance > drill_radius:
+            width -= (border_distance-drill_radius)*2
+            height -= (border_distance-drill_radius)*2
         self.pallet_width = width
         self.pallet_height = height
         self.drill_radius = drill_radius
-        self.output_dir = r"src\output"
-        self.input_dir = r"src\input"
+        self.border_distance = border_distance
+        self.output_dir = "src\\output"
+        self.input_dir = "src\\input"
 
         # -----------  Data  -----------
         self.h = None  # grid step length
@@ -35,6 +40,9 @@ class Packing():
         # ----------  Stats   ----------
         self.num_items = 0
         self.num_packing_items = 0
+
+        self.total_area_polygons = 0
+        self.total_pixel_area_polygons = 0
 
         self.num_pallets = 0
         self.target_width = 0
@@ -54,7 +62,7 @@ class Packing():
         Поддерживает форматы: svg, dxf, txt"""
         path = self.input_dir + '\\' + file_name
         if path.endswith("svg"):
-            polygons = svg_paths2polygons(path)
+            polygons = svg2polygons(path)
         elif path.endswith("dxf"):
             polygons = dxf2polygons(path)
         elif path.endswith("txt"):
@@ -107,6 +115,8 @@ class Packing():
             item.area = poly.area
             item.creat_polygon_shell(self.drill_radius)
             item.list_of_new_shift_code(self.h)
+            self.total_area_polygons += item.area
+            self.total_pixel_area_polygons += item.pixel_area
         self.time_convert_data = round(time.time() - t_convert, 3)
         return
 
@@ -193,8 +203,13 @@ class Packing():
 
     def save_pallets_in_files(self, file_name, duplicate_first_point_to_end=True, draw_pixels = False):
         """Сохраняет упаковки паллет в разных файлах
-        Поддерживает форматы: txt, dxf, png"""
+        Поддерживает форматы: txt, dxf, png, svg"""
         path = self.output_dir + '\\' + file_name
+
+        indent = 0
+        if self.border_distance > self.drill_radius:
+            indent = self.border_distance - self.drill_radius
+
         if path.endswith(".txt"):
             for i in range(self.num_pallets):
                 items2txt(path, self.items_split_on_pallets[i], duplicate_first_point_to_end)
@@ -203,7 +218,10 @@ class Packing():
                 items2DXF(path, self.items_split_on_pallets[i], self.pallet_width, self.pallet_height)
         elif path.endswith(".png"):
             for i in range(self.num_pallets):
-                items2png(path, self.items_split_on_pallets[i], self, draw_pixels)
+                items2png(path, self.items_split_on_pallets[i], self, indent, draw_pixels)
+        elif path.endswith(".svg"):
+            for i in range(self.num_pallets):
+                items2svg(path, self.items_split_on_pallets[i], self, indent)
         else:
             raise Exception(
                 "Программа не умеет сохранять данные в предложенном вами формате")
@@ -224,6 +242,10 @@ class Packing():
               self.target_width)
         print("Время растрирования предметов:", self.time_convert_data)
         print("Время работы жадного алгоритма:", self.time_packing, '\n')
+        percent1 = self.total_area_polygons/(self.target_height*self.target_width) * 100
+        print("Процент заполненной области:", round(percent1, 2))
+        percent2 = self.total_pixel_area_polygons*(self.h**2)/(self.target_height*self.target_width) * 100
+        print("Процент заполненной области с учётом part_distance:", round(percent2, 2), '\n')
 
     def get_stats(self):
         return [self.target_height, self.time_packing]
@@ -232,5 +254,6 @@ class Packing():
         annotation = "S = " + str(self.target_height) + " x " + str(
             self.target_width) + ";  time = " + str(
                 self.time_packing) + ";  Num_item = " + str(
-                    self.num_packing_items) + ";  eps = " + str(self.h) + ";  drill_diametr = " + str(self.drill_radius * 2) 
+                    self.num_packing_items) + ";  eps = " + str(self.h) + ";  part_distance = " + str(
+                        self.drill_radius * 2)  + ";  border_distance = " + str(self.border_distance) 
         return annotation
