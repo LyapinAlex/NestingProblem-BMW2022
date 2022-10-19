@@ -1,5 +1,4 @@
 import math
-from operator import truediv
 import random
 import numpy as np
 from math import ceil, floor
@@ -118,13 +117,15 @@ class Polygon:
         return
 
     def del_duplicate_points(self):
+        _RADIUS_NEIGHBORHOOD = 0.1 # в милиметрах
         new_points = [self.points[0]]
         new_prev_point = self.points[0]
         for i in range(1, self.num_sides):
-            if not abs(new_prev_point -
-                       self.point(i)) < 0.001:  #длина меньше микромерта
+            if not abs(new_prev_point - self.point(i)) < _RADIUS_NEIGHBORHOOD:
                 new_points.append(self.point(i))
                 new_prev_point = self.points[i]
+        if abs(new_points[0] - new_points[len(new_points)-1]) < _RADIUS_NEIGHBORHOOD:
+            new_points.pop()
         self.points = new_points
         self.num_sides = len(self.points)
         return
@@ -187,15 +188,17 @@ class Polygon:
 
     def choose_best_turn2(self):
         """Идея в минимизации площади описанного прямоугольника"""
-        target_value = self.area_circumscribed_rectangle()
-        target_side = 0
-        for j in range(self.num_sides):
-            self.rotate_on_side(j)
-            new_value = self.area_circumscribed_rectangle()
+        self_copy = self.copy()
+        target_value = self_copy.area_circumscribed_rectangle()
+        target_side = -1
+        for j in range(self_copy.num_sides):
+            self_copy.rotate_on_side(j)
+            new_value = self_copy.area_circumscribed_rectangle()
             if new_value < target_value:
                 target_value = new_value
                 target_side = j
-        self.rotate_on_side(target_side)
+        if target_side != -1:
+            self.rotate_on_side(target_side)
         return self
 
     def choose_best_turn3(self):
@@ -479,11 +482,8 @@ if __name__ == '__main__':
         Vector(4.00006, 4),
         Vector(4, 4)
     ])
-
-    print(type(pol2))
-    print(Polygon)
-    print(type(pol2) == Polygon)
-    # pol2.draw(is_draw_raster_approximation=True, h=0.5002 / 1.5)
+    # pol2.draw()
+    # pol2.choose_best_turn2().draw()
 
     list_points = [[592.205, 683.901], [593.992, 680.914], [594.958, 680.656],
                    [596.495, 679.457], [596.705, 677.52], [577.463, 644.192],
@@ -506,3 +506,26 @@ if __name__ == '__main__':
                    [577.463, 759.286], [596.705, 725.959], [596.495, 724.021],
                    [594.958, 722.823], [593.992, 722.565], [592.205, 719.577],
                    [592.205, 683.9]]
+    
+    pol1 = Polygon([[592.205, 683.901], [593.992, 680.914], [594.958, 680.656],
+                   [596.495, 679.457], [596.705, 677.52], [577.463, 644.192],
+                   [575.68, 643.405], [573.874, 644.137], [573.167, 644.845],
+                   [569.687, 644.898], [538.79, 627.06], [537.097, 624.02],
+                   [537.356, 623.054], [537.087, 621.123], [535.514, 619.973],
+                   [497.03, 619.973], [495.457, 621.123], [495.188, 623.053],
+                   [495.447, 624.02], [493.754, 627.06], [462.857, 644.898],
+                   [459.377, 644.844], [458.67, 644.138], [456.864, 643.405],
+                   [455.081, 644.192], [435.839, 677.52], [436.049, 679.457],
+                   [437.586, 680.655], [438.553, 680.915], [440.339, 683.901],
+                   [440.339, 719.577], [438.553, 722.564], [437.586, 722.824],
+                   [436.049, 724.021], [435.839, 725.959], [455.081, 759.286],
+                   [456.864, 760.073], [458.67, 759.341], [459.377, 758.634],
+                   [462.857, 758.58], [493.754, 776.418], [495.447, 779.459],
+                   [495.188, 780.426], [495.457, 782.355], [497.03, 783.506],
+                   [535.514, 783.506], [537.087, 782.355], [537.356, 780.425],
+                   [537.097, 779.459], [538.79, 776.418], [569.687, 758.58],
+                   [573.167, 758.634], [573.874, 759.342], [575.68, 760.073],
+                   [577.463, 759.286], [596.705, 725.959], [596.495, 724.021],
+                   [594.958, 722.823], [593.992, 722.565], [592.205, 719.577],
+                   [592.205, 683.9]])
+    # print(pol1)
