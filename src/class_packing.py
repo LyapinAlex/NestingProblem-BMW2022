@@ -3,15 +3,16 @@ import numpy as np
 import time
 import os
 
-from class_item import Item
-from putting_data.create_list_of_items import create_list_of_items
-from putting_data.svg_paths2polygons import svg_paths2polygons
-from data_rendering.items2txt import items2txt
-from putting_data.dxf2polygons import dxf2polygons
-from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
-from data_rendering.items2png import items2png
-from data_rendering.items2DXF import items2DXF
-from putting_data.txt2polygons import txt2polygons
+# from class_item import Item
+from src.putting_data.create_list_of_items import create_list_of_items
+from src.putting_data.svg_paths2polygons import svg_paths2polygons
+from src.data_rendering.items2txt import items2txt
+from src.putting_data.dxf2polygons import dxf2polygons
+from src.greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
+from src.data_rendering.items2png import items2png
+from src.data_rendering.items2DXF import items2DXF
+from src.putting_data.txt2polygons import txt2polygons
+from src.class_item import Item
 
 
 class Packing():

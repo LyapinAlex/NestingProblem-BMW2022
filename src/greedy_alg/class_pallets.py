@@ -11,8 +11,7 @@ class Pallets():
         self.pallets = []
         # ----------  Segments packing   -----------
         self.grid_step = None
-        self.pallet_lines = None
-
+        self.pallet_lines = []
 
     def add_pallet(self):
         pallet_shift_code = np.full(self.shape[1], None)
@@ -22,10 +21,8 @@ class Pallets():
         return
 
     def add_pallet_lines(self):
-        pallet = []
-        n_y = floor(self.shape[1] / self.grid_step)
-        for _ in range(n_y + 1):
-            pallet.append([])
-        self.pallet_lines.append(pallet)
+        for _ in range(self.shape[1]):
+            self.pallet_lines.append([[0, 0], [self.shape[0], self.shape[0]]])
+        # self.pallet_lines.append(pallet)
         return
 

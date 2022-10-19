@@ -38,7 +38,6 @@ def polygon2segments(points, h):
         lines.append([])
 
     for k in range(0, n_y + 1):
-        print('hello', k)
         for i0 in range(points.shape[0]):
             if i0 == points.shape[0] - 1:
                 i1 = 0

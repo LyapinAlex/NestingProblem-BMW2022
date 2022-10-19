@@ -4,12 +4,12 @@ import numpy as np
 from matplotlib import patches
 from matplotlib import pyplot as plt
 
-from smth2matrix.polygon2matrix import polygon2matrix
-from smth2matrix.polyline2matrix import polyline2matrix
-from smth2matrix.shift2zero import shift2zero
-from shift_code.simple2mixed_shift import simple2mixed_shift
-from preprocess.expand_polygon import expand_polygon
-from shift_code.classic2new_shift import classic2new_shift
+from src.smth2matrix.polygon2matrix import polygon2matrix
+from src.smth2matrix.polyline2matrix import polyline2matrix
+from src.smth2matrix.shift2zero import shift2zero
+from src.shift_code.simple2mixed_shift import simple2mixed_shift
+from src.preprocess.expand_polygon import expand_polygon
+from src.shift_code.classic2new_shift import classic2new_shift
 from src.smth2lines.polygon2segments import polygon2segments
 
 
@@ -75,11 +75,6 @@ class Item:
         self.matrix = polygon2matrix(self.shell_points, h)
         return None
 
-    def set_segments(self, h):
-        """Приближение объекта отрезками, с размером пискля - h"""
-        self.segments = polygon2segments(self.points, h)
-        return None
-
     def list_of_new_shift_code(self, h):
         """Приближение объекта пиксельным способом (кодировкой с переходом), с размером пискля - h
 
@@ -100,6 +95,30 @@ class Item:
         self.culc_pixel_area(self.list_new_shift[0])
         return None
 
+    def set_segments(self, h):
+        """Приближение объекта отрезками, с размером пискля - h"""
+        self.segments = polygon2segments(self.points, h)
+        return None
+
+    def list_segments_items(self, h):
+        """Приближение объекта отрезками, с размером пискля - h
+
+        Returns:
+            np.array[4]: содержит 4 поворота текущего объекта в формате кодировки с переходом (новая)
+        """
+
+        self.set_matrix(h)
+
+        li = np.full(4, None)
+        li1 = np.full(4, None)
+        for i in range(0, 4):
+            li[i] = classic2new_shift(np.rot90(self.matrix, i))
+            li1[i] = self.check_orders_in_new_shift(li[i])
+        self.list_new_shift = li
+        self.list_check_order = li1
+
+        self.culc_pixel_area(self.list_new_shift[0])
+        return None
 
     def culc_pixel_area(self, new_shift):
         self.pixel_area = 0
