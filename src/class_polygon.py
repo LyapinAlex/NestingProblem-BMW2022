@@ -54,6 +54,14 @@ class Polygon:
         else:
             return self.next(num_side) - self.point(num_side)
 
+    def next_index(self, i):
+        return (i+1) % len(self.points)
+
+    def prev_index(self, i):
+        if i == 0:
+            return len(self.points)-1
+        return i-1
+
     def minXY(self):
         min_x = min(self.point(0).x, self.point(1).x)
         min_y = min(self.point(0).y, self.point(1).y)
@@ -117,12 +125,17 @@ class Polygon:
         self.num_sides = len(self.points)
         return
 
+    def resize(self):
+        self.num_sides = len(self.points)
+        self.size = self.maxXY() - self.minXY()
+        return self.size
+
     def del_duplicate_points(self):
         new_points = [self.points[0]]
         new_prev_point = self.points[0]
         for i in range(1, self.num_sides):
             if not abs(new_prev_point -
-                       self.point(i)) < 0.001:  #длина меньше микромерта
+                       self.point(i)) < 0.001:  # длина меньше микромерта
                 new_points.append(self.point(i))
                 new_prev_point = self.points[i]
         self.points = new_points
@@ -161,7 +174,7 @@ class Polygon:
         return self.size.x * self.size.y
 
     def calc_centroid(self):
-        centroid = Vector(0, 0)
+        centroid = Vector(0,  0)
         for i in range(self.num_sides):
             area_value = self.point(i).x * self.next(i).y - self.next(
                 i).x * self.point(i).y
@@ -287,15 +300,15 @@ class Polygon:
             flag = False
             for i in range(edges.shape[1]):
                 if ((edges[k][i] % 2 == 0) and
-                    (edges[k][i] != 0)):  #если наталкнулись на угол и т.п.
+                        (edges[k][i] != 0)):  # если наталкнулись на угол и т.п.
                     rastr_approximation[k][i] = 1
-                elif (edges[k][i] % 2 == 1):  #если наталкнулись на пересечение
+                elif (edges[k][i] % 2 == 1):  # если наталкнулись на пересечение
                     rastr_approximation[k][i] = 1
                     if k:
                         rastr_approximation[k - 1][
                             i] = 1  # проверка на не выход за границы массива
                     flag = not flag
-                if flag:  #заливка
+                if flag:  # заливка
                     rastr_approximation[k][i] = 1
                     if k:
                         rastr_approximation[k - 1][
@@ -352,7 +365,7 @@ class Polygon:
                             p.y += direction_of_movement.y
                         else:
                             p.x += direction_of_movement.x
-        return rastr_approximation[0:n_y - 1, 0:n_x - 1]  #срез матрицы
+        return rastr_approximation[0:n_y - 1, 0:n_x - 1]  # срез матрицы
 
     def create_rastr_approximation(self, h: float):
         edges = self.create_rastr_array_edges(h)
@@ -466,8 +479,9 @@ class Polygon:
         ax.add_patch(exp_polygon)
 
         bar = self.calc_centroid()
-        plt.plot(bar.x, bar.y, 'co')
+        plt.plot(bar.x, bar.y,  'co')
         plt.show()
+
 
 if __name__ == '__main__':
     pol2 = Polygon([

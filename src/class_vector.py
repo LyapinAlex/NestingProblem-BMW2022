@@ -31,18 +31,22 @@ class Vector:
         self.y -= other.y
         return self
 
-    def __mul__(self, scalar): # *
+    def __eq__(self, other):
+        pt = self-other
+        return (pt.x**2+pt.y**2) < 0.000001
+
+    def __mul__(self, scalar):  # *
         return Vector(self.x * scalar, self.y * scalar)
 
-    def __rmul__(self, scalar): # *
+    def __rmul__(self, scalar):  # *
         return self*scalar
 
-    def __imul__(self, scalar): # *=
+    def __imul__(self, scalar):  # *=
         self.x *= scalar
         self.y *= scalar
         return self
 
-    def __itruediv__(self, scalar): # /=
+    def __itruediv__(self, scalar):  # /=
         self.x /= scalar
         self.y /= scalar
         return self
@@ -56,17 +60,21 @@ class Vector:
     def __neg__(self):  # -
         return Vector(-self.x, -self.y)
 
-    def __lt__(self, other): #лексикографический порядок
+    def __lt__(self, other):  # лексикографический порядок
         return (self.y < other.y) or ((self.y == other.y) and self.x < other.x)
 
     def to_tuple(self):
         return (self.x, self.y)
 
+    def __hash__(self) -> int:
+        return hash((self.x, self.y))
+
 # ---------------------------  Geometric operations   ---------------------------
 
     def angle(self):
         """[0;2pi)"""
-        if abs(self)==0: return 0.0
+        if abs(self) == 0:
+            return 0.0
         fi1 = math.acos(self.x / abs(self))
         fi2 = math.asin(self.y / abs(self))
         answer = 0
@@ -84,7 +92,7 @@ class Vector:
         return Vector(self.y, -self.x).normalize()
 
     def normalize(self):
-        if abs(self)!=0:
+        if abs(self) != 0:
             len = abs(self)
             self.x /= len
             self.y /= len
@@ -99,11 +107,35 @@ class Vector:
 
     def is_collinear(self, other):
         angle_difference = abs(self.angle() - other.angle())
-        if angle_difference > math.pi: angle_difference-=math.pi
+        if angle_difference > math.pi:
+            angle_difference -= math.pi
         return angle_difference < 0.0001
 
     def copy(self):
         return Vector(self.x, self.y)
+
+    def angle(self):
+        """[0;2pi)"""
+        if abs(self) == 0:
+            return 0
+        fi1 = math.acos(self.x / abs(self))
+        fi2 = math.asin(self.y / abs(self))
+        answer = 0
+        if fi1 < math.pi / 2:
+            answer = fi2
+        elif fi2 > 0:
+            answer = fi1
+        else:
+            answer = -fi1
+        if answer < 0:
+            answer += 2 * math.pi
+        return answer
+
+    def is_horizontal(self, other):
+        return self.y == other.y
+
+    def is_vertical(self, other):
+        return self.x == other.x
 
 
 if __name__ == "__main__":
@@ -113,6 +145,6 @@ if __name__ == "__main__":
     print(b*2)
     print(2*b)
     print(b)
-    b/=2*2
+    b /= 2*2
     print(b)
     print(a.is_collinear(b))
