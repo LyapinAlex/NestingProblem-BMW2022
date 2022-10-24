@@ -88,8 +88,8 @@ class Packing():
 
 # --------------------------------  Calculations   --------------------------------
 
-    def make_items(self, h = 0, num_rout = 0):
-        if h == 0:
+    def make_items(self, h = 0.0, num_rout = 0):
+        if h == 0.0:
             self.h = round(sqrt(self.pallet_width * self.pallet_height) / 50, 2) / 4
         else:
             self.h = h
@@ -257,3 +257,25 @@ class Packing():
                     self.num_packing_items) + ";  eps = " + str(self.h) + ";  part_distance = " + str(
                         self.drill_radius * 2)  + ";  border_distance = " + str(self.border_distance) 
         return annotation
+
+# -----------------------------------  Packing   -----------------------------------
+
+    def packing_from_file(self, input_file_name: str, output_file_name: str, num_rot = 4, num_sort = 2, eps = 0.0):
+        self.read_polygons_from_file(input_file_name)
+        self.make_items(h = eps, num_rout=num_rot)
+        self.sort_items(num_sort=num_sort)
+        self.greedy_packing()
+        self.print_stats()
+        self.change_position()
+        self.save_pallets_in_files(output_file_name)
+        return
+
+    def packing_random_items(self, num_items: int, output_file_name: str, num_rot = 4, num_sort = 2, eps = 0.0):
+        self.create_random_polygons(num_items)
+        self.make_items(h = eps, num_rout=num_rot)
+        self.sort_items(num_sort=num_sort)
+        self.greedy_packing()
+        self.print_stats()
+        self.change_position()
+        self.save_pallets_in_files(output_file_name)
+        return
