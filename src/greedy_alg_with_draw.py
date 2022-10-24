@@ -10,7 +10,12 @@ def main():
     packaging.packing_from_file(input_file_name='NEST001-108.dxf',
                                 output_file_name='pallet.png',
                                 eps=10)
-    return None
+
+    # packaging.packing_random_items(num_items=50,
+    #                                output_file_name='pallet.png',
+    #                                eps=10)
+    
+    return
 
 
 if __name__ == '__main__':

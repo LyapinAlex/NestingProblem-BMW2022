@@ -251,6 +251,8 @@ class Packing():
 # -----------------------------------  Packing   -----------------------------------
 
     def packing_from_file(self, input_file_name: str, output_file_name: str, num_rot = 4, num_sort = 2, eps = 0.0):
+        """Считывание поддерживает форматы: svg, dxf, txt
+        Сохранение поддерживает форматы: txt, dxf, png, svg"""
         self.read_polygons_from_file(input_file_name)
         self.make_items(h = eps, num_rout=num_rot)
         self.sort_items(num_sort=num_sort)
@@ -261,6 +263,7 @@ class Packing():
         return
 
     def packing_random_items(self, num_items: int, output_file_name: str, num_rot = 4, num_sort = 2, eps = 0.0):
+        """Сохранение поддерживает форматы: txt, dxf, png, svg"""
         self.create_random_polygons(num_items)
         self.make_items(h = eps, num_rout=num_rot)
         self.sort_items(num_sort=num_sort)

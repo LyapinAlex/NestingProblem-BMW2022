@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def dxf2polygons(path):
     file = open(path)
     polygonsList = []

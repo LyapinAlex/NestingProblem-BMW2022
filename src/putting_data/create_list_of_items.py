@@ -3,10 +3,7 @@ import random
 from matplotlib import pyplot as plt
 from matplotlib import patches
 
-if __name__ == '__main__':
-    from generate_polygon1 import generate_polygon
-else:
-    from .generate_polygon1 import generate_polygon
+from .generate_polygon1 import generate_polygon
 
 
 def shift2zero(points):
