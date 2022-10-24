@@ -32,6 +32,3 @@ def svg2polygons(file_name):
         list_of_items.append(np.array(polygon))
     
     return np.array(list_of_items, dtype=object)
-
-if __name__=='__main__':
-    print(svg2polygons('src/input/NEST001-108.svg')[0])

@@ -18,6 +18,4 @@ def txt2polygons(path=r'src\input\test0.txt'):
     f.close()
     return polygons
 
-if __name__=='__main__':
-    print(txt2polygons()[0])
     

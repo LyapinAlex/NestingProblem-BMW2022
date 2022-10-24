@@ -72,8 +72,3 @@ def draw_polygon(points):
     plt.show()
     return None
 
-
-if __name__ == "__main__":
-    li = create_list_of_items(3)
-    for p in li:
-        draw_polygon(p)

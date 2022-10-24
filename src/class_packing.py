@@ -50,10 +50,6 @@ class Packing():
 
         self.time_convert_data = 0
         self.time_packing = 0
-#!доделать
-        self.time_placing_items = 0
-#!доделать
-        self.time_finding_position = 0
 
 # -----------------------------------  Input   ------------------------------------
 
@@ -96,20 +92,19 @@ class Packing():
 
         
         self.pallet_shape = (int(self.pallet_height / self.h),
-                             int(self.pallet_width / self.h)
-                             )  # округление вниз
+                             int(self.pallet_width / self.h))
         t_convert = time.time()
         for item in self.items:
             poly = Polygon(item.points)
             if num_rout != 0:
                 poly.bring_points2normal_appearance()
-                if num_rout == 1: # не очень
+                if num_rout == 1:
                     poly.choose_best_turn3()
-                elif num_rout == 2: # не очень
+                elif num_rout == 2:
                     poly.rotate_on_side(0)
-                elif num_rout == 3: # неплохо
+                elif num_rout == 3:
                     poly.choose_best_turn1()
-                elif num_rout == 4: # пока лучший
+                elif num_rout == 4:
                     poly.choose_best_turn2()
                 item.points = poly.points_to_array()
             item.area = poly.area
@@ -144,14 +139,14 @@ class Packing():
                 pallets[self.num_pallets - 1][i][0] != -self.pallet_shape[0]):
             i += 1
 
-        self.num_packing_items += self.num_items #пока формально стоит
+        self.num_packing_items += self.num_items
         self.target_width = round(self.pallet_shape[0] * self.h, 1)
         self.target_height = round(
             (i + self.pallet_shape[1] * (self.num_pallets - 1)) * self.h, 1)
         return
 
     def split_items(self):
-        """Разделяет объекты в массивы по номеру палет"""
+        """Разделяет объекты в массивы по номеру паллет"""
 
         self.items_split_on_pallets  = [[] for i in range(self.num_pallets)]
         for item in self.items: 
@@ -159,13 +154,11 @@ class Packing():
                 self.items_split_on_pallets [item.pallet_id].append(item)
         
         return self.items_split_on_pallets 
-#!доделать
+
     def change_position(self):
         """Пока работает не устойчиво, поэтому не встроить в сохранение"""
         self.split_items()
         for item in self.items:
-            # item.shift2zero()
-
             for point in item.points:
                 point0_copy = point[0]
                 point1_copy = point[1]
@@ -246,9 +239,6 @@ class Packing():
         print("Процент заполненной области:", round(percent1, 2))
         percent2 = self.total_pixel_area_polygons*(self.h**2)/(self.target_height*self.target_width) * 100
         print("Процент заполненной области с учётом part_distance:", round(percent2, 2), '\n')
-
-    def get_stats(self):
-        return [self.target_height, self.time_packing]
 
     def get_annotation(self):
         annotation = "S = " + str(self.target_height) + " x " + str(

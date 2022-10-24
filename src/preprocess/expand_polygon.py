@@ -197,9 +197,3 @@ def expand_polygon(list_points, eps):
 
     return np.array(new_polygon)
 
-
-
-if __name__=='__main__':
-    show2Polygons(list_points, expand_polygon(list_points, -1.50))
-
-

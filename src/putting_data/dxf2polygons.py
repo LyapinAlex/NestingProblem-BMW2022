@@ -29,6 +29,3 @@ def dxf2polygons(path):
     file.close()
     return np.array(polygonsList, dtype=object)
 
-
-if __name__ == "__main__":
-    print(len(dxf2polygons(r"src\input\NEST001-108.DXF")))

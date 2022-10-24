@@ -9,9 +9,3 @@ def shift2zero(points):
         points[i][0] -= x_min
         points[i][1] -= y_min
     return [x_max - x_min, y_max - y_min]
-
-
-if __name__ == '__main__':
-    a = np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]])
-    print(shift2zero(a))
-    print(a)

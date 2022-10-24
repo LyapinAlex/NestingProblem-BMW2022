@@ -1,10 +1,6 @@
 import numpy as np
 from math import ceil, floor
-
-if __name__=='__main__':
-    from shift2zero import shift2zero
-else:
-    from .shift2zero import shift2zero
+from .shift2zero import shift2zero
 
 def polygon2matrix(points, h):
     _INACCURACY = h * 0.000001 # нужна для исправления ошибки округления при вычислениях
@@ -87,6 +83,3 @@ def polygon2matrix(points, h):
                         p[0] += step_x
     mat = mat[0:n_y, 0:n_x] #срез матрицы
     return mat
-
-if __name__=='__main__':
-    print(polygon2matrix(np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]), 0.3))

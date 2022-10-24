@@ -7,9 +7,9 @@ def main():
                         drill_radius=2,
                         border_distance=2.1)
 
-    packaging.packing_from_file(input_file_name='NEST003-432.dxf',
+    packaging.packing_from_file(input_file_name='NEST001-108.dxf',
                                 output_file_name='pallet.png',
-                                eps=5.75)
+                                eps=10)
     return None
 
 

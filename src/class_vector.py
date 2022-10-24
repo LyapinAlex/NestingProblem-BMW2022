@@ -104,15 +104,3 @@ class Vector:
 
     def copy(self):
         return Vector(self.x, self.y)
-
-
-if __name__ == "__main__":
-    a = Vector(1.0001, 2)
-    b = Vector(1, 2)
-    print(type(b.x))
-    print(b*2)
-    print(2*b)
-    print(b)
-    b/=2*2
-    print(b)
-    print(a.is_collinear(b))
