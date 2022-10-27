@@ -6,6 +6,7 @@ from math import atan2
 from matplotlib import pyplot as plt
 from numpy import sign
 from class_DCEL import DCEL
+from class_arrangement import Arrangement
 from class_polygon import Polygon
 from class_vector import Vector
 from shapely.geometry import LineString
@@ -142,7 +143,6 @@ def segment_intersection(segment1, segment2):
     line_2 = LineString([C, D])
     int_pt = line_1.intersection(line_2)
     if int_pt:
-        print(int_pt)
         return Vector(int_pt.x, int_pt.y)
 
 
@@ -161,7 +161,7 @@ def split_by_intersections(reduce_conv):
                     reduce_conv[j+1] = (reduce_conv[j+1][0], intersection)
 
 
-def polygons_intersection(poly1: Polygon, poly2: Polygon):
+def merge_polygons(poly1: Polygon, poly2: Polygon):
     segments = []
     for i in range(len(poly1.points)):
         segments.append((poly1.point(i), poly1.next(i)))
@@ -171,15 +171,67 @@ def polygons_intersection(poly1: Polygon, poly2: Polygon):
     return segments
 
 
+def minkowski_sum(poly1: Polygon, poly2: Polygon):
+    reduce_conv = reduced_convolution(poly1, poly2)
+    split_by_intersections(reduce_conv)
+    arrangement = DCEL(reduce_conv)
+    return arrangement.get_outer_boundary()
+
+
+def get_max_point(poly: Polygon):
+    max_point = poly.point(0)
+    for point in poly.points:
+        if max_point < point:
+            max_point = point
+    return max_point
+
+
+def nfp(poly1: Polygon, poly2: Polygon):
+    points = []
+
+    for point in poly2.points:
+        points.append(point*(-1))
+
+    no_fit_polygon = minkowski_sum(poly1, Polygon(points))
+    no_fit_polygon.move_to(
+        poly2.minXY()+get_max_point(poly1)-get_max_point(no_fit_polygon))
+    return no_fit_polygon
+
+
+def pack(width, height, polygons: list[Polygon]):
+    current_poly = polygons.pop()
+    current_poly.move_to_origin()
+    pallet = [current_poly]
+    while (len(polygons) > 0):
+        current_poly = polygons.pop()
+        nfp_segments = [(Vector(0, 0), Vector(width, 0)), (Vector(width, 0.1), Vector(
+            width, height)), (Vector(width, height), Vector(0.1, height)), (Vector(0, height), Vector(0, 0))]
+        for polygon in pallet:
+            no_fit_polygon = nfp(polygon, current_poly)
+            for j in range(1, len(no_fit_polygon.points)):
+                nfp_segments.append(
+                    (no_fit_polygon.point(j), no_fit_polygon.next(j)))
+        split_by_intersections(nfp_segments)
+        arrangement = DCEL(nfp_segments)
+        optimal_point = arrangement.get_optimal_point_in_area(width, height)
+        current_poly.move_to(current_poly.minXY() +
+                             optimal_point-current_poly.point(0))
+        pallet.append(current_poly)
+    return pallet
+
+
+def get_orintable_loops(arrangement: Arrangement):
+
+
 if __name__ == '__main__':
     # p1 = Polygon([Vector(0, 0), Vector(0, 1), Vector(2, 1),
     #              Vector(2, 3), Vector(3, 3), Vector(3, 0)])
     # p1.sort_points()
-    #p2 = Polygon([Vector(0, 0), Vector(1, 1), Vector(0, 2), Vector(-1, 1)])
+    # p2 = Polygon([Vector(0, 0), Vector(1, 1), Vector(0, 2), Vector(-1, 1)])
     # p2.sort_points()
 
-    #p1 = Polygon([Vector(0, 0), Vector(1, 2), Vector(0, 1), Vector(-1, 2)])
-    #p2 = Polygon([Vector(0, 0), Vector(-1, -2), Vector(0, -1), Vector(1, -2)])
+    # p1 = Polygon([Vector(0, 0), Vector(1, 2), Vector(0, 1), Vector(-1, 2)])
+    # p2 = Polygon([Vector(0, 0), Vector(-1, -2), Vector(0, -1), Vector(1, -2)])
     # p2.sort_points()
     # p1.draw()
     # p1 = Polygon([Vector(0, 0), Vector(10, 0), Vector(
@@ -190,17 +242,22 @@ if __name__ == '__main__':
     # p2.sort_points()
     # p1.draw()
     # p2.draw()
-    #reduce_conv = reduced_convolution(p1, p2)
+    # reduce_conv = reduced_convolution(p1, p2)
     # draw_segments_sequence(reduce_conv)
     # split_by_intersections(reduce_conv)
     # draw_segments_sequence(reduce_conv)
     # print(reduce_conv)
 
     poly1 = Polygon([Vector(0, 0), Vector(2, 0), Vector(2, 1), Vector(0, 1)])
-    poly2 = Polygon([Vector(0, 0), Vector(1, -3), Vector(2, 0), Vector(1, 3)])
-    poly1.draw()
-    poly2.draw()
-    segments = polygons_intersection(poly1, poly2)
-    dcel = DCEL(segments)
-    poly = dcel.get_outer_boundary()
-    poly.draw()
+    poly1.sort_points()
+    poly2 = Polygon([Vector(0, 0), Vector(1, -3),
+                     Vector(2, 0), Vector(1, 3)])
+    poly2.sort_points()
+    polygons = []
+
+    for i in range(1):
+        polygons.append(deepcopy(poly1))
+        polygons.append(deepcopy(poly2))
+
+    pallet = pack(2000, 1000, polygons)
+    print(pallet)

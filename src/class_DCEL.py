@@ -91,7 +91,7 @@ class DCEL:
         for edge in edges:
             self.add_edge(edge)
         self.init_faces()
-        self.remove_degenerate_cases()
+        # self.remove_degenerate_cases()
 
     def add_edge(self, edge):
 
@@ -255,11 +255,17 @@ class DCEL:
                 min_point = point
         return self.vertices[point].half_edge.face.get()
 
+    def get_optimal_point_in_area(self, width, height):
+        optimal_point = Vector(width, height)
+        for point in self.vertices:
+            if (point.y >= 0 and point.y <= height and point.x >= 0 and point.x <= width and optimal_point > point):
+                optimal_point = point
+        return point
+
 
 if __name__ == '__main__':
     dcel = DCEL([(Vector(0, 0), Vector(0, 1)), (Vector(0, 1), Vector(1, 1)), (Vector(
         1, 1), Vector(1, 0)), (Vector(1, 0), Vector(0, 0)), (Vector(0, 0), Vector(0.5, 0.5))])
-
     poly = dcel.faces[1].get()
     poly.draw()
     print()
