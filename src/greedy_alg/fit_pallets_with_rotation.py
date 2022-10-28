@@ -1,13 +1,6 @@
-import math
-
-if __name__ == '__main__':
-    from class_pallets import Pallets
-    from placed_item.fit_item import fit_item
-    from find_position_with_rotation.find_position_with_rotation import find_position_with_rotation
-else:
-    from .class_pallets import Pallets
-    from .placed_item.fit_item import fit_item
-    from .find_position_with_rotation.find_position_with_rotation import find_position_with_rotation
+from .class_pallets import Pallets
+from .placed_item.fit_item import fit_item
+from .find_position_with_rotation.find_position_with_rotation import find_position_with_rotation
 
 
 def fit_pallets_with_rotation(pallet_shape, items, h):
