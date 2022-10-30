@@ -174,7 +174,7 @@ class DCEL:
                 half_edge.hole_begining = twin_half_edge.prev.twin.hole_begining
                 half_edge.face = twin_half_edge.prev.twin.face
 
-            case (False, False):  # BOTH_VERTEX_INCENDENT
+            case (True, True):  # BOTH_VERTEX_INCENDENT
                 self.add_half_edge_with_incendent_vertex(half_edge)
                 self.add_half_edge_with_incendent_vertex(twin_half_edge)
 
