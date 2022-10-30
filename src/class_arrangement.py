@@ -134,6 +134,7 @@ class Arrangement:
         if (edge[0] not in self.vertices and edge[1] not in self.vertices):
             self.add_without_incendent_vertex(half_edge, twin_half_edge)
             return
+
         if (edge[0] in self.vertices):
             self.add_half_edge_with_incendent_vertex(half_edge)
 

@@ -220,9 +220,6 @@ def pack(width, height, polygons: list[Polygon]):
     return pallet
 
 
-def get_orintable_loops(arrangement: Arrangement):
-
-
 if __name__ == '__main__':
     # p1 = Polygon([Vector(0, 0), Vector(0, 1), Vector(2, 1),
     #              Vector(2, 3), Vector(3, 3), Vector(3, 0)])
