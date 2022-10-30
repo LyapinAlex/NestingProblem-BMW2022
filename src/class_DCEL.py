@@ -53,7 +53,7 @@ class Vertex:
     def add_half_edge(self, half_edge):
         for i in range(len(self.half_edges_by_ccw_angle)):
             if (self.half_edges_by_ccw_angle[i].direction > half_edge.direction):
-                self.half_edges_by_ccw_angle.insert(i-1, half_edge)
+                self.half_edges_by_ccw_angle.insert(i, half_edge)
                 return
         self.half_edges_by_ccw_angle.append(half_edge)
 
@@ -134,7 +134,7 @@ class DCEL:
         half_edge, twin_half_edge = HalfEdge.init_pair_halfedges(edge)
 
         is_origin_edge_incendent = edge[0] in self.vertices
-        is_end_edge_incendent = edge[0] in self.vertices
+        is_end_edge_incendent = edge[1] in self.vertices
 
         match (is_origin_edge_incendent, is_end_edge_incendent):
 
@@ -210,18 +210,22 @@ class DCEL:
                     twin_half_edge.face = half_edge.next.face
 
                     while (current_half_edge != half_edge):
-                        if (current_half_edge.orgin < start_half_edge.origin):
+                        if (current_half_edge.origin < start_half_edge.origin):
                             start_half_edge = current_half_edge
+                        current_half_edge = current_half_edge.next
                     if (psevdoProd(start_half_edge.origin - start_half_edge.prev.origin, start_half_edge.end - start_half_edge.prev.origin) < 0):  # check orientation
                         start_half_edge = start_half_edge.twin.next
 
                     start_half_edge.face = new_face
+                    new_face.boundary_half_edge = start_half_edge
+
                     start_half_edge.hole_begining = None
 
                     current_half_edge = start_half_edge.next
                     while (start_half_edge != current_half_edge):
                         current_half_edge.face = new_face
                         current_half_edge.hole_begining = None
+                        current_half_edge = current_half_edge.next
 
                     self.faces.append(new_face)
 
@@ -229,10 +233,10 @@ class DCEL:
         self.half_edges.append(twin_half_edge)
 
     def add_without_incendent_vertex(self, half_edge: HalfEdge, twin_half_edge: HalfEdge):
-        origin_vertex = Vertex(half_edge.original_edge[0])
+        origin_vertex = Vertex(half_edge.origin)
         origin_vertex.add_half_edge(half_edge)
 
-        end_vertex = Vertex(twin_half_edge.original_edge[1])
+        end_vertex = Vertex(twin_half_edge.origin)
         end_vertex.add_half_edge(twin_half_edge)
 
         half_edge.next = twin_half_edge
