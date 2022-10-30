@@ -178,8 +178,6 @@ class DCEL:
                 self.add_half_edge_with_incendent_vertex(half_edge)
                 self.add_half_edge_with_incendent_vertex(twin_half_edge)
 
-                is_two_holes_connected = half_edge.next.hole_begining != half_edge.prev.hole_begining
-
                 # Connect two holes case (All cases with degenerates and non-degenerates cases)
                 if (half_edge.next.hole_begining != half_edge.prev.hole_begining):
                     half_edge.face = half_edge.prev.face
