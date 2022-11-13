@@ -26,6 +26,8 @@ class Item:
         self.list_check_order = None
         self.pixel_area = None
         self.segments = None
+        self.t_vector = None
+        self.packed = False
 
         # --------  Position   ---------
         self.raster_coord = None
