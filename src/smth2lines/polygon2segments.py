@@ -69,6 +69,7 @@ def polygon2segments(points, h):
             elif points[i1][1] >= k * h > points[i0][1] > k * (h + 1) and points[i2][1] >= k * h:
                 lines[k + 1].append(points[i0][0])
                 lines[k + 1].append(points[i0][0])
+    #     добавить, что бы добавлялась последняя, если она прям по границе
 
     return lines
 
