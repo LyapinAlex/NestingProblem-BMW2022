@@ -1,5 +1,7 @@
 from math import ceil, floor
 
+from copy import copy
+
 # if __name__=='__main__':
 #     from shift2zero import shift2zero
 # else:
@@ -36,8 +38,11 @@ def polygon2segments(points, h):
     lines = []
     for _ in range(n_y + 1):
         lines.append([])
+    print(lines)
 
     for k in range(0, n_y + 1):
+        start = None
+        end = None
         for i0 in range(points.shape[0]):
             if i0 == points.shape[0] - 1:
                 i1 = 0
@@ -47,30 +52,63 @@ def polygon2segments(points, h):
                 i2 = points.shape[0] - 1
             else:
                 i2 = (i0 - 1)
+
             # вершина лежит на линии
             if points[i0][1] == k * h:
                 if points[i2][1] < k * h and points[i1][1] < k * h:
-                    lines[k].append(points[i0][0])
-                    lines[k].append(points[i0][0])
+                    lines[k].append([points[i0][0], points[i0][0]])
                 elif points[i2][1] > k * h and points[i1][1] > k * h:
-                    lines[k].append(points[i0][0])
-                    lines[k].append(points[i0][0])
+                    lines[k].append([points[i0][0], points[i0][0]])
                 else:
-                    lines[k].append(points[i0][0])
+                    if start is None:
+                        start = points[i0][0]
+                    else:
+                        end = points[i0][0]
             # ребро пересекает линию
-            if points[i0][1] < k * h < points[i1][1] or points[i1][1] < k * h < points[i0][1]:
-                # print(i0, k)
-                lines[k].append(intersection([points[i0], points[i1]], [[0, k * h], [n_x, k * h]])[0])
-                # print(intersection([points[i0], points[i1]], [[0, k * h], [n_x, k * h]])[0])
+            elif points[i0][1] < k * h < points[i1][1] or points[i1][1] < k * h < points[i0][1]:
+                if start is None:
+                    start = intersection([points[i0], points[i1]], [[0, k * h], [n_x, k * h]])[0]
+                else:
+                    end = intersection([points[i0], points[i1]], [[0, k * h], [n_x, k * h]])[0]
+            if start is not None and end is not None:
+                lines[k].append([start, end])
+                start = None
+                end = None
+
             # extension algorithm
             if k * (h + 1) > points[i0][1] > k * h >= points[i1][1] and points[i2][1] <= k * h:
-                lines[k + 1].append(points[i0][0])
-                lines[k + 1].append(points[i0][0])
-            elif points[i1][1] >= k * h > points[i0][1] > k * (h + 1) and points[i2][1] >= k * h:
-                lines[k + 1].append(points[i0][0])
-                lines[k + 1].append(points[i0][0])
-    #     добавить, что бы добавлялась последняя, если она прям по границе
+                lines[k + 1].append([points[i0][0], points[i0][0]])
+            elif points[i1][1] >= k * (h + 1) > points[i0][1] > k * h and points[i2][1] >= k * (h + 1):
+                lines[k + 1].append([points[i0][0], points[i0][0]])
 
+    print(lines)
+
+    # для всех прямых:
+    for i in range(len(lines) - 2):
+        for segment in lines[i]:
+            stop = False
+            j = 0
+            while j < len(lines[i + 1]) - 1 and not stop:
+                if lines[i + 1][j][1] < segment[0] < lines[i + 1][j + 1][0] and lines[i + 1][j][1] < segment[1] < \
+                        lines[i + 1][j + 1][0]:
+                    segment[0] = copy(lines[i + 1][j][1])
+                    stop = True
+    # для последней прямой:
+    i = len(lines)
+    for segment in lines[i - 1]:
+        stop = False
+        j = 0
+        while j < len(lines[i - 2]) and not stop:
+            if j != len(lines[i - 2]) - 1:
+                if lines[i - 2][j][1] < segment[0] < lines[i - 2][j + 1][0] and lines[i - 2][j][1] < segment[1] < \
+                        lines[i - 2][j + 1][0]:
+                    lines[i - 2][j][1] = copy(segment[0])
+                    stop = True
+            else:
+                if lines[i - 2][j][1] < segment[0]:
+                    lines[i - 2][j][1] = copy(segment[0])
+                    stop = True
+            j += 1
     return lines
 
 if __name__=='__main__':
