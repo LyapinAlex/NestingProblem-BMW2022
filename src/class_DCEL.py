@@ -138,98 +138,96 @@ class DCEL:
         is_origin_edge_incendent = edge[0] in self.vertices
         is_end_edge_incendent = edge[1] in self.vertices
 
-        match (is_origin_edge_incendent, is_end_edge_incendent):
+        if (is_origin_edge_incendent, is_end_edge_incendent) is (False, False):  # NO_INCENDENT_VERTEX
+            self.add_without_incendent_vertex(half_edge, twin_half_edge)
 
-            case (False, False):  # NO_INCENDENT_VERTEX
-                self.add_without_incendent_vertex(half_edge, twin_half_edge)
+            face = self.get_face_by_inside_point(half_edge.origin)
+            face.holes_half_edges.append(half_edge)
 
-                face = self.get_face_by_inside_point(half_edge.origin)
-                face.holes_half_edges.append(half_edge)
+            half_edge.hole_begining = half_edge
+            twin_half_edge.hole_begining = twin_half_edge
 
-                half_edge.hole_begining = half_edge
-                twin_half_edge.hole_begining = twin_half_edge
+            half_edge.face = face
+            twin_half_edge.face = face
 
-                half_edge.face = face
-                twin_half_edge.face = face
+        if (is_origin_edge_incendent, is_end_edge_incendent) is (True, False):  # ONLY_ORIGIN_VERTEX_INCENDENT
+            self.add_half_edge_with_incendent_vertex(half_edge)
+            end_vertex = Vertex(edge[1])
+            end_vertex.add_half_edge(twin_half_edge)
+            self.vertices[edge[1]] = end_vertex
 
-            case (True, False):  # ONLY_ORIGIN_VERTEX_INCENDENT
-                self.add_half_edge_with_incendent_vertex(half_edge)
-                end_vertex = Vertex(edge[1])
-                end_vertex.add_half_edge(twin_half_edge)
-                self.vertices[edge[1]] = end_vertex
+            half_edge.hole_begining = half_edge.prev.hole_begining
+            half_edge.face = half_edge.prev.face
 
-                half_edge.hole_begining = half_edge.prev.hole_begining
+            twin_half_edge.hole_begining = half_edge.prev.twin.hole_begining
+            twin_half_edge.face = half_edge.prev.twin.face
+
+        if (is_origin_edge_incendent, is_end_edge_incendent) is (False, True):  # ONLY_END_VERTEX_INCENDENT
+            self.add_half_edge_with_incendent_vertex(twin_half_edge)
+            origin_vertex = Vertex(edge[0])
+            origin_vertex.add_half_edge(half_edge)
+            self.vertices[edge[0]] = origin_vertex
+
+            twin_half_edge.hole_begining = twin_half_edge.prev
+            twin_half_edge.face = twin_half_edge.prev.face
+
+            half_edge.hole_begining = twin_half_edge.prev.twin.hole_begining
+            half_edge.face = twin_half_edge.prev.twin.face
+
+        if (is_origin_edge_incendent, is_end_edge_incendent) is (True, True):  # BOTH_VERTEX_INCENDENT
+            self.add_half_edge_with_incendent_vertex(half_edge)
+            self.add_half_edge_with_incendent_vertex(twin_half_edge)
+
+            # Connect two holes case (All cases with degenerates and non-degenerates cases)
+            if (half_edge.next.hole_begining != half_edge.prev.hole_begining):
                 half_edge.face = half_edge.prev.face
-
-                twin_half_edge.hole_begining = half_edge.prev.twin.hole_begining
-                twin_half_edge.face = half_edge.prev.twin.face
-
-            case (False, True):  # ONLY_END_VERTEX_INCENDENT
-                self.add_half_edge_with_incendent_vertex(twin_half_edge)
-                origin_vertex = Vertex(edge[0])
-                origin_vertex.add_half_edge(half_edge)
-                self.vertices[edge[0]] = origin_vertex
-
-                twin_half_edge.hole_begining = twin_half_edge.prev
                 twin_half_edge.face = twin_half_edge.prev.face
 
-                half_edge.hole_begining = twin_half_edge.prev.twin.hole_begining
-                half_edge.face = twin_half_edge.prev.twin.face
+                half_edge.hole_begining = half_edge.prev.hole_begining
+                twin_half_edge.hole_begining = twin_half_edge.prev.hole_begining
 
-            case (True, True):  # BOTH_VERTEX_INCENDENT
-                self.add_half_edge_with_incendent_vertex(half_edge)
-                self.add_half_edge_with_incendent_vertex(twin_half_edge)
+            elif (half_edge.next.face != half_edge.next.twin.face):  # Splite face case
+                half_edge.hole_begining = None
+                twin_half_edge.hole_begining = None
 
-                # Connect two holes case (All cases with degenerates and non-degenerates cases)
-                if (half_edge.next.hole_begining != half_edge.prev.hole_begining):
-                    half_edge.face = half_edge.prev.face
-                    twin_half_edge.face = twin_half_edge.prev.face
+                new_face = Face()
+                new_face.boundary_half_edge = half_edge
 
-                    half_edge.hole_begining = half_edge.prev.hole_begining
-                    twin_half_edge.hole_begining = twin_half_edge.prev.hole_begining
+                half_edge.face = half_edge
+                current_half_edge = half_edge.next
 
-                elif (half_edge.next.face != half_edge.next.twin.face):  # Splite face case
-                    half_edge.hole_begining = None
-                    twin_half_edge.hole_begining = None
+                while (current_half_edge != half_edge):
+                    current_half_edge.face = half_edge
+                    current_half_edge = current_half_edge.next
 
-                    new_face = Face()
-                    new_face.boundary_half_edge = half_edge
+                self.faces.append(new_face)
+            else:  # loop closure case
+                new_face = Face()
+                start_half_edge = half_edge
+                current_half_edge = half_edge.next
 
-                    half_edge.face = half_edge
-                    current_half_edge = half_edge.next
+                half_edge.face = half_edge.next.face  # pre init faces
+                twin_half_edge.face = half_edge.next.face
 
-                    while (current_half_edge != half_edge):
-                        current_half_edge.face = half_edge
-                        current_half_edge = current_half_edge.next
+                while (current_half_edge != half_edge):
+                    if (current_half_edge.origin < start_half_edge.origin):
+                        start_half_edge = current_half_edge
+                    current_half_edge = current_half_edge.next
+                if (psevdoProd(start_half_edge.origin - start_half_edge.prev.origin, start_half_edge.end - start_half_edge.prev.origin) < 0):  # check orientation
+                    start_half_edge = start_half_edge.twin.next
 
-                    self.faces.append(new_face)
-                else:  # loop closure case
-                    new_face = Face()
-                    start_half_edge = half_edge
-                    current_half_edge = half_edge.next
+                start_half_edge.face = new_face
+                new_face.boundary_half_edge = start_half_edge
 
-                    half_edge.face = half_edge.next.face  # pre init faces
-                    twin_half_edge.face = half_edge.next.face
+                start_half_edge.hole_begining = None
 
-                    while (current_half_edge != half_edge):
-                        if (current_half_edge.origin < start_half_edge.origin):
-                            start_half_edge = current_half_edge
-                        current_half_edge = current_half_edge.next
-                    if (psevdoProd(start_half_edge.origin - start_half_edge.prev.origin, start_half_edge.end - start_half_edge.prev.origin) < 0):  # check orientation
-                        start_half_edge = start_half_edge.twin.next
+                current_half_edge = start_half_edge.next
+                while (start_half_edge != current_half_edge):
+                    current_half_edge.face = new_face
+                    current_half_edge.hole_begining = None
+                    current_half_edge = current_half_edge.next
 
-                    start_half_edge.face = new_face
-                    new_face.boundary_half_edge = start_half_edge
-
-                    start_half_edge.hole_begining = None
-
-                    current_half_edge = start_half_edge.next
-                    while (start_half_edge != current_half_edge):
-                        current_half_edge.face = new_face
-                        current_half_edge.hole_begining = None
-                        current_half_edge = current_half_edge.next
-
-                    self.faces.append(new_face)
+                self.faces.append(new_face)
 
         self.half_edges.append(half_edge)
         self.half_edges.append(twin_half_edge)
