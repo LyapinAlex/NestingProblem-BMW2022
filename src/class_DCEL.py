@@ -1,7 +1,9 @@
-from numpy import half, sign
+from matplotlib import pyplot as plt
+from numpy import arange, half, sign
 from class_polygon import Polygon
 from class_vector import Vector
 from enum import Enum
+from shapely.geometry import LineString
 
 
 def compare_ccw_angle(vec1: Vector, vec2: Vector):
@@ -200,7 +202,7 @@ class DCEL:
                         current_half_edge.face = half_edge
                         current_half_edge = current_half_edge.next
 
-                    self.faces.append(face)
+                    self.faces.append(new_face)
                 else:  # loop closure case
                     new_face = Face()
                     start_half_edge = half_edge
@@ -291,13 +293,72 @@ class DCEL:
 
                     double_signed_area += psevdoProd(p2-p1, p3-p1)
 
+    def draw(self):
+        segments = []
+        for face in self.faces:
+            start_half_edge = face.boundary_half_edge
+            if (start_half_edge is None):
+                continue
+            segments.append((start_half_edge.origin, start_half_edge.end))
+            current_half_edge = start_half_edge.next
+            while (start_half_edge != current_half_edge):
+                segments.append(
+                    (current_half_edge.origin, current_half_edge.end))
+                current_half_edge = current_half_edge.next
+        for segment in segments:
+            plt.arrow(segment[0].x, segment[0].y, segment[1].x-segment[0].x, segment[1].y-segment[0].y,
+                      shape='full', lw=0.5, length_includes_head=True, head_width=.05)
+        plt.show()
+
+
+def segment_intersection(segment1, segment2):
+    A = (segment1[0].x, segment1[0].y)
+    B = (segment1[1].x, segment1[1].y)
+
+    C = (segment2[0].x, segment2[0].y)
+    D = (segment2[1].x, segment2[1].y)
+
+    line_1 = LineString([A, B])
+    line_2 = LineString([C, D])
+    int_pt = line_1.intersection(line_2)
+    if int_pt:
+        return Vector(int_pt.x, int_pt.y)
+
+
+def split_by_intersections(reduce_conv):
+    for i in range(len(reduce_conv)):
+        for j in range(i+1, len(reduce_conv)):
+            if not (reduce_conv[i][0] == reduce_conv[j][0] or reduce_conv[i][0] == reduce_conv[j][1] or reduce_conv[i][1] == reduce_conv[j][0] or reduce_conv[i][1] == reduce_conv[j][1]):
+                intersection = segment_intersection(
+                    reduce_conv[i], reduce_conv[j])
+                if (intersection):
+                    reduce_conv.insert(i+1, (intersection, reduce_conv[i][1]))
+                    reduce_conv.insert(
+                        j+2, (intersection, reduce_conv[j+1][1]))
+                    reduce_conv[i] = (reduce_conv[i][0], intersection)
+                    reduce_conv[j+1] = (reduce_conv[j+1][0], intersection)
+
 
 if __name__ == '__main__':
-    segments = [(Vector(0, 0), Vector(0, 1)), (Vector(0, 1), Vector(1, 1)), (Vector(
-        1, 1), Vector(1, 0)), (Vector(1, 0), Vector(0, 0)), (Vector(0, 0), Vector(0.5, 0.5))]
-    arrangement = DCEL()
-    for segment in segments:
-        arrangement.add_edge(segment)
+    p1 = Vector(0, 0)
+    p2 = Vector(10, 0)
+    p3 = Vector(10, 10)
+    p4 = Vector(0, 10)
 
-    poly = arrangement
+    segments = [(Vector(0, 0), Vector(0, 1)), (Vector(0, 1), Vector(1, 1)), (Vector(
+        1, 1), Vector(1, 0)), (Vector(1, 0), Vector(0, 0)), (Vector(0, 0), Vector(0.5, 0.5)),
+        (Vector(3, 3), Vector(4, 0)), (Vector(4, 0), Vector(5, 3)), (Vector(5, 3), Vector(
+            4, 6)), (Vector(4, 6), Vector(3, 3)), (p1, p2), (p2, p3), (p3, p4), (p4, p1),
+        (Vector(-1, -1), Vector(1, -1)), (Vector(1, -1), Vector(1, 1)), (Vector(1, 1), Vector(-1, 1)), (Vector(-1, 1), Vector(-1, -1))]
+    arrangement = DCEL()
+    split_by_intersections(segments)
+    right_segments = []
+    for i in range(len(segments)):
+        a = segments[i][0]
+        b = segments[i][1]
+        if not (a.x < 0 or a.x > 10 or a.y < 0 or a.y > 10 or b.x < 0 or b.x > 10 or b.y < 0 or b.y > 10):
+            right_segments.append(segments[i])
+    for segment in right_segments:
+        arrangement.add_edge(segment)
+    arrangement.draw()
     print()
