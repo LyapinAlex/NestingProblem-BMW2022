@@ -1,7 +1,9 @@
-from os import curdir
-from numpy import sign
+from matplotlib import pyplot as plt
+from numpy import arange, half, sign
 from class_polygon import Polygon
 from class_vector import Vector
+from enum import Enum
+from shapely.geometry import LineString
 
 
 def compare_ccw_angle(vec1: Vector, vec2: Vector):
@@ -49,11 +51,12 @@ class Vertex:
     def __init__(self, point: Vector):
         self.point = point
         self.half_edges_by_ccw_angle: list[HalfEdge] = []
+        self.label = None
 
     def add_half_edge(self, half_edge):
         for i in range(len(self.half_edges_by_ccw_angle)):
             if (self.half_edges_by_ccw_angle[i].direction > half_edge.direction):
-                self.half_edges_by_ccw_angle.insert(i-1, half_edge)
+                self.half_edges_by_ccw_angle.insert(i, half_edge)
                 return
         self.half_edges_by_ccw_angle.append(half_edge)
 
@@ -68,6 +71,8 @@ class HalfEdge:
         self.prev: HalfEdge = None
         self.next: HalfEdge = None
         self.direction: Direction = None
+        self.hole_begining: HalfEdge = None
+        self.is_visited = False
 
     @staticmethod
     def init_pair_halfedges(edge: tuple[Vector, Vector]):
@@ -97,6 +102,7 @@ class Face:
     def __init__(self, half_edge=None):
         self.boundary_half_edge: HalfEdge = half_edge
         self.holes_half_edges: list[HalfEdge] = []
+        self.label = None
 
     def is_inside(self, point):
         if (self.boundary_half_edge is None):
@@ -122,7 +128,7 @@ class Face:
         return Polygon(poly)
 
 
-class Arrangement:
+class DCEL:
     def __init__(self) -> None:
         self.unbounded_face: Face = Face()
         self.faces: list[Face] = [self.unbounded_face]
@@ -131,34 +137,37 @@ class Arrangement:
 
     def add_edge(self, edge: tuple[Vector, Vector]):
         half_edge, twin_half_edge = HalfEdge.init_pair_halfedges(edge)
-        if (edge[0] not in self.vertices and edge[1] not in self.vertices):
+
+        is_origin_edge_incendent = edge[0] in self.vertices
+        is_end_edge_incendent = edge[1] in self.vertices
+
+        if (is_origin_edge_incendent, is_end_edge_incendent) == (False, False):  # NO_INCENDENT_VERTEX
             self.add_without_incendent_vertex(half_edge, twin_half_edge)
-            return
 
-        if (edge[0] in self.vertices):
+        if (is_origin_edge_incendent, is_end_edge_incendent) == (True, False):  # ONLY_ORIGIN_VERTEX_INCENDENT
             self.add_half_edge_with_incendent_vertex(half_edge)
+            end_vertex = Vertex(edge[1])
+            end_vertex.add_half_edge(twin_half_edge)
+            self.vertices[edge[1]] = end_vertex
 
-        if (edge[1] in self.vertices):
+        if (is_origin_edge_incendent, is_end_edge_incendent) == (False, True):  # ONLY_END_VERTEX_INCENDENT
             self.add_half_edge_with_incendent_vertex(twin_half_edge)
-
-        if (edge[0] not in self.vertices):
             origin_vertex = Vertex(edge[0])
             origin_vertex.add_half_edge(half_edge)
             self.vertices[edge[0]] = origin_vertex
 
-        if (edge[1] not in self.vertices):
-            end_vertex = Vertex(edge[1])
-            end_vertex.add_half_edge(twin_half_edge)
-            self.vertices[edge[1]] = end_vertex
+        if (is_origin_edge_incendent, is_end_edge_incendent) == (True, True):  # BOTH_VERTEX_INCENDENT
+            self.add_half_edge_with_incendent_vertex(half_edge)
+            self.add_half_edge_with_incendent_vertex(twin_half_edge)
 
         self.half_edges.append(half_edge)
         self.half_edges.append(twin_half_edge)
 
     def add_without_incendent_vertex(self, half_edge: HalfEdge, twin_half_edge: HalfEdge):
-        origin_vertex = Vertex(half_edge.original_edge[0])
+        origin_vertex = Vertex(half_edge.origin)
         origin_vertex.add_half_edge(half_edge)
 
-        end_vertex = Vertex(twin_half_edge.original_edge[1])
+        end_vertex = Vertex(twin_half_edge.origin)
         end_vertex.add_half_edge(twin_half_edge)
 
         half_edge.next = twin_half_edge
@@ -169,9 +178,6 @@ class Arrangement:
 
         self.vertices[half_edge.origin] = origin_vertex
         self.vertices[twin_half_edge.origin] = end_vertex
-
-        self.half_edges.append(half_edge)
-        self.half_edges.append(twin_half_edge)
 
     def add_half_edge_with_incendent_vertex(self, half_edge: HalfEdge):
         incendent_vertex = self.vertices[half_edge.origin]
@@ -194,6 +200,53 @@ class Arrangement:
         if (half_edge.next == None):
             half_edge.next = half_edge.twin
 
+    def init_faces(self):
+        for half_edge in self.half_edges:
+            if (half_edge.is_visited or half_edge.twin.is_visited):
+                continue
+            new_face = Face()
+            start_half_edge = half_edge
+            start_half_edge.is_visited = True
+            half_edge.next.is_visited = True
+
+            current_half_edge = half_edge.next
+
+            while (half_edge != current_half_edge):
+                if (start_half_edge.origin > current_half_edge.origin):
+                    start_half_edge = current_half_edge
+                current_half_edge = current_half_edge.next
+                current_half_edge.is_visited = True
+            if (psevdoProd(start_half_edge.origin - start_half_edge.prev.origin, start_half_edge.end - start_half_edge.prev.origin) < 0):  # check orientation
+                start_half_edge = start_half_edge.twin.next
+
+            new_face.boundary_half_edge = start_half_edge
+            start_half_edge.face = new_face
+
+            current_half_edge = start_half_edge.next
+            current_half_edge.face = new_face
+
+            while (current_half_edge != start_half_edge):
+                current_half_edge = current_half_edge.next
+                current_half_edge.face = new_face
+            self.faces.append(new_face)
+        self.init_holes()
+
+    def init_holes(self):
+        for half_edge in self.half_edges:
+            half_edge.is_visited = False
+
+        for half_edge in self.half_edges:
+            if (half_edge.face != None):
+                continue
+            face = self.get_face_by_inside_point(half_edge.origin)
+            face.holes_half_edges.append(half_edge)
+            half_edge.is_visited = True
+            half_edge.next.is_visited = True
+            current_half_edge = half_edge.next
+            while (current_half_edge != half_edge):
+                current_half_edge = current_half_edge.next
+                current_half_edge.is_visited = True
+
     def get_face_by_inside_point(self, point: Vector):
         face = self.unbounded_face
         for current_face in self.faces:
@@ -203,14 +256,65 @@ class Arrangement:
                 face = current_face
         return current_face
 
+    def draw(self):
+        segments = []
+        for face in self.faces:
+            start_half_edge = face.boundary_half_edge
+            if (start_half_edge is None):
+                continue
+            segments.append((start_half_edge.origin, start_half_edge.end))
+            current_half_edge = start_half_edge.next
+            while (start_half_edge != current_half_edge):
+                segments.append(
+                    (current_half_edge.origin, current_half_edge.end))
+                current_half_edge = current_half_edge.next
+        for segment in segments:
+            plt.arrow(segment[0].x, segment[0].y, segment[1].x-segment[0].x, segment[1].y-segment[0].y,
+                      shape='full', lw=0.5, length_includes_head=True, head_width=.05)
+        plt.show()
+
+
+def segment_intersection(segment1, segment2):
+    A = (segment1[0].x, segment1[0].y)
+    B = (segment1[1].x, segment1[1].y)
+
+    C = (segment2[0].x, segment2[0].y)
+    D = (segment2[1].x, segment2[1].y)
+
+    line_1 = LineString([A, B])
+    line_2 = LineString([C, D])
+    int_pt = line_1.intersection(line_2)
+    if int_pt:
+        return Vector(int_pt.x, int_pt.y)
+
+
+def split_by_intersections(reduce_conv):
+    for i in range(len(reduce_conv)):
+        for j in range(i+1, len(reduce_conv)):
+            if not (reduce_conv[i][0] == reduce_conv[j][0] or reduce_conv[i][0] == reduce_conv[j][1] or reduce_conv[i][1] == reduce_conv[j][0] or reduce_conv[i][1] == reduce_conv[j][1]):
+                intersection = segment_intersection(
+                    reduce_conv[i], reduce_conv[j])
+                if (intersection):
+                    reduce_conv.insert(i+1, (intersection, reduce_conv[i][1]))
+                    reduce_conv.insert(
+                        j+2, (intersection, reduce_conv[j+1][1]))
+                    reduce_conv[i] = (reduce_conv[i][0], intersection)
+                    reduce_conv[j+1] = (reduce_conv[j+1][0], intersection)
+
 
 if __name__ == '__main__':
-    segments = [(Vector(0, 0), Vector(0, 1)), (Vector(0, 1), Vector(1, 1)), (Vector(
-        1, 1), Vector(1, 0)), (Vector(1, 0), Vector(0, 0)), (Vector(0, 0), Vector(0.5, 0.5))]
-    arrangement = Arrangement()
-    for segment in segments:
-        arrangement.add_edge(segment)
+    p1 = Vector(0, 0)
+    p2 = Vector(10, 0)
+    p3 = Vector(10, 10)
+    p4 = Vector(0, 10)
 
-    poly = arrangement.get_outer_boundary()
-    poly.draw()
+    segments = [(Vector(0, 0), Vector(1, 0)), (Vector(1, 0), Vector(
+        1, 1)), (Vector(1, 1), Vector(0, 1)), (Vector(0, 1), Vector(0, 0)), (Vector(0.3, 0.5), Vector(0.6, 0.5)), (Vector(
+            0.6, 0.5), Vector(0.5, 2)), (Vector(0.5, 2), Vector(0.3, 0.5))]
+    dcel = DCEL()
+    split_by_intersections(segments)
+    for seg in segments:
+        dcel.add_edge(seg)
+    dcel.init_faces()
+    dcel.draw()
     print()
