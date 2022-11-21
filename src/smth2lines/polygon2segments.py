@@ -38,7 +38,7 @@ def polygon2segments(points, h):
     lines = []
     for _ in range(n_y + 1):
         lines.append([])
-    print(lines)
+    # print(lines)
 
     for k in range(0, n_y + 1):
         start = None
@@ -81,32 +81,37 @@ def polygon2segments(points, h):
             elif points[i1][1] >= k * (h + 1) > points[i0][1] > k * h and points[i2][1] >= k * (h + 1):
                 lines[k + 1].append([points[i0][0], points[i0][0]])
 
-    print(lines)
+    # print(lines)
 
     # для всех прямых:
     for i in range(len(lines) - 2):
         for segment in lines[i]:
             stop = False
             j = 0
-            while j < len(lines[i + 1]) - 1 and not stop:
-                if lines[i + 1][j][1] < segment[0] < lines[i + 1][j + 1][0] and lines[i + 1][j][1] < segment[1] < \
-                        lines[i + 1][j + 1][0]:
-                    segment[0] = copy(lines[i + 1][j][1])
-                    stop = True
+            while j < len(lines[i+1]) - 1 and not stop:
+                if j != len(lines[j+1]) - 1:
+                    if lines[i+1][j][1] < segment[0] < lines[i+1][j+1][0] and lines[i+1][j][1] < segment[1] < \
+                            lines[i + 1][j + 1][0]:
+                        segment[0] = copy(lines[i+1][j][1]) - 0.001
+                        stop = True
+                else:
+                    if lines[i+1][j][1] < segment[0]:
+                        segment[0] = copy(lines[i+1][j][1]) - 0.001
+                        stop = True
     # для последней прямой:
     i = len(lines)
-    for segment in lines[i - 1]:
+    for segment in lines[i-1]:
         stop = False
         j = 0
-        while j < len(lines[i - 2]) and not stop:
-            if j != len(lines[i - 2]) - 1:
-                if lines[i - 2][j][1] < segment[0] < lines[i - 2][j + 1][0] and lines[i - 2][j][1] < segment[1] < \
-                        lines[i - 2][j + 1][0]:
-                    lines[i - 2][j][1] = copy(segment[0])
+        while j < len(lines[i-2]) and not stop:
+            if j != len(lines[i-2]) - 1:
+                if lines[i-2][j][1] < segment[0] < lines[i-2][j+1][0] and lines[i-2][j][1] < segment[1] < \
+                        lines[i-2][j+1][0]:
+                    lines[i-2][j][1] = copy(segment[0]) + 0.001
                     stop = True
             else:
-                if lines[i - 2][j][1] < segment[0]:
-                    lines[i - 2][j][1] = copy(segment[0])
+                if lines[i-2][j][1] < segment[0]:
+                    lines[i-2][j][1] = copy(segment[0]) + 0.001
                     stop = True
             j += 1
     return lines
