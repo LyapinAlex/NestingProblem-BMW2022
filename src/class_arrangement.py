@@ -108,12 +108,14 @@ class Face:
         if (self.boundary_half_edge is None):
             return True
         start_boundary_half_edge = self.boundary_half_edge
-        current_boundary_half_edge = self.boundary_half_edge
+        if (psevdoProd(point-start_boundary_half_edge.origin, start_boundary_half_edge.end-start_boundary_half_edge.origin) >= 0):
+            return False
+        current_boundary_half_edge = self.boundary_half_edge.next
         # Если не лежит слева от полуребра
         while (current_boundary_half_edge != start_boundary_half_edge):
-            if (psevdoProd(current_boundary_half_edge.end - current_boundary_half_edge.origin,
-                           point-current_boundary_half_edge.origin) < 0):
+            if (psevdoProd(point-current_boundary_half_edge.origin, current_boundary_half_edge.end-current_boundary_half_edge.origin) >= 0):
                 return False
+            current_boundary_half_edge = current_boundary_half_edge.next
         return True
 
     def get(self) -> Polygon:
@@ -200,16 +202,16 @@ class DCEL:
         if (half_edge.next == None):
             half_edge.next = half_edge.twin
 
-    def init_faces(self):
+    def init_faces(self):  # change
         for half_edge in self.half_edges:
             if (half_edge.is_visited or half_edge.twin.is_visited):
                 continue
             new_face = Face()
             start_half_edge = half_edge
             start_half_edge.is_visited = True
-            half_edge.next.is_visited = True
 
             current_half_edge = half_edge.next
+            current_half_edge.is_visited = True
 
             while (half_edge != current_half_edge):
                 if (start_half_edge.origin > current_half_edge.origin):
@@ -231,12 +233,12 @@ class DCEL:
             self.faces.append(new_face)
         self.init_holes()
 
-    def init_holes(self):
+    def init_holes(self):  # change
         for half_edge in self.half_edges:
             half_edge.is_visited = False
 
         for half_edge in self.half_edges:
-            if (half_edge.face != None):
+            if (half_edge.face != None or half_edge.is_visited):
                 continue
             face = self.get_face_by_inside_point(half_edge.origin)
             face.holes_half_edges.append(half_edge)
@@ -254,7 +256,7 @@ class DCEL:
                 continue
             if (current_face.is_inside(point) and face.is_inside(current_face.boundary_half_edge.origin)):
                 face = current_face
-        return current_face
+        return face
 
     def draw(self):
         segments = []
