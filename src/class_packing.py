@@ -13,6 +13,8 @@ from src.data_rendering.items2png import items2png
 from src.data_rendering.items2DXF import items2DXF
 from src.putting_data.txt2polygons import txt2polygons
 from src.class_item import Item
+from src.smth2lines.draw_segments_result_packing import draw_segments_result_packing
+from src.smth2lines.segments_bottom_left import pack_segments
 
 
 class Packing():
@@ -31,6 +33,7 @@ class Packing():
         self.polygons = None
         self.items = None
         self.items_split_on_pallets = None
+        self.pallets = None
         
         # ----------  Stats   ----------
         self.num_items = 0
@@ -78,6 +81,9 @@ class Packing():
             item = Item(id, polygons[id])
             self.items[id] = item
         return
+
+    def segments_bottom_left(self):
+        return pack_segments(self.items, self.pallets)
 
 # --------------------------------  Calculations   --------------------------------
 
@@ -209,3 +215,6 @@ class Packing():
                 self.time_packing) + ";  Num_item = " + str(
                     self.num_packing_items) + ";  eps = " + str(self.h)
         return annotation
+
+    def draw_segments_packing(self):
+        return draw_segments_result_packing(self)
