@@ -31,18 +31,18 @@ class Vector:
         self.y -= other.y
         return self
 
-    def __mul__(self, scalar): # *
+    def __mul__(self, scalar):  # *
         return Vector(self.x * scalar, self.y * scalar)
 
-    def __rmul__(self, scalar): # *
-        return self*scalar
+    def __rmul__(self, scalar):  # *
+        return self * scalar
 
-    def __imul__(self, scalar): # *=
+    def __imul__(self, scalar):  # *=
         self.x *= scalar
         self.y *= scalar
         return self
 
-    def __itruediv__(self, scalar): # /=
+    def __itruediv__(self, scalar):  # /=
         self.x /= scalar
         self.y /= scalar
         return self
@@ -56,17 +56,20 @@ class Vector:
     def __neg__(self):  # -
         return Vector(-self.x, -self.y)
 
-    def __lt__(self, other): #лексикографический порядок
+    def __lt__(self, other):  #лексикографический порядок
         return (self.y < other.y) or ((self.y == other.y) and self.x < other.x)
 
     def to_tuple(self):
         return (self.x, self.y)
 
+    def psevdo_prod(self, other):
+        return self.x * other.y - self.y * other.x
+
 # ---------------------------  Geometric operations   ---------------------------
 
     def angle(self):
         """[0;2pi)"""
-        if abs(self)==0: return 0.0
+        if abs(self) == 0: return 0.0
         fi1 = math.acos(self.x / abs(self))
         fi2 = math.asin(self.y / abs(self))
         answer = 0
@@ -84,7 +87,7 @@ class Vector:
         return Vector(self.y, -self.x).normalize()
 
     def normalize(self):
-        if abs(self)!=0:
+        if abs(self) != 0:
             len = abs(self)
             self.x /= len
             self.y /= len
@@ -99,20 +102,28 @@ class Vector:
 
     def is_collinear(self, other):
         angle_difference = abs(self.angle() - other.angle())
-        if angle_difference > math.pi: angle_difference-=math.pi
+        if angle_difference > math.pi: angle_difference -= math.pi
         return angle_difference < 0.0001
 
     def copy(self):
         return Vector(self.x, self.y)
 
 
+def intersection_pair_segments(p1: Vector, p2: Vector, q1: Vector, q2: Vector):
+    a = p2 - p1
+    b = q1 - q2
+    c = q1 - p1
+    if a.psevdo_prod(b):
+        l1 = c.psevdo_prod(b) / a.psevdo_prod(b)
+        l2 = a.psevdo_prod(c) / a.psevdo_prod(b)
+        if (0<=l1) and (l1<=1) and (0<=l2) and (l2<=1):
+            return p1+a*l1
+    return None
+
+
 if __name__ == "__main__":
-    a = Vector(1.0001, 2)
-    b = Vector(1, 2)
-    print(type(b.x))
-    print(b*2)
-    print(2*b)
-    print(b)
-    b/=2*2
-    print(b)
-    print(a.is_collinear(b))
+    a2 = Vector(2, 2)
+    a1 = Vector(1, 1)
+    b2 = Vector(2, 1.5)
+    b1 = Vector(1, 2)
+    print(intersection_pair_segments(a1, a2, b1, b2))

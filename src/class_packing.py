@@ -245,7 +245,7 @@ class Packing():
         percent1 = self.total_area_polygons/(self.target_height*self.target_width) * 100
         print("Процент заполненной области:", round(percent1, 2))
         percent2 = self.total_pixel_area_polygons*(self.h**2)/(self.target_height*self.target_width) * 100
-        print("Процент заполненной области с учётом part_distance:", round(percent2, 2), '\n')
+        print("Процент заполненной области растрового приближения (с учётом part_distance):", round(percent2, 2), '\n')
 
     def get_stats(self):
         return [self.target_height, self.time_packing]
