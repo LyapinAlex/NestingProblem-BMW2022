@@ -40,10 +40,10 @@ def packing_from_our_tests(input_file_name: str,
     packaging.sort_items(num_sort=num_sort)
     packaging.greedy_packing()
     packaging.print_stats()
-    packaging.change_position()
-    if output_file_name=='':
-        output_file_name = input_file_name[0:-3]+'png'
-    packaging.save_pallets_in_files(output_file_name)
+    # packaging.change_position()
+    # if output_file_name=='':
+    #     output_file_name = input_file_name[0:-3]+'png'
+    # packaging.save_pallets_in_files(output_file_name)
     return packaging.get_stats()
 
 
@@ -144,26 +144,16 @@ def packing_from_swim(input_file_name: str,
     return packaging.get_stats()
 
 
-def create_pack():
+def create_pack(output_file_name: str):
     packaging = Packing(width=1500,
                         height=1500,
                         drill_radius=0,
                         border_distance=0)
     packaging.create_random_polygons(50)
-    packaging.save_items_in_file("nxl.txt", False)
-    packaging.make_items(h = 0.0, num_rout=4)
-    packaging.sort_items(num_sort=2)
-    packaging.greedy_packing()
-    packaging.print_stats()
-    packaging.change_position()
-    packaging.save_pallets_in_files("test4.png")
-    # 2 1 3 4 7 11 18 29 47 76 123
-    #76 29 11
-    #63
-    #28
-    #9
+    packaging.save_items_in_file(output_file_name, False)
     return
 
 
 if __name__ == '__main__':
-    packing_from_our_tests(input_file_name='test4.txt')
+    for i in range(10,50):
+        packing_from_our_tests(input_file_name='test'+str(i)+'.txt')
