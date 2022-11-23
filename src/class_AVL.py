@@ -7,8 +7,13 @@ class node:
         self.height = 1
 
 class AVL:
+    def __init__(self):
+        self.root = None
 
-    def height(self, Node):
+    def height(self):
+        return self.node_height(self.root)
+
+    def node_height(self, Node):
         if Node is None:
             return 0
         else:
@@ -18,7 +23,7 @@ class AVL:
         if Node is None:
             return 0
         else:
-            return self.height(Node.left) - self.height(Node.right)
+            return self.node_height(Node.left) - self.node_height(Node.right)
 
     def MinimumKeyNode(self, Node):
         if Node is None or Node.left is None:
@@ -31,8 +36,8 @@ class AVL:
         b = a.right
         a.right = Node
         Node.left = b
-        Node.height = 1 + max(self.height(Node.left), self.height(Node.right))
-        a.height = 1 + max(self.height(a.left), self.height(a.right))
+        Node.height = 1 + max(self.node_height(Node.left), self.node_height(Node.right))
+        a.height = 1 + max(self.node_height(a.left), self.node_height(a.right))
         return a
 
     def rotateL(self, Node):
@@ -40,48 +45,59 @@ class AVL:
         b = a.left
         a.left = Node
         Node.right = b
-        Node.height = 1 + max(self.height(Node.left), self.height(Node.right))
-        a.height = 1 + max(self.height(a.left), self.height(a.right))
+        Node.height = 1 + max(self.node_height(Node.left), self.node_height(Node.right))
+        a.height = 1 + max(self.node_height(a.left), self.node_height(a.right))
         return a
 
-    def insert(self, key_val, val, root):
-        if root is None:
+    def insert(self, key_val, val):
+        a = self.node_insert(key_val, val, self.root)
+        self.root = a
+
+    def node_insert(self, key_val, val, Node):
+        if Node is None:
             return node(key_val, val)
-        elif key_val <= root.key:
-            root.left = self.insert(key_val, val, root.left)
-        elif key_val > root.key:
-            root.right = self.insert(key_val, val, root.right)
-        root.height = 1 + max(self.height(root.left), self.height(root.right))
-        balance = self.balance(root)
-        if balance > 1 and root.left.key > key_val:
-            return self.rotateR(root)
-        if balance < -1 and key_val > root.right.key:
-            return self.rotateL(root)
-        if balance > 1 and key_val > root.left.key:
-            root.left = self.rotateL(root.left)
-            return self.rotateR(root)
-        if balance < -1 and key_val < root.right.key:
-            root.right = self.rotateR(root.right)
-            return self.rotateL(root)
-        return root
+        elif key_val <= Node.key:
+            Node.left = self.node_insert(key_val, val, Node.left)
+        elif key_val > Node.key:
+            Node.right = self.node_insert(key_val, val, Node.right)
+        Node.height = 1 + max(self.node_height(Node.left), self.node_height(Node.right))
+        balance = self.balance(Node)
+        if balance > 1 and Node.left.key > key_val:
+            return self.rotateR(Node)
+        if balance < -1 and key_val > Node.right.key:
+            return self.rotateL(Node)
+        if balance > 1 and key_val > Node.left.key:
+            Node.left = self.rotateL(Node.left)
+            return self.rotateR(Node)
+        if balance < -1 and key_val < Node.right.key:
+            Node.right = self.rotateR(Node.right)
+            return self.rotateL(Node)
+        return Node
 
-    def find(self, key, root):
-        if root is None:
+    def find(self, key):
+        return self.node_find(key, self.root)
+
+    def node_find(self, key, Node):
+        if Node is None:
             return
-        if root.key<key:
-            return self.find(key, root.right)
-        elif root.key>key:
-            return self.find(key, root.left)
+        if Node.key<key:
+            return self.node_find(key, Node.right)
+        elif Node.key>key:
+            return self.node_find(key, Node.left)
         else:
-            return root.key, root.value
+            return Node.key, Node.value
 
-    def delete(self, key_val, Node):
+    def delete(self, key_val):
+        a = self.node_delete(key_val, self.root)
+        self.root = a
+
+    def node_delete(self, key_val, Node):
         if Node is None:
             return Node
         elif key_val < Node.key:
-            Node.left = self.delete(key_val, Node.left)
+            Node.left = self.node_delete(key_val, Node.left)
         elif key_val > Node.key:
-            Node.right = self.delete(key_val, Node.right)
+            Node.right = self.node_delete(key_val, Node.right)
         else:
             if Node.left is None:
                 lt = Node.right
@@ -94,10 +110,10 @@ class AVL:
             rgt = self.MinimumKeyNode(Node.right)
             Node.key = rgt.key
             Node.value = rgt.value
-            Node.right = self.delete(rgt.key, Node.right)
+            Node.right = self.node_delete(rgt.key, Node.right)
         if Node is None:
             return Node
-        Node.height = 1 + max(self.height(Node.left), self.height(Node.right))
+        Node.height = 1 + max(self.node_height(Node.left), self.node_height(Node.right))
         balance = self.balance(Node)
         if balance > 1 and self.balance(Node.left) >= 0:
             return self.rotateR(Node)
@@ -111,40 +127,46 @@ class AVL:
             return self.rotateL(Node)
         return Node
 
-    def preorder(self, root):
+    def preorder(self):
+        return self.node_preorder(self.root)
+
+    def node_preorder(self, Node):
         res = []
-        if root is None:
+        if Node is None:
             return []
-        res.append(root.key)
-        res = res + self.preorder(root.left)
-        res = res + self.preorder(root.right)
+        res.append(Node.key)
+        res = res + self.node_preorder(Node.left)
+        res = res + self.node_preorder(Node.right)
         return res
 
-    def inorder(self, root):
+    def inorder(self):
+        return self.node_inorder(self.root)
+
+    def node_inorder(self, Node):
         res = []
-        if root is None:
+        if Node is None:
             return []
-        res = self.inorder(root.left)
-        res.append(root.key)
-        res = res + self.inorder(root.right)
+        res = self.node_inorder(Node.left)
+        res.append(Node.key)
+        res = res + self.node_inorder(Node.right)
         return res
 
 Tree = AVL()
-rt = None
-rt = Tree.insert(3, 4, rt)
-rt = Tree.insert(5, 6, rt)
-rt = Tree.insert(7, 8, rt)
-print("PREORDER: ", Tree.preorder(rt))
-rt = Tree.insert(1, 2, rt)
-rt = Tree.insert(2, 3, rt)
-print("PREORDER: ", Tree.preorder(rt))
-rt = Tree.insert(4, 5, rt)
-rt = Tree.insert(6, 7, rt)
-rt = Tree.delete(7, rt)
-rt = Tree.insert(8, 9, rt)
-rt = Tree.insert(9, 10, rt)
-print("PREORDER: ", Tree.preorder(rt))
-rt = Tree.delete(3, rt)
-print(Tree.find(4,rt))
-print("PREORDER: ", Tree.preorder(rt))
-print("INORDER: ", Tree.inorder(rt))
+Tree.insert(3,4)
+Tree.insert(5,6)
+Tree.insert(7,8)
+print("PREORDER: ", Tree.preorder())
+Tree.insert(1,2)
+Tree.insert(2,3)
+print("PREORDER: ", Tree.preorder())
+Tree.insert(4,5)
+Tree.insert(6,7)
+Tree.delete(7)
+Tree.insert(8,9)
+Tree.insert(9,10)
+print("PREORDER: ", Tree.preorder())
+Tree.delete(3)
+print(Tree.find(4))
+print("PREORDER: ", Tree.preorder())
+print("INORDER: ", Tree.inorder())
+print(Tree.height())
