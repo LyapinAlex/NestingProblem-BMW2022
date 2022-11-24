@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt, patches
 
 def draw_segments_result_packing(packing):
     pallet_width = packing.pallet_width
-    pallet_width = packing.pallet_height
+    pallet_height = packing.pallet_height
     h = packing.h
     items = packing.items
 

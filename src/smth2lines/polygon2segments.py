@@ -32,6 +32,8 @@ def intersection(points1, points2):
 
 def polygon2segments(points, h):
     size_of_sides = shift2zero(points)
+    print(size_of_sides)
+    print(h)
     n_x = ceil(size_of_sides[0] / h)
     n_y = ceil(size_of_sides[1] / h)
 
@@ -116,5 +118,5 @@ def polygon2segments(points, h):
             j += 1
     return lines
 
-if __name__=='__main__':
-    print(polygon2segments(np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]), 2.6))
+# if __name__=='__main__':
+#     print(polygon2segments(np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]), 2.6))

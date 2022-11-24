@@ -82,6 +82,11 @@ class Packing():
             self.items[id] = item
         return
 
+    def add_segments_for_items(self):
+        for item in self.items:
+            item.set_segments(self.h)
+        return
+
     def segments_bottom_left(self):
         return pack_segments(self.items, self.pallets)
 
