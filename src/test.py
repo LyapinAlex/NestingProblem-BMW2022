@@ -245,7 +245,8 @@ if __name__ == '__main__':
     # draw_segments_sequence(reduce_conv)
     # print(reduce_conv)
 
-    poly1 = Polygon([Vector(0, 0), Vector(2, 0), Vector(2, 1), Vector(0, 1)])
+    poly1 = Polygon([(Vector(0, 0), Vector(1, 0)), (Vector(1, 0), Vector(
+        1, 3)), (Vector(1, 3), Vector(0, 3)), (Vector(0, 3), Vector(0, 0))])
     poly1.sort_points()
     poly2 = Polygon([Vector(0, 0), Vector(1, -3),
                      Vector(2, 0), Vector(1, 3)])
