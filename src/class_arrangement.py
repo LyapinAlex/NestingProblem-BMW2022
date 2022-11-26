@@ -3,7 +3,7 @@ from numpy import arange, half, sign
 from class_polygon import Polygon
 from class_vector import Vector
 from enum import Enum
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 
 
 def compare_ccw_angle(vec1: Vector, vec2: Vector):
@@ -28,6 +28,10 @@ def lq_ccw_angle(vec1: Vector, vec2: Vector):
 
 def psevdoProd(p1: Vector, p2: Vector):
     return p1.x*p2.y-p1.y*p2.x
+
+
+def is_convex(p1: Vector, p2: Vector, p3: Vector):
+    return psevdoProd(p2-p1, p3-p2) > 0
 
 
 class Direction:
@@ -104,6 +108,7 @@ class Face:
         self.holes_half_edges: list[HalfEdge] = []
         self.label = None
         self.is_hole = False
+        self.is_visited = False
 
     def is_inside(self, point):
         if (self.boundary_half_edge is None):
@@ -118,6 +123,36 @@ class Face:
                 return False
             current_boundary_half_edge = current_boundary_half_edge.next
         return True
+        line = [point, Vector(point.x+100000, point.y)]
+        half_edge = self.boundary_half_edge
+        if (not half_edge):
+            return True
+        segments = [[half_edge.origin, half_edge.end]]
+        current_half_edge = half_edge.next
+        while (current_half_edge != half_edge):
+            segments.append([current_half_edge.origin, current_half_edge.end])
+            current_half_edge = current_half_edge.next
+        number_of_intersections = 0
+        border_points = []
+        for segment in segments:
+            if (point == segment[0] or point == segment[1]):
+                return False
+            intersection = segment_intersection(line, segment)
+            if (len(intersection) == 2):
+                if point.x < intersection[0].x and point.x > intersection[1].x:
+                    return False
+                continue
+            if (segment[0].y == point.y and segment[0] not in border_points):
+                number_of_intersections += 1
+                border_points.append(segment[0])
+                continue
+            if (segment[1].y == point.y and segment[1] not in border_points):
+                number_of_intersections += 1
+                border_points.append(segment[1])
+                continue
+            if (intersection):
+                number_of_intersections += 1
+        return True if number_of_intersections % 2 == 1 else False
 
     def get(self) -> Polygon:
         start = self.boundary_half_edge
@@ -138,7 +173,7 @@ class Face:
         v = current_half_edge.end
         b = next_half_edge.end
 
-        while (psevdoProd(current_half_edge.origin - current_half_edge.end, next_half_edge.end - next_half_edge.origin) > 0):  # find convex angle
+        while (not is_convex(a, v, b)):  # find convex angle
             a = current_half_edge.origin
             v = current_half_edge.end
             b = next_half_edge.end
@@ -161,8 +196,8 @@ class Face:
                 if (min_point.x == 0 and min_point.y == 0 or distance < min_distance):
                     min_distance = distance
                     min_point = point
-            current_half_edge = current_half_edge.next
-        return (a+b+v)*0.33333333333333 if (min_point.x == 0 and min_point.y == 0) else (v+min_point)*0.5
+            next_half_edge = next_half_edge.next
+        return (a+b+v)*(0.3333333) if (min_point.x == 0 and min_point.y == 0) else (v+min_point)*0.5
 
 
 class DCEL:
@@ -173,7 +208,7 @@ class DCEL:
         self.half_edges: list[HalfEdge] = []
         self.edges: list[tuple[Vector, Vector]] = []
 
-    def add_edge(self, edge: tuple[Vector, Vector]):
+    def add_edge(self, edge: tuple[Vector, Vector]):  # ПРОВЕРЕНО
         self.edges.append(edge)
         half_edge, twin_half_edge = HalfEdge.init_pair_halfedges(edge)
 
@@ -246,44 +281,53 @@ class DCEL:
 
     def init_faces(self):  # change
         for half_edge in self.half_edges:
-            if (half_edge.is_visited or half_edge.twin.is_visited):
+            if (half_edge.is_visited):
                 continue
-            new_face = Face()
             start_half_edge = half_edge
             start_half_edge.is_visited = True
 
             current_half_edge = half_edge.next
+            if (current_half_edge.is_visited):
+                continue
             current_half_edge.is_visited = True
 
             while (half_edge != current_half_edge):
                 if (start_half_edge.origin > current_half_edge.origin):
                     start_half_edge = current_half_edge
                 current_half_edge = current_half_edge.next
+                if (current_half_edge.is_visited):
+                    continue
                 current_half_edge.is_visited = True
             if (psevdoProd(start_half_edge.origin - start_half_edge.prev.origin, start_half_edge.end - start_half_edge.prev.origin) < 0):  # check orientation
-                start_half_edge = start_half_edge.twin.next
+                continue
 
+            new_face = Face()
             new_face.boundary_half_edge = start_half_edge
             start_half_edge.face = new_face
+            start_half_edge.is_visited = True
 
             current_half_edge = start_half_edge.next
             current_half_edge.face = new_face
+            current_half_edge.is_visited = True
 
             while (current_half_edge != start_half_edge):
+                current_half_edge.is_visited = True
                 current_half_edge = current_half_edge.next
                 current_half_edge.face = new_face
             self.faces.append(new_face)
+
         self.init_holes()
-        for face in self.faces:
-            boundary_half_edge = face.boundary_half_edge
-            if (boundary_half_edge == None):
-                face.is_hole = True
-                continue
-            hole_order = 0
-            while (boundary_half_edge != None):
-                hole_order += 1
-                boundary_half_edge = boundary_half_edge.twin.face.boundary_half_edge
-            face.is_hole = False if hole_order % 2 == 1 else False
+        # for face in self.faces:
+        #     boundary_half_edge = face.boundary_half_edge
+        #     if (boundary_half_edge == None):
+        #         face.is_hole = True
+        #         continue
+        #     hole_order = 0
+        #     while (boundary_half_edge != None):
+        #         hole_order += 1
+        #         boundary_half_edge = boundary_half_edge.twin.face.boundary_half_edge
+        #     face.is_hole = False if hole_order % 2 == 1 else False
+        self.painting_faces(self.unbounded_face, False)
 
     def init_holes(self):  # change
         for half_edge in self.half_edges:
@@ -292,6 +336,7 @@ class DCEL:
         for half_edge in self.half_edges:
             if (half_edge.face != None or half_edge.is_visited):
                 continue
+
             face = self.get_face_by_inside_point(half_edge.origin)
             face.holes_half_edges.append(half_edge)
             half_edge.face = face
@@ -303,6 +348,22 @@ class DCEL:
                 current_half_edge = current_half_edge.next
                 current_half_edge.is_visited = True
                 current_half_edge.face = face
+
+    def painting_faces(self, face: Face, outer_face_is_hole: bool):
+        face.is_hole = not outer_face_is_hole
+        outer_face_is_hole = not outer_face_is_hole
+        face.is_visited = True
+
+        for hole_half_edge in face.holes_half_edges:
+            if (not hole_half_edge.twin.face.is_visited):
+                self.painting_faces(
+                    hole_half_edge.twin.face, outer_face_is_hole)
+            current_hole_half_edge = hole_half_edge.next
+            while (current_hole_half_edge != hole_half_edge):
+                if (not current_hole_half_edge.twin.face.is_visited):
+                    self.painting_faces(
+                        current_hole_half_edge.twin.face, outer_face_is_hole)
+                current_hole_half_edge = current_hole_half_edge.next
 
     def get_face_by_inside_point(self, point: Vector):
         face = self.unbounded_face
@@ -320,13 +381,12 @@ class DCEL:
             edges.append(edge)
         for edge in d2.edges:
             edges.append(edge)
-
-        split_by_intersections(edges)
+        edges = split_by_intersections(edges)
+        draw_segments_sequence(edges)
         subdiv = DCEL()
         for edge in edges:
             subdiv.add_edge(edge)
         subdiv.init_faces()
-
         for face in subdiv.faces:
             if (face.boundary_half_edge == None):
                 continue
@@ -346,6 +406,7 @@ class DCEL:
     @staticmethod
     def logical_and(d1, d2):
         subdiv = DCEL.subdivision(d1, d2)
+
         log_and = DCEL()
         for face in subdiv.faces:
             if (face.label != 'AB'):
@@ -374,8 +435,34 @@ class DCEL:
                 if (current_half_edge.twin.face.label != 'AB'):
                     log_or.add_edge(current_half_edge.original_edge)
                 current_half_edge = current_half_edge.next
+        for face in subdiv.faces:
+            if (face.label != 'AB'):
+                continue
+            half_edge = face.boundary_half_edge
+            current_half_edge = half_edge.next
+            if (half_edge.twin.face.label == None):
+                log_or.add_edge(half_edge.original_edge)
+            while (half_edge != current_half_edge):
+                if (current_half_edge.twin.face.label == None):
+                    log_or.add_edge(current_half_edge.original_edge)
+                current_half_edge = current_half_edge.next
         log_or.init_faces()
         return log_or
+
+    def logical_minus(d1, d2):
+        subdiv = DCEL.subdivision(d1, d2)
+        log_minus = DCEL()
+        for face in subdiv.faces:
+            if (face.label != 'A'):
+                continue
+            half_edge = face.boundary_half_edge
+            current_half_edge = half_edge.next
+            log_minus.add_edge(half_edge.original_edge)
+            while (half_edge != current_half_edge):
+                log_minus.add_edge(current_half_edge.original_edge)
+                current_half_edge = current_half_edge.next
+        log_minus.init_faces()
+        return log_minus
 
     def draw(self):
         segments = []
@@ -405,34 +492,43 @@ def segment_intersection(segment1, segment2):
     line_1 = LineString([A, B])
     line_2 = LineString([C, D])
     int_pt = line_1.intersection(line_2)
-    if int_pt:
-        return Vector(int_pt.x, int_pt.y)
+    if type(int_pt) == Point:
+        return [Vector(float(int_pt.x), float(int_pt.y))]
+    elif type(int_pt) == LineString:
+        if (len(int_pt.bounds) == 0):
+            return []
+        return [Vector(float(int_pt.bounds[0]), float(int_pt.bounds[1])), Vector(float(int_pt.bounds[2]), float(int_pt.bounds[3]))]
 
 
 def split_by_intersections(segments):
+    new_segments = []
     for i in range(len(segments)):
-        for j in range(i+1, len(segments)):
-            if not (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1]):
-                intersection = segment_intersection(
-                    segments[i], segments[j])
-                if (intersection):
-                    segments.insert(i+1, (intersection, segments[i][1]))
-                    segments.insert(
-                        j+2, (intersection, segments[j+1][1]))
-                    segments[i] = (segments[i][0], intersection)
-                    segments[j+1] = (segments[j+1][0], intersection)
+        intersections = [segments[i][0], segments[i][1]]
+        for j in range(len(segments)):
+            if (i != j and not (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1])):
+                intersection = segment_intersection(segments[i], segments[j])
+                intersections += intersection
+        intersections = list(set(intersections))
+        intersections.sort()
+        for j in range(len(intersections)-1):
+            if ([intersections[j], intersections[j+1]] not in new_segments and [intersections[j+1], intersections[j]] not in new_segments):
+                new_segments.append([intersections[j], intersections[j+1]])
+    return new_segments
+
+
+def draw_segments_sequence(segments):
+    for segment in segments:
+        plt.arrow(segment[0].x, segment[0].y, segment[1].x-segment[0].x, segment[1].y-segment[0].y,
+                  shape='full', lw=0.5, length_includes_head=True, head_width=.05)
+    plt.show()
 
 
 if __name__ == '__main__':
-    p1 = Vector(0, 0)
-    p2 = Vector(10, 0)
-    p3 = Vector(10, 10)
-    p4 = Vector(0, 10)
 
-    segments1 = [(Vector(0, 0), Vector(1, 0)), (Vector(1, 0), Vector(
-        1, 3)), (Vector(1, 3), Vector(0, 3)), (Vector(0, 3), Vector(0, 0))]
-    segments2 = [(Vector(-1, 1), Vector(3, 1)), (Vector(3, 1), Vector(3, 2)),
-                 (Vector(3, 2), Vector(-1, 2)), (Vector(-1, 2), Vector(-1, 1))]
+    segments1 = [[Vector(0.0, 0.0), Vector(1.0, -3.0)], [Vector(1.0, -3.0),
+                 Vector(2.0, 0.0)], [Vector(2.0, 0.0), Vector(1.0, 3.0)], [Vector(1.0, 3.0), Vector(0.0, 0.0)]]
+    segments2 = [[Vector(1.0, 0.0), Vector(2.0, -3.0)], [Vector(2.0, -3.0),
+                 Vector(3.0, 0.0)], [Vector(3.0, 0.0), Vector(2.0, 3.0)], [Vector(2.0, 3.0), Vector(1.0, 0.0)]]
     dcel1 = DCEL()
     dcel2 = DCEL()
 
@@ -444,7 +540,9 @@ if __name__ == '__main__':
     dcel2.init_faces()
     dcel1.init_faces()
     log_and = DCEL.logical_and(dcel1, dcel2)
-    log_or = DCEL.logical_or(dcel1, dcel2)
     log_and.draw()
+    log_or = DCEL.logical_or(dcel1, dcel2)
     log_or.draw()
+    log_min = DCEL.logical_minus(dcel1, dcel2)
+    log_min.draw()
     print()
