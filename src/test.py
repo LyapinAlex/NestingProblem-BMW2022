@@ -1,17 +1,9 @@
-
-from queue import Queue
-from cmath import pi
 from copy import deepcopy
-from math import atan2
 import time
 from matplotlib import pyplot as plt
-from numpy import sign
-from class_arrangement import DCEL
-from class_direction import is_convex, isBetween
 from class_nfp_packer import Nfp_Packer
 from class_polygon import Polygon
 from class_vector import Vector
-from shapely.geometry import LineString, Point
 
 from putting_data.dxf2polygons import dxf2polygons
 
