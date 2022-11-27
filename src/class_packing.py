@@ -82,6 +82,8 @@ class Packing():
             self.items[id] = item
         return
 
+# --------------------------------  Segments packing   --------------------------------
+
     def add_segments_for_items(self):
         for item in self.items:
             item.set_segments(self.h)
@@ -89,6 +91,13 @@ class Packing():
 
     def segments_bottom_left(self):
         return pack_segments(self.items, self.pallets)
+
+    def move_packed_segment_items(self):
+        for polygon in self.items:
+            for point in polygon.points:
+                point[0] += polygon.t_vector[0]
+                point[1] += polygon.t_vector[1] * self.h
+        return
 
 # --------------------------------  Calculations   --------------------------------
 

@@ -2,7 +2,6 @@ from copy import copy
 
 
 def pack_item(item, pallets, t_vector, r):
-    print()
     item.t_vector = [t_vector, r]
     item.packed = True
     for s in range(len(item.segments)):
@@ -10,7 +9,6 @@ def pack_item(item, pallets, t_vector, r):
             new_line = [copy(item.segments[s][l][0]) + copy(item.t_vector[0]), copy(item.segments[s][l][1]) + copy(item.t_vector[0])]
             pallets.pallet_lines[r+s].append(copy(new_line))
         pallets.pallet_lines[r+s].sort(key=lambda x: int(x[0]), reverse=False)
-        print('строка', r+s , ':', pallets.pallet_lines[r+s])
 
 def pack_segments(items, pallets):
     for item in items:

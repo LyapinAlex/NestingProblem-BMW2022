@@ -47,7 +47,6 @@ def polygon2segments(points, h):
     lines = []
     for _ in range(n_y + 1):
         lines.append([])
-    print(lines)
 
 
     for k in range(0, n_y + 1):
@@ -86,9 +85,6 @@ def polygon2segments(points, h):
                     start = copy(intersection_point)
                 else:
                     end = copy(intersection_point)
-            if k == 5:
-                print('start:', start, 'end:', end)
-
             if end is not None:
                 lines[k].append([start, end])
                 start = None
@@ -239,7 +235,6 @@ def polygon2segments(points, h):
         return e[0]
 
     for line in lines:
-        print()
         for segment in line:
             segment.sort()
         line.sort(key=first_elem)
@@ -247,18 +242,15 @@ def polygon2segments(points, h):
         while i < (len(line) - 1):
             if line[i][1] == line[i + 1][0]:
                 line[i][1] = line[i + 1][1]
-                print(line[i])
                 line.pop(i + 1)
                 continue
             if line[i][1] > line[i + 1][0]:
                 if line[i][1] < line[i + 1][1]:
                     line[i][1] = line[i + 1][1]
-                    print(line[i])
                     line.pop(i + 1)
                     continue
             if line[i][1] > line[i + 1][0]:
                 if line[i][1] >= line[i + 1][1]:
-                    print(line[i])
                     line.pop(i + 1)
                     continue
             i += 1
