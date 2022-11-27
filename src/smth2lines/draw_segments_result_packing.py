@@ -1,7 +1,10 @@
+from copy import copy
+
 from matplotlib import pyplot as plt, patches
 
 
 def draw_segments_result_packing(packing):
+
     pallet_width = packing.pallet_width
     pallet_height = packing.pallet_height
     h = packing.h

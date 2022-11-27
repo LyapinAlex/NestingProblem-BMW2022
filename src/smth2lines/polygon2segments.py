@@ -31,21 +31,33 @@ def intersection(points1, points2):
         return False
 
 def polygon2segments(points, h):
-    size_of_sides = shift2zero(points)
-    print(size_of_sides)
-    print(h)
-    n_x = ceil(size_of_sides[0] / h)
-    n_y = ceil(size_of_sides[1] / h)
+
+    shift2zero(points)
+
+    n_x1 = 0
+    n_y1 = 0
+    for point in points:
+        if point[0] > n_x1:
+            n_x1 = copy(point[0])
+        if point[1] > n_y1:
+            n_y1 = copy(point[1])
+    n_x = ceil(n_x1 / h)
+    n_y = ceil(n_y1 / h)
 
     lines = []
     for _ in range(n_y + 1):
         lines.append([])
-    # print(lines)
+    print(lines)
+
 
     for k in range(0, n_y + 1):
         start = None
         end = None
-        for i0 in range(points.shape[0]):
+        intersection_start = None
+        intersection_end = None
+        counter = 0
+        i0 = 0
+        while i0 < points.shape[0]:
             if i0 == points.shape[0] - 1:
                 i1 = 0
             else:
@@ -63,59 +75,194 @@ def polygon2segments(points, h):
                     lines[k].append([points[i0][0], points[i0][0]])
                 else:
                     if start is None:
-                        start = points[i0][0]
+                        start = copy(points[i0][0])
                     else:
-                        end = points[i0][0]
+                        end = copy(points[i0][0])
+
             # ребро пересекает линию
             elif points[i0][1] < k * h < points[i1][1] or points[i1][1] < k * h < points[i0][1]:
+                intersection_point = intersection([points[i0], points[i1]], [[0, k * h], [n_x, k * h]])[0]
                 if start is None:
-                    start = intersection([points[i0], points[i1]], [[0, k * h], [n_x, k * h]])[0]
+                    start = copy(intersection_point)
                 else:
-                    end = intersection([points[i0], points[i1]], [[0, k * h], [n_x, k * h]])[0]
-            if start is not None and end is not None:
+                    end = copy(intersection_point)
+            if k == 5:
+                print('start:', start, 'end:', end)
+
+            if end is not None:
                 lines[k].append([start, end])
                 start = None
                 end = None
-
-            # extension algorithm
-            if k * (h + 1) > points[i0][1] > k * h >= points[i1][1] and points[i2][1] <= k * h:
-                lines[k + 1].append([points[i0][0], points[i0][0]])
-            elif points[i1][1] >= k * (h + 1) > points[i0][1] > k * h and points[i2][1] >= k * (h + 1):
-                lines[k + 1].append([points[i0][0], points[i0][0]])
+            i0 += 1
 
     # print(lines)
 
-    # для всех прямых:
-    for i in range(len(lines) - 2):
-        for segment in lines[i]:
-            stop = False
-            j = 0
-            while j < len(lines[i+1]) - 1 and not stop:
-                if j != len(lines[j+1]) - 1:
-                    if lines[i+1][j][1] < segment[0] < lines[i+1][j+1][0] and lines[i+1][j][1] < segment[1] < \
-                            lines[i + 1][j + 1][0]:
-                        segment[0] = copy(lines[i+1][j][1]) - 0.001
-                        stop = True
-                else:
-                    if lines[i+1][j][1] < segment[0]:
-                        segment[0] = copy(lines[i+1][j][1]) - 0.001
-                        stop = True
-    # для последней прямой:
-    i = len(lines)
-    for segment in lines[i-1]:
-        stop = False
-        j = 0
-        while j < len(lines[i-2]) and not stop:
-            if j != len(lines[i-2]) - 1:
-                if lines[i-2][j][1] < segment[0] < lines[i-2][j+1][0] and lines[i-2][j][1] < segment[1] < \
-                        lines[i-2][j+1][0]:
-                    lines[i-2][j][1] = copy(segment[0]) + 0.001
-                    stop = True
+    k_prev = 0
+    k_next = 0
+    point_prev = None
+    point_next = None
+    for k in range(0, n_y + 1):
+        min = n_x1
+        max = 0
+        for i in range(len(points) + 1):
+            if i == len(points):
+                i = -1
+            if i == points.shape[0] - 1:
+                i_next = 0
             else:
-                if lines[i-2][j][1] < segment[0]:
-                    lines[i-2][j][1] = copy(segment[0]) + 0.001
-                    stop = True
-            j += 1
+                i_next = (i + 1)
+            if i == 0:
+                i_prev = points.shape[0] - 1
+            else:
+                i_prev = (i - 1)
+            if (k + 1) * h >= points[i][1] > k * h >= points[i_prev][1] or k * h < points[i][1] <= (k + 1) * h <= \
+                    points[i_prev][1]:
+                # print('case1', points[i], k)
+                if points[i_prev][1] <= k * h:
+                    k_prev = -1
+                    k_next = 0
+                    intersection_point = intersection([points[i_prev], points[i]], [[0, k * h], [n_x, k * h]])[0]
+                    point_prev = copy(intersection_point)
+                    point_next = None
+                    if max < points[i][0]:
+                        max = copy(points[i][0])
+                    if min > points[i][0]:
+                        min = copy(points[i][0])
+                    # print(min, max)
+                elif points[i_prev][1] >= (k + 1) * h:
+                    k_prev = 1
+                    k_next = 0
+                    intersection_point = \
+                    intersection([points[i_prev], points[i]], [[0, (k + 1) * h], [n_x, (k + 1) * h]])[0]
+                    point_prev = copy(intersection_point)
+                    point_next = None
+                    if max < points[i][0]:
+                        max = copy(points[i][0])
+                    if min > points[i][0]:
+                        min = copy(points[i][0])
+                    # print(points[i], min, max)
+            elif points[i][1] <= k * h < points[i_prev][1] <= (k + 1) * h or k * h < points[i_prev][1] <= (
+                    k + 1) * h and points[i][1] >= (k + 1) * h:
+                # print('case2', points[i], k)
+                if points[i][1] <= k * h:
+                    k_next = -1
+                    intersection_point = intersection([points[i_prev], points[i]], [[0, k * h], [n_x, k * h]])[0]
+                    point_next = copy(intersection_point)
+                elif points[i][1] >= (k + 1) * h:
+                    k_next = 1
+                    intersection_point = \
+                    intersection([points[i_prev], points[i]], [[0, (k + 1) * h], [n_x, (k + 1) * h]])[0]
+                    point_next = copy(intersection_point)
+            elif k * h < points[i][1] <= (k + 1) * h and k * h < points[i_prev][1] <= (k + 1) * h:
+                if max < points[i][0]:
+                    max = copy(points[i][0])
+                if min > points[i][0]:
+                    min = copy(points[i][0])
+                continue
+            if k_prev * k_next != 0:
+                if k_prev * k_next == 1:
+                    if k_prev == -1:
+                        k_prev = 0
+                        k_next = 0
+                        lines[k + 1].append([min, max])
+                        if min < point_prev and min < point_next:
+                            if point_prev < point_next:
+                                lines[k].append([min, point_prev])
+                            elif point_next < point_prev:
+                                lines[k].append([min, point_next])
+                        if max > point_prev and max > point_next:
+                            if point_prev > point_next:
+                                lines[k].append([point_prev, max])
+                            elif point_next > point_prev:
+                                lines[k].append([point_next, max])
+                        min = n_x1
+                        max = 0
+                    if k_prev == 1:
+                        k_prev = 0
+                        k_next = 0
+                        lines[k].append([min, max])
+                        if min < point_prev and min < point_next:
+                            if point_prev < point_next:
+                                lines[k + 1].append([min, point_prev])
+                            elif point_next < point_prev:
+                                lines[k + 1].append([min, point_next])
+                        if max > point_prev and max > point_next:
+                            if point_prev > point_next:
+                                lines[k + 1].append([point_prev, max])
+                            elif point_next > point_prev:
+                                lines[k + 1].append([point_next, max])
+                        min = n_x1
+                        max = 0
+                elif k_prev * k_next == -1:
+                    if k_prev == -1:
+                        if min < point_prev:
+                            lines[k].append([min, point_prev])
+                        if max > point_prev:
+                            lines[k].append([point_prev, max])
+                        if min < point_next:
+                            lines[k + 1].append([min, point_next])
+                        if max > point_next:
+                            lines[k + 1].append([point_next, max])
+                        k_prev = 0
+                        k_next = 0
+                        min = n_x1
+                        max = 0
+                    elif k_prev == 1:
+                        # print('case1', [min, max], [point_prev, point_next])
+                        if min < point_prev:
+                            # print('1', [min, point_prev])
+                            lines[k + 1].append([min, point_prev])
+                        if max > point_prev:
+                            # print('2', [point_prev, max])
+                            lines[k + 1].append([point_prev, max])
+                        if min < point_next:
+                            # print('3', [min, point_next])
+                            lines[k].append([min, point_next])
+                        if max > point_next:
+                            # print('4', [point_next, max])
+                            lines[k].append([point_next, max])
+                        k_prev = 0
+                        k_next = 0
+                        min = n_x1
+                        max = 0
+                k_prev = 0
+                k_next = 0
+
+    def first_elem(e):
+        return e[0]
+
+    for line in lines:
+        print()
+        # print('raw', line)
+        for segment in line:
+            segment.sort()
+        # print('sorted more', line)
+        line.sort(key=first_elem)
+        i = 0
+        # print('sorted', line)
+        while i < (len(line) - 1):
+            # print('fix',line)
+            if line[i][1] == line[i + 1][0]:
+                # print('case1', line[i], line[i+1])
+                line[i][1] = line[i + 1][1]
+                print(line[i])
+                line.pop(i + 1)
+                continue
+            if line[i][1] > line[i + 1][0]:
+                if line[i][1] < line[i + 1][1]:
+                    # print('case2', line[i], line[i+1])
+                    line[i][1] = line[i + 1][1]
+                    print(line[i])
+                    line.pop(i + 1)
+                    continue
+            if line[i][1] > line[i + 1][0]:
+                if line[i][1] >= line[i + 1][1]:
+                    # print('case3', line[i], line[i+1])
+                    print(line[i])
+                    line.pop(i + 1)
+                    continue
+            i += 1
+
     return lines
 
 # if __name__=='__main__':
