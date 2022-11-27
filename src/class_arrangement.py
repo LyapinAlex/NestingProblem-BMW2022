@@ -31,7 +31,7 @@ def psevdoProd(p1: Vector, p2: Vector):
 
 
 def is_convex(p1: Vector, p2: Vector, p3: Vector):
-    return psevdoProd(p2-p1, p3-p2) > 0
+    return psevdoProd(p2-p1, p3-p2) > 0.0000001
 
 
 class Direction:
@@ -131,30 +131,79 @@ class Face:
         self.is_visited = False
 
     def is_inside(self, point):
-        line = [point, Vector(point.x+100000, point.y)]
+        # edges = []
+        # if (self.boundary_half_edge == None):
+        #     return True
+
+        # def quadrant(v):
+        #     return (1 if v.y >= 0 else 4) if v.x >= 0 else (
+        #         2 if v.y >= 0 else 3)
+        # half_edge = self.boundary_half_edge
+        # edges.append(half_edge.original_edge)
+        # a = half_edge.origin
+        # if (point == a):
+        #     return False
+        # start_point = a
+        # edges.append([point, a])
+        # v = a-point
+        # current_quadrant = quadrant(v)
+        # half_edge = half_edge.next
+        # edges.append(half_edge.original_edge)
+        # a = half_edge.origin
+        # if (point == a):
+        #     return False
+        # quadrants = 0
+        # while (a != start_point):
+        #     edges.append(half_edge.original_edge)
+        #     prev_quadrant = current_quadrant
+        #     a = half_edge.origin
+        #     if (point == a):
+        #         return False
+        #     current_quadrant = quadrant(a-point)
+        #     edges.append([point, a])
+        #     if (prev_quadrant == 3 and current_quadrant == 0):
+        #         quadrants += 1
+        #     elif (current_quadrant > prev_quadrant):
+        #         quadrants += 1
+        #     elif (current_quadrant < prev_quadrant):
+        #         quadrants -= 1
+        #     half_edge = half_edge.next
+        # if (quadrants == 4):
+        #     print(True)
+        # elif (quadrants == 0):
+        #     print(False)
+        # else:
+        #     print('?')
+        # draw_segments_sequence(edges)
+        # if (quadrants > 0):
+        #     return True
+        # elif (quadrants == 0):
+        #     return False
+        # else:
+        #     print('?')
+
+        line = [point+Vector(0, 0.0001), Vector(point.x +
+                                                100000, point.y+0.0001)]
         half_edge = self.boundary_half_edge
         if (not half_edge):
             return True
-        segments = [[Vector(round(half_edge.origin.x, 2), round(half_edge.origin.y, 2)), Vector(
-            round(half_edge.end.x, 2), round(half_edge.end.y, 2))]]
+        segments = [[Vector(round(half_edge.origin.x, 6), round(half_edge.origin.y, 6)), Vector(
+            round(half_edge.end.x, 6), round(half_edge.end.y, 6))]]
         current_half_edge = half_edge.next
         while (current_half_edge != half_edge):
-            segments.append([Vector(round(current_half_edge.origin.x, 2), round(current_half_edge.origin.y, 2)), Vector(
-                round(current_half_edge.end.x, 2), round(current_half_edge.end.y, 2))])
+            segments.append([Vector(round(current_half_edge.origin.x, 6), round(current_half_edge.origin.y, 6)), Vector(
+                round(current_half_edge.end.x, 6), round(current_half_edge.end.y, 6))])
             current_half_edge = current_half_edge.next
         number_of_intersections = 0
+        border_points = []
         for segment in segments:
             if (point == segment[0] or point == segment[1]):
                 return False
             intersection = segment_intersection(line, segment)
-            if (len(intersection) == 2):
-                if point.x < intersection[0].x and point.x > intersection[1].x:
-                    return False
-                continue
-            if (segment[0].y == point.y):
-                continue
-            if (segment[1].y == point.y):
-                continue
+            # if (len(intersection) == 2):
+            #     if point.x < intersection[0].x and point.x > intersection[1].x:
+            #         return False
+            #     continue
             if (intersection):
                 number_of_intersections += 1
         return True if number_of_intersections % 2 == 1 else False
@@ -250,8 +299,8 @@ class DCEL:
         self.edges: list[tuple[Vector, Vector]] = []
 
     def add_edge(self, edge: tuple[Vector, Vector]):  # ПРОВЕРЕНО
-        edge = [Vector(round(edge[0].x, 2), round(edge[0].y, 2)),
-                Vector(round(edge[1].x, 2), round(edge[1].y, 2))]
+        edge = [Vector(round(edge[0].x, 6), round(edge[0].y, 6)),
+                Vector(round(edge[1].x, 6), round(edge[1].y, 6))]
         self.edges.append(edge)
         half_edge, twin_half_edge = HalfEdge.init_pair_halfedges(edge)
 
@@ -321,6 +370,7 @@ class DCEL:
 
         if (half_edge.next == None):
             half_edge.next = half_edge.twin
+            half_edge.twin.prev = half_edge
 
     def init_faces(self):  # change
         for half_edge in self.half_edges:
@@ -419,6 +469,7 @@ class DCEL:
 
     @staticmethod
     def subdivision(d1, d2):
+
         edges = []
         for edge in d1.edges:
             edges.append(edge)
@@ -601,6 +652,7 @@ def split_by_intersections(segments):
         for j in range(len(intersections)-1):
             if ([intersections[j], intersections[j+1]] not in new_segments):
                 new_segments.append([intersections[j], intersections[j+1]])
+
     return new_segments
 
 
@@ -613,22 +665,21 @@ def draw_segments_sequence(segments):
 
 if __name__ == '__main__':
 
-    segments1 = [[Vector(0.0, 0.0), Vector(1.0, -3.0)], [Vector(1.0, -3.0),
-                 Vector(2.0, 0.0)], [Vector(2.0, 0.0), Vector(1.0, 3.0)], [Vector(1.0, 3.0), Vector(0.0, 0.0)]]
-    segments2 = [[Vector(1.0, 0.0), Vector(2.0, -3.0)], [Vector(2.0, -3.0),
-                 Vector(3.0, 0.0)], [Vector(3.0, 0.0), Vector(2.0, 3.0)], [Vector(2.0, 3.0), Vector(1.0, 0.0)]]
+    segments1 = [[Vector(0, 0), Vector(1, 0)], [Vector(1, 0), Vector(1, 1)], [
+        Vector(1, 1), Vector(0, 1)], [Vector(0, 1), Vector(0, 0)]]
+    segments2 = [[Vector(0.5, 0), Vector(1.5, 0)], [Vector(1.5, 0), Vector(1.5, 1)], [
+        Vector(1.5, 1), Vector(0.5, 1)], [Vector(0.5, 1), Vector(0.5, 0)]]
     dcel1 = DCEL()
     dcel2 = DCEL()
 
     for seg in segments1:
         dcel1.add_edge(seg)
-
     for seg in segments2:
         dcel2.add_edge(seg)
     dcel2.init_faces()
     dcel1.init_faces()
-    log_and = DCEL.logical_and(dcel1, dcel2)
-    log_and.draw()
+    #log_and = DCEL.logical_and(dcel1, dcel2)
+    # log_and.draw()
     log_or = DCEL.logical_or(dcel1, dcel2)
     log_or.draw()
     log_min = DCEL.logical_minus(dcel1, dcel2)

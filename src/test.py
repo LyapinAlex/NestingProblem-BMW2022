@@ -3,12 +3,15 @@ from queue import Queue
 from cmath import pi
 from copy import deepcopy
 from math import atan2
+import time
 from matplotlib import pyplot as plt
 from numpy import sign
 from class_arrangement import DCEL
 from class_polygon import Polygon
 from class_vector import Vector
 from shapely.geometry import LineString, Point
+
+from putting_data.dxf2polygons import dxf2polygons
 
 
 def is_convex(p1: Vector, p2: Vector, p3: Vector):
@@ -58,7 +61,7 @@ def lq_ccw_angle(vec1: Vector, vec2: Vector):
 
 
 def isBetween(p: Vector, q: Vector, r: Vector):
-    if (is_collinear(p, q) or is_collinear(q, r) or is_collinear(p, r)):  # Мутная тема
+    if (is_collinear(p, q) or is_collinear(p, r)):  # Мутная тема
         return True
     if (l_ccw_angle(q, p)):
         return (l_ccw_angle(p, r)) or lq_ccw_angle(r, q)
@@ -237,16 +240,29 @@ def nfp(poly1: Polygon, poly2: Polygon):
         points.append(point*(-1))
 
     no_fit_polygon = minkowski_sum_arrangement(poly1, Polygon(points))
-    return no_fit_polygon
+    boundary_half_edge = no_fit_polygon.unbounded_face.holes_half_edges[0]
+    new_nfp = DCEL()
+    new_nfp.add_edge(boundary_half_edge.original_edge)
+    current_half_edge = boundary_half_edge.next
+    while (current_half_edge != boundary_half_edge):
+        new_nfp.add_edge(current_half_edge.original_edge)
+        current_half_edge = current_half_edge.next
+
+    new_nfp.init_faces()
+
+    return new_nfp
 
 
 def pack(width, height, polygons: list[Polygon]):
+    i = 0
     current_poly = polygons.pop()
     current_poly.move_to_origin()
     pallet = [current_poly]
+    i += 1
 
     while (len(polygons) > 0):
-
+        i += 1
+        print(i)
         current_poly = polygons.pop()
 
         pallet_border = [(Vector(current_poly.point(0).x-current_poly.minXY().x, 0), Vector(width-(current_poly.maxXY().x-current_poly.point(0).x), 0)),
@@ -311,8 +327,10 @@ if __name__ == '__main__':
                      Vector(1.0, 1.0), Vector(0.0, 1.0)])
     poly2.sort_points()
     poly3 = Polygon([Vector(0.0, 0.0), Vector(2.0, 0.0), Vector(1.0, 4.0)])
+    poly3.sort_points()
+    # polygons = dxf2polygons(
+    #     r'C:\Users\1\Desktop\NestingProblem-BMW2022\src\input\NEST001-108.DXF')
     polygons = []
-
     for i in range(1):
         polygons.append(deepcopy(poly2))
         polygons.append(deepcopy(poly1))
@@ -331,13 +349,15 @@ if __name__ == '__main__':
         polygons.append(deepcopy(poly2))
         polygons.append(deepcopy(poly1))
         polygons.append(deepcopy(poly2))
-        polygons.append(deepcopy(poly3))
-
-    pallet = pack(5, 100, polygons)
+    # polygons = polygons[:5]
+    # for polygon in polygons:
+    #     polygon.sort_points()
+    start_time = time.time()
+    pallet = pack(1000, 2000, polygons)
+    print(time.time() - start_time)
     aaa = []
     for polygon in pallet:
         for i in range(len(polygon.points)):
             aaa.append([polygon.point(i), polygon.next(i)])
 
     draw_segments_sequence(aaa)
-    print(pallet)
