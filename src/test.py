@@ -149,6 +149,36 @@ def segment_intersection(segment1, segment2):
 
 # Terrible function need rework
 def split_by_intersections(segments):
+
+    i = 0
+    while (i < len(segments)):
+        j = i+1
+        while (j < len(segments)):
+            intersection = segment_intersection(segments[i], segments[j])
+            if (len(intersection) == 2):
+                left_point = min(
+                    segments[i][0], segments[i][1], segments[j][0], segments[j][1])
+                right_point = max(
+                    segments[i][0], segments[i][1], segments[j][0], segments[j][1])
+                segments[i][0] = left_point
+                segments[i][1] = right_point
+                del segments[j]
+                i -= 1
+                break
+            if (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1]):
+                if (is_collinear(segments[i][0]-segments[i][1], segments[j][0]-segments[j][1]) or is_collinear(segments[i][1]-segments[i][0], segments[j][0]-segments[j][1])):
+                    left_point = min(
+                        segments[i][0], segments[i][1], segments[j][0], segments[j][1])
+                    right_point = max(
+                        segments[i][0], segments[i][1], segments[j][0], segments[j][1])
+                    segments[i][0] = left_point
+                    segments[i][1] = right_point
+                    del segments[j]
+                    i -= 1
+                    break
+            j += 1
+        i += 1
+
     new_segments = []
     for i in range(len(segments)):
         intersections = [segments[i][0], segments[i][1]]
@@ -181,8 +211,10 @@ def minkowski_sum_arrangement(poly1: Polygon, poly2: Polygon):
         if (point > max_point_a):
             max_point_a = point
     for segment in reduce_conv:  # Когда писал += почему то происходил баг, лол
-        segment[0] = segment[0] + (max_point_a-max_point_b)
-        segment[1] = segment[1] + (max_point_a-max_point_b)
+        segment[0] = segment[0] + \
+            (max_point_a-max_point_b)
+        segment[1] = segment[1] + \
+            (max_point_a-max_point_b)
     arrangement = DCEL()
     for segment in reduce_conv:
         arrangement.add_edge(segment)
@@ -284,10 +316,24 @@ if __name__ == '__main__':
     for i in range(1):
         polygons.append(deepcopy(poly2))
         polygons.append(deepcopy(poly1))
+        polygons.append(deepcopy(poly2))
         polygons.append(deepcopy(poly3))
+        polygons.append(deepcopy(poly2))
+        polygons.append(deepcopy(poly2))
         polygons.append(deepcopy(poly1))
+        polygons.append(deepcopy(poly2))
+        polygons.append(deepcopy(poly3))
+        polygons.append(deepcopy(poly2))
+        polygons.append(deepcopy(poly1))
+        polygons.append(deepcopy(poly1))
+        polygons.append(deepcopy(poly2))
+        polygons.append(deepcopy(poly3))
+        polygons.append(deepcopy(poly2))
+        polygons.append(deepcopy(poly1))
+        polygons.append(deepcopy(poly2))
+        polygons.append(deepcopy(poly3))
 
-    pallet = pack(100, 100, polygons)
+    pallet = pack(5, 100, polygons)
     aaa = []
     for polygon in pallet:
         for i in range(len(polygon.points)):

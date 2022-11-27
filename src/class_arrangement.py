@@ -51,6 +51,17 @@ class Direction:
         return lq_ccw_angle(other.direction, self.direction)
 
 
+def is_collinear(vec1: Vector, vec2: Vector):
+    quadrant_1 = (1 if vec1.y >= 0 else 4) if vec1.x >= 0 else (
+        2 if vec1.y >= 0 else 3)
+    quadrant_2 = (1 if vec2.y >= 0 else 4) if vec2.x >= 0 else (
+        2 if vec2.y >= 0 else 3)
+    if (quadrant_1 != quadrant_2):
+        return False
+    sin_angle = abs(vec1.x*vec2.y-vec1.y*vec2.x)
+    return sin_angle < 0.0000000001
+
+
 class Vertex:
     def __init__(self, point: Vector):
         self.point = point
@@ -63,6 +74,15 @@ class Vertex:
                 self.half_edges_by_ccw_angle.insert(i, half_edge)
                 return
         self.half_edges_by_ccw_angle.append(half_edge)
+
+
+def isBetween(p: Vector, q: Vector, r: Vector):
+    if (is_collinear(p, q) or is_collinear(q, r) or is_collinear(p, r)):  # Мутная тема
+        return True
+    if (l_ccw_angle(q, p)):
+        return (l_ccw_angle(p, r)) or lq_ccw_angle(r, q)
+    else:
+        return (l_ccw_angle(p, r) and lq_ccw_angle(r, q))
 
 
 class HalfEdge:
@@ -111,29 +131,18 @@ class Face:
         self.is_visited = False
 
     def is_inside(self, point):
-        if (self.boundary_half_edge is None):
-            return True
-        start_boundary_half_edge = self.boundary_half_edge
-        if (psevdoProd(point-start_boundary_half_edge.origin, start_boundary_half_edge.end-start_boundary_half_edge.origin) >= 0):
-            return False
-        current_boundary_half_edge = self.boundary_half_edge.next
-        # Если не лежит слева от полуребра
-        while (current_boundary_half_edge != start_boundary_half_edge):
-            if (psevdoProd(point-current_boundary_half_edge.origin, current_boundary_half_edge.end-current_boundary_half_edge.origin) >= 0):
-                return False
-            current_boundary_half_edge = current_boundary_half_edge.next
-        return True
         line = [point, Vector(point.x+100000, point.y)]
         half_edge = self.boundary_half_edge
         if (not half_edge):
             return True
-        segments = [[half_edge.origin, half_edge.end]]
+        segments = [[Vector(round(half_edge.origin.x, 2), round(half_edge.origin.y, 2)), Vector(
+            round(half_edge.end.x, 2), round(half_edge.end.y, 2))]]
         current_half_edge = half_edge.next
         while (current_half_edge != half_edge):
-            segments.append([current_half_edge.origin, current_half_edge.end])
+            segments.append([Vector(round(current_half_edge.origin.x, 2), round(current_half_edge.origin.y, 2)), Vector(
+                round(current_half_edge.end.x, 2), round(current_half_edge.end.y, 2))])
             current_half_edge = current_half_edge.next
         number_of_intersections = 0
-        border_points = []
         for segment in segments:
             if (point == segment[0] or point == segment[1]):
                 return False
@@ -142,17 +151,49 @@ class Face:
                 if point.x < intersection[0].x and point.x > intersection[1].x:
                     return False
                 continue
-            if (segment[0].y == point.y and segment[0] not in border_points):
-                number_of_intersections += 1
-                border_points.append(segment[0])
+            if (segment[0].y == point.y):
                 continue
-            if (segment[1].y == point.y and segment[1] not in border_points):
-                number_of_intersections += 1
-                border_points.append(segment[1])
+            if (segment[1].y == point.y):
                 continue
             if (intersection):
                 number_of_intersections += 1
         return True if number_of_intersections % 2 == 1 else False
+
+        # half_edge = self.boundary_half_edge
+        # current_half_edge = half_edge
+        # if (not current_half_edge):
+        #     return True
+        # next_half_edge = half_edge.next
+
+        # a = current_half_edge.origin
+        # b = current_half_edge.end
+        # c = next_half_edge.end
+        # if (a == p or b == p or c == p):
+        #     return False
+        # ba = a-b
+        # bc = c-b
+        # bp = p - b
+        # if (not isBetween(bp, bc, ba)):
+        #     return False
+        # current_half_edge = current_half_edge.next
+        # next_half_edge = next_half_edge.next
+
+        # while (current_half_edge != half_edge):
+        #     a = current_half_edge.origin
+        #     b = current_half_edge.end
+        #     c = next_half_edge.end
+
+        #     if (a == p or b == p or c == p):
+        #         return False
+
+        #     ba = a-b
+        #     bc = c-b
+        #     bp = p - b
+        #     if (not isBetween(bp, bc, ba)):
+        #         return False
+        #     current_half_edge = current_half_edge.next
+        #     next_half_edge = next_half_edge.next
+        # return True
 
     def get(self) -> Polygon:
         start = self.boundary_half_edge
@@ -209,6 +250,8 @@ class DCEL:
         self.edges: list[tuple[Vector, Vector]] = []
 
     def add_edge(self, edge: tuple[Vector, Vector]):  # ПРОВЕРЕНО
+        edge = [Vector(round(edge[0].x, 2), round(edge[0].y, 2)),
+                Vector(round(edge[1].x, 2), round(edge[1].y, 2))]
         self.edges.append(edge)
         half_edge, twin_half_edge = HalfEdge.init_pair_halfedges(edge)
 
@@ -382,7 +425,6 @@ class DCEL:
         for edge in d2.edges:
             edges.append(edge)
         edges = split_by_intersections(edges)
-        draw_segments_sequence(edges)
         subdiv = DCEL()
         for edge in edges:
             subdiv.add_edge(edge)
@@ -500,18 +542,64 @@ def segment_intersection(segment1, segment2):
         return [Vector(float(int_pt.bounds[0]), float(int_pt.bounds[1])), Vector(float(int_pt.bounds[2]), float(int_pt.bounds[3]))]
 
 
+# def split_by_intersections(segments):
+#     new_segments = []
+#     for i in range(len(segments)):
+#         intersections = [segments[i][0], segments[i][1]]
+#         for j in range(len(segments)):
+#             if (i != j and not (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1])):
+#                 intersection = segment_intersection(segments[i], segments[j])
+#                 intersections += intersection
+#         intersections = list(set(intersections))
+#         intersections.sort()
+#         for j in range(len(intersections)-1):
+#             if ([intersections[j], intersections[j+1]] not in new_segments and [intersections[j+1], intersections[j]] not in new_segments):
+#                 new_segments.append([intersections[j], intersections[j+1]])
+#     return new_segments
+
 def split_by_intersections(segments):
+
+    i = 0
+    while (i < len(segments)):
+        j = i+1
+        while (j < len(segments)):
+            intersection = segment_intersection(segments[i], segments[j])
+            if (len(intersection) == 2):
+                left_point = min(
+                    segments[i][0], segments[i][1], segments[j][0], segments[j][1])
+                right_point = max(
+                    segments[i][0], segments[i][1], segments[j][0], segments[j][1])
+                segments[i][0] = left_point
+                segments[i][1] = right_point
+                del segments[j]
+                i -= 1
+                break
+            if (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1]):
+                if (is_collinear(segments[i][0]-segments[i][1], segments[j][0]-segments[j][1]) or is_collinear(segments[i][1]-segments[i][0], segments[j][0]-segments[j][1])):
+                    left_point = min(
+                        segments[i][0], segments[i][1], segments[j][0], segments[j][1])
+                    right_point = max(
+                        segments[i][0], segments[i][1], segments[j][0], segments[j][1])
+                    segments[i][0] = left_point
+                    segments[i][1] = right_point
+                    del segments[j]
+                    i -= 1
+                    break
+            j += 1
+        i += 1
+
     new_segments = []
     for i in range(len(segments)):
         intersections = [segments[i][0], segments[i][1]]
         for j in range(len(segments)):
             if (i != j and not (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1])):
                 intersection = segment_intersection(segments[i], segments[j])
-                intersections += intersection
+                if (intersection):
+                    intersections += intersection
         intersections = list(set(intersections))
         intersections.sort()
         for j in range(len(intersections)-1):
-            if ([intersections[j], intersections[j+1]] not in new_segments and [intersections[j+1], intersections[j]] not in new_segments):
+            if ([intersections[j], intersections[j+1]] not in new_segments):
                 new_segments.append([intersections[j], intersections[j+1]])
     return new_segments
 
