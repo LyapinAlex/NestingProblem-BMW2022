@@ -1,10 +1,14 @@
+from copy import deepcopy
 import math
-from operator import truediv
 import random
+from queue import Queue
 import numpy as np
 from math import ceil, floor
 from matplotlib import patches
 from matplotlib import pyplot as plt
+from class_arrangement import DCEL
+from class_direction import is_convex, isBetween
+from class_segment import Segment
 
 from class_vector import Vector
 
@@ -372,8 +376,116 @@ class Polygon:
         rastr_approximation = self.rastr_painting_over_inside(edges)
         rastr_approximation = self.create_rastr_border(h, rastr_approximation)
         return rastr_approximation
+# -----------------------------  NFP   -----------------------------------------
 
-# -----------------------------  Rotate and move   -----------------------------
+    @staticmethod
+    def reduced_convolution(p1: 'Polygon', p2: 'Polygon'):
+        reduced_convolution = []
+        n1 = len(p1.points)
+        n2 = len(p2.points)
+
+        if (n1 == 0 or n2 == 0):
+            return []
+        visited_states = set()
+        state = Queue()
+        for i in range(n1-1, -1, -1):
+            state.put((i, 0))
+        while (not state.empty()):
+            current_state = state.get()
+            i1 = current_state[0]
+            i2 = current_state[1]
+            if (current_state in visited_states):
+                continue
+            visited_states.add(current_state)
+
+            next_i1 = p1.next_index(i1)
+            next_i2 = p2.next_index(i2)
+            prev_i1 = p1.prev_index(i1)
+            prev_i2 = p2.prev_index(i2)
+
+            for step in (False, True):
+                new_i1 = 0
+                new_i2 = 0
+                if (step):
+                    new_i1 = next_i1
+                    new_i2 = i2
+                else:
+                    new_i1 = i1
+                    new_i2 = next_i2
+                belong_to_convolution = False
+                if (step):
+                    belong_to_convolution = isBetween(
+                        p1.point(next_i1)-p1.point(i1), p2.point(i2)-p2.point(prev_i2), p2.point(next_i2)-p2.point(i2))
+                else:
+                    belong_to_convolution = isBetween(p2.point(next_i2)-p2.point(i2), p1.point(i1) -
+                                                      p1.point(prev_i1), p1.point(next_i1)-p1.point(i1))
+                if (belong_to_convolution):
+                    state.put((new_i1, new_i2))
+                    convex = False
+                    if (step):
+                        convex = is_convex(p2.point(prev_i2),
+                                           p2.point(i2), p2.point(next_i2))
+                    else:
+                        convex = is_convex(p1.point(prev_i1),
+                                           p1.point(i1), p1.point(next_i1))
+                    if (convex):
+                        start_point = p1.point(i1)+p2.point(i2)
+                        end_point = p1.point(new_i1)+p2.point(new_i2)
+                        reduced_convolution.append([start_point, end_point])
+        return reduced_convolution
+
+    @staticmethod
+    def minkowski_sum_arrangement(p1: 'Polygon', p2: 'Polygon'):
+        reduce_conv = deepcopy(Polygon.reduced_convolution(p1, p2))
+        reduce_conv = Segment.split_by_intersections(reduce_conv)
+
+        max_point_b = Vector(-1000000, -1000000)
+        max_point_a = Vector(-1000000, -1000000)
+
+        for segment in reduce_conv:
+            if (segment[0] > max_point_b):
+                max_point_b = segment[0]
+            if (segment[1] > max_point_b):
+                max_point_b = segment[1]
+
+        for point in p1.points:
+            if (point > max_point_a):
+                max_point_a = point
+
+        for segment in reduce_conv:  # Когда писал += почему то происходил баг
+            segment[0] = segment[0] + \
+                (max_point_a-max_point_b)
+            segment[1] = segment[1] + \
+                (max_point_a-max_point_b)
+
+        arrangement = DCEL()
+        for segment in reduce_conv:
+            arrangement.add_edge(segment)
+        arrangement.init_faces()
+        return arrangement
+
+    @staticmethod
+    def nfp(p1: 'Polygon', p2: 'Polygon'):
+        minus_points = []
+
+        for point in p2.points:
+            minus_points.append(point*(-1))
+
+        no_fit_polygon = Polygon.minkowski_sum_arrangement(
+            p1, Polygon(minus_points))
+        boundary_half_edge = no_fit_polygon.unbounded_face.holes_half_edges[0]
+        new_nfp = DCEL()  # Костыль
+        new_nfp.add_edge(boundary_half_edge.original_edge)
+        current_half_edge = boundary_half_edge.next
+        while (current_half_edge != boundary_half_edge):
+            new_nfp.add_edge(current_half_edge.original_edge)
+            current_half_edge = current_half_edge.next
+
+        new_nfp.init_faces()
+
+        return new_nfp
+
+    # -----------------------------  Rotate and move   -----------------------------
 
     def rotate(self, angle):
         for point in self.points:

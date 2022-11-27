@@ -105,11 +105,16 @@ class Vector:
         self.y = a * math.sin(angle) + b * math.cos(angle)
         return self
 
-    def is_collinear(self, other):
-        angle_difference = abs(self.angle() - other.angle())
-        if angle_difference > math.pi:
-            angle_difference -= math.pi
-        return angle_difference < 0.0001
+    @staticmethod
+    def is_collinear(vec1: 'Vector', vec2: 'Vector'):
+        quadrant_1 = (1 if vec1.y >= 0 else 4) if vec1.x >= 0 else (
+            2 if vec1.y >= 0 else 3)
+        quadrant_2 = (1 if vec2.y >= 0 else 4) if vec2.x >= 0 else (
+            2 if vec2.y >= 0 else 3)
+        if (quadrant_1 != quadrant_2):
+            return False
+        sin_angle = abs(vec1.x*vec2.y-vec1.y*vec2.x)
+        return sin_angle < 0.0000000001
 
     def copy(self):
         return Vector(self.x, self.y)
@@ -147,4 +152,4 @@ if __name__ == "__main__":
     print(b)
     b /= 2*2
     print(b)
-    print(a.is_collinear(b))
+    print(Vector.is_collinear(a, b))

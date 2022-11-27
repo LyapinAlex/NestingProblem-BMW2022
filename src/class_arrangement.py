@@ -1,65 +1,10 @@
 from matplotlib import pyplot as plt
 from numpy import arange, half, sign
-from class_polygon import Polygon
+from class_direction import Direction, is_collinear, is_convex, l_ccw_angle, lq_ccw_angle, psevdoProd
+from class_segment import Segment
 from class_vector import Vector
 from enum import Enum
 from shapely.geometry import LineString, Point
-
-
-def compare_ccw_angle(vec1: Vector, vec2: Vector):
-    quadrant_1 = (1 if vec1.y >= 0 else 4) if vec1.x >= 0 else (
-        2 if vec1.y >= 0 else 3)
-    quadrant_2 = (1 if vec2.y >= 0 else 4) if vec2.x >= 0 else (
-        2 if vec2.y >= 0 else 3)
-    if (quadrant_1 > quadrant_2):
-        return 1
-    elif (quadrant_1 < quadrant_2):
-        return -1
-    return -sign(vec1.x*vec2.y-vec1.y*vec2.x)
-
-
-def l_ccw_angle(vec1: Vector, vec2: Vector):
-    return True if compare_ccw_angle(vec1, vec2) == -1 else False
-
-
-def lq_ccw_angle(vec1: Vector, vec2: Vector):
-    return False if compare_ccw_angle(vec1, vec2) == 1 else True
-
-
-def psevdoProd(p1: Vector, p2: Vector):
-    return p1.x*p2.y-p1.y*p2.x
-
-
-def is_convex(p1: Vector, p2: Vector, p3: Vector):
-    return psevdoProd(p2-p1, p3-p2) > 0.0000001
-
-
-class Direction:
-    def __init__(self, vector: Vector) -> None:
-        self.direction = vector
-
-    def __lt__(self, other):  # Counter clockwise angle
-        return l_ccw_angle(self.direction, other.direction)
-
-    def __ltq__(self, other):  # Counter clockwise angle
-        return lq_ccw_angle(self.direction, other.direction)
-
-    def __gt__(self, other):
-        return l_ccw_angle(other.direction, self.direction)
-
-    def __gtq__(self, other):
-        return lq_ccw_angle(other.direction, self.direction)
-
-
-def is_collinear(vec1: Vector, vec2: Vector):
-    quadrant_1 = (1 if vec1.y >= 0 else 4) if vec1.x >= 0 else (
-        2 if vec1.y >= 0 else 3)
-    quadrant_2 = (1 if vec2.y >= 0 else 4) if vec2.x >= 0 else (
-        2 if vec2.y >= 0 else 3)
-    if (quadrant_1 != quadrant_2):
-        return False
-    sin_angle = abs(vec1.x*vec2.y-vec1.y*vec2.x)
-    return sin_angle < 0.0000000001
 
 
 class Vertex:
@@ -74,15 +19,6 @@ class Vertex:
                 self.half_edges_by_ccw_angle.insert(i, half_edge)
                 return
         self.half_edges_by_ccw_angle.append(half_edge)
-
-
-def isBetween(p: Vector, q: Vector, r: Vector):
-    if (is_collinear(p, q) or is_collinear(q, r) or is_collinear(p, r)):  # Мутная тема
-        return True
-    if (l_ccw_angle(q, p)):
-        return (l_ccw_angle(p, r)) or lq_ccw_angle(r, q)
-    else:
-        return (l_ccw_angle(p, r) and lq_ccw_angle(r, q))
 
 
 class HalfEdge:
@@ -243,17 +179,6 @@ class Face:
         #     current_half_edge = current_half_edge.next
         #     next_half_edge = next_half_edge.next
         # return True
-
-    def get(self) -> Polygon:
-        start = self.boundary_half_edge
-        current = self.boundary_half_edge.next
-        if (current == None or start == current):
-            return None
-        poly = [start.origin]
-        while (start != current):
-            poly.append(current.origin)
-            current = current.next
-        return Polygon(poly)
 
     def get_inside_point(self):
         current_half_edge = self.boundary_half_edge
@@ -475,7 +400,7 @@ class DCEL:
             edges.append(edge)
         for edge in d2.edges:
             edges.append(edge)
-        edges = split_by_intersections(edges)
+        edges = Segment.split_by_intersections(edges)
         subdiv = DCEL()
         for edge in edges:
             subdiv.add_edge(edge)
@@ -607,53 +532,6 @@ def segment_intersection(segment1, segment2):
 #             if ([intersections[j], intersections[j+1]] not in new_segments and [intersections[j+1], intersections[j]] not in new_segments):
 #                 new_segments.append([intersections[j], intersections[j+1]])
 #     return new_segments
-
-def split_by_intersections(segments):
-
-    i = 0
-    while (i < len(segments)):
-        j = i+1
-        while (j < len(segments)):
-            intersection = segment_intersection(segments[i], segments[j])
-            if (len(intersection) == 2):
-                left_point = min(
-                    segments[i][0], segments[i][1], segments[j][0], segments[j][1])
-                right_point = max(
-                    segments[i][0], segments[i][1], segments[j][0], segments[j][1])
-                segments[i][0] = left_point
-                segments[i][1] = right_point
-                del segments[j]
-                i -= 1
-                break
-            if (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1]):
-                if (is_collinear(segments[i][0]-segments[i][1], segments[j][0]-segments[j][1]) or is_collinear(segments[i][1]-segments[i][0], segments[j][0]-segments[j][1])):
-                    left_point = min(
-                        segments[i][0], segments[i][1], segments[j][0], segments[j][1])
-                    right_point = max(
-                        segments[i][0], segments[i][1], segments[j][0], segments[j][1])
-                    segments[i][0] = left_point
-                    segments[i][1] = right_point
-                    del segments[j]
-                    i -= 1
-                    break
-            j += 1
-        i += 1
-
-    new_segments = []
-    for i in range(len(segments)):
-        intersections = [segments[i][0], segments[i][1]]
-        for j in range(len(segments)):
-            if (i != j and not (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1])):
-                intersection = segment_intersection(segments[i], segments[j])
-                if (intersection):
-                    intersections += intersection
-        intersections = list(set(intersections))
-        intersections.sort()
-        for j in range(len(intersections)-1):
-            if ([intersections[j], intersections[j+1]] not in new_segments):
-                new_segments.append([intersections[j], intersections[j+1]])
-
-    return new_segments
 
 
 def draw_segments_sequence(segments):
