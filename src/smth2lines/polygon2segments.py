@@ -104,7 +104,12 @@ def polygon2segments(points, h):
     for k in range(0, n_y + 1):
         min = n_x1
         max = 0
-        for i in range(len(points) + 1):
+        i0 = 0
+        while i0 < 2 * len(points):
+            if i0 < len(points):
+                i = i0
+            else:
+                i = len(points) - i0
             if i == len(points):
                 i = -1
             if i == points.shape[0] - 1:
@@ -158,6 +163,7 @@ def polygon2segments(points, h):
                     max = copy(points[i][0])
                 if min > points[i][0]:
                     min = copy(points[i][0])
+                i0 += 1
                 continue
             if k_prev * k_next != 0:
                 if k_prev * k_next == 1:
@@ -227,37 +233,31 @@ def polygon2segments(points, h):
                         max = 0
                 k_prev = 0
                 k_next = 0
+            i0 += 1
 
     def first_elem(e):
         return e[0]
 
     for line in lines:
         print()
-        # print('raw', line)
         for segment in line:
             segment.sort()
-        # print('sorted more', line)
         line.sort(key=first_elem)
         i = 0
-        # print('sorted', line)
         while i < (len(line) - 1):
-            # print('fix',line)
             if line[i][1] == line[i + 1][0]:
-                # print('case1', line[i], line[i+1])
                 line[i][1] = line[i + 1][1]
                 print(line[i])
                 line.pop(i + 1)
                 continue
             if line[i][1] > line[i + 1][0]:
                 if line[i][1] < line[i + 1][1]:
-                    # print('case2', line[i], line[i+1])
                     line[i][1] = line[i + 1][1]
                     print(line[i])
                     line.pop(i + 1)
                     continue
             if line[i][1] > line[i + 1][0]:
                 if line[i][1] >= line[i + 1][1]:
-                    # print('case3', line[i], line[i+1])
                     print(line[i])
                     line.pop(i + 1)
                     continue
