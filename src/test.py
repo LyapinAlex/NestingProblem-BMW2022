@@ -40,19 +40,19 @@ if __name__ == '__main__':
         polygons.append(deepcopy(poly3))
         polygons.append(deepcopy(poly2))
         polygons.append(deepcopy(poly1))
-        polygons.append(deepcopy(poly1))
-        polygons.append(deepcopy(poly2))
-        polygons.append(deepcopy(poly3))
-        polygons.append(deepcopy(poly2))
-        polygons.append(deepcopy(poly1))
-        polygons.append(deepcopy(poly2))
-    # polygons = polygons[:5]
+    # polygons = polygons[:3]
     # for polygon in polygons:
     #     polygon.sort_points()
     start_time = time.time()
 
     pallet = Nfp_Packer(1000, 2000)
+    i = 0
     for polygon in polygons:
+        i += 1
+        if (i == 23):
+            print('aaa')
+
+        print(i)
         pallet.pack(polygon)
 
     print(time.time() - start_time)

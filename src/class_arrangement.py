@@ -441,29 +441,34 @@ class DCEL:
     @staticmethod
     def logical_or(d1, d2):
         subdiv = DCEL.subdivision(d1, d2)
+        subdiv.draw()
         log_or = DCEL()
-        for face in subdiv.faces:
-            if (face.label == 'AB' or face.label == None):
+        # for face in subdiv.faces:
+        #     if (face.label == 'AB' or face.label == None):
+        #         continue
+        #     half_edge = face.boundary_half_edge
+        #     current_half_edge = half_edge.next
+        #     if (half_edge.twin.face.label != 'AB'):
+        #         log_or.add_edge(half_edge.original_edge)
+        #     while (half_edge != current_half_edge):
+        #         if (current_half_edge.twin.face.label != 'AB'):
+        #             log_or.add_edge(current_half_edge.original_edge)
+        #         current_half_edge = current_half_edge.next
+        # for face in subdiv.faces:
+        #     if (face.label != 'AB'):
+        #         continue
+        #     half_edge = face.boundary_half_edge
+        #     current_half_edge = half_edge.next
+        #     if (half_edge.twin.face.label == None):
+        #         log_or.add_edge(half_edge.original_edge)
+        #     while (half_edge != current_half_edge):
+        #         if (current_half_edge.twin.face.label == None):
+        #             log_or.add_edge(current_half_edge.original_edge)
+        #         current_half_edge = current_half_edge.next
+        for half_edge in subdiv.half_edges:
+            if (half_edge.face.label == 'AB' and half_edge.twin.face.label != None or half_edge.twin.face.label == 'AB' and half_edge.face.label != None):
                 continue
-            half_edge = face.boundary_half_edge
-            current_half_edge = half_edge.next
-            if (half_edge.twin.face.label != 'AB'):
-                log_or.add_edge(half_edge.original_edge)
-            while (half_edge != current_half_edge):
-                if (current_half_edge.twin.face.label != 'AB'):
-                    log_or.add_edge(current_half_edge.original_edge)
-                current_half_edge = current_half_edge.next
-        for face in subdiv.faces:
-            if (face.label != 'AB'):
-                continue
-            half_edge = face.boundary_half_edge
-            current_half_edge = half_edge.next
-            if (half_edge.twin.face.label == None):
-                log_or.add_edge(half_edge.original_edge)
-            while (half_edge != current_half_edge):
-                if (current_half_edge.twin.face.label == None):
-                    log_or.add_edge(current_half_edge.original_edge)
-                current_half_edge = current_half_edge.next
+            log_or.add_edge(half_edge.original_edge)
         log_or.init_faces()
         return log_or
 
@@ -518,22 +523,6 @@ def segment_intersection(segment1, segment2):
         return [Vector(float(int_pt.bounds[0]), float(int_pt.bounds[1])), Vector(float(int_pt.bounds[2]), float(int_pt.bounds[3]))]
 
 
-# def split_by_intersections(segments):
-#     new_segments = []
-#     for i in range(len(segments)):
-#         intersections = [segments[i][0], segments[i][1]]
-#         for j in range(len(segments)):
-#             if (i != j and not (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1])):
-#                 intersection = segment_intersection(segments[i], segments[j])
-#                 intersections += intersection
-#         intersections = list(set(intersections))
-#         intersections.sort()
-#         for j in range(len(intersections)-1):
-#             if ([intersections[j], intersections[j+1]] not in new_segments and [intersections[j+1], intersections[j]] not in new_segments):
-#                 new_segments.append([intersections[j], intersections[j+1]])
-#     return new_segments
-
-
 def draw_segments_sequence(segments):
     for segment in segments:
         plt.arrow(segment[0].x, segment[0].y, segment[1].x-segment[0].x, segment[1].y-segment[0].y,
@@ -546,7 +535,7 @@ if __name__ == '__main__':
     segments1 = [[Vector(0, 0), Vector(1, 0)], [Vector(1, 0), Vector(1, 1)], [
         Vector(1, 1), Vector(0, 1)], [Vector(0, 1), Vector(0, 0)]]
     segments2 = [[Vector(0.5, 0), Vector(1.5, 0)], [Vector(1.5, 0), Vector(1.5, 1)], [
-        Vector(1.5, 1), Vector(0.5, 1)], [Vector(0.5, 1), Vector(0.5, 0)]]
+        Vector(1.5, 1), Vector(0.5, 1)], [Vector(0.5, 1), Vector(1.5, 0)]]
     dcel1 = DCEL()
     dcel2 = DCEL()
 

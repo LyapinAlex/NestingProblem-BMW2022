@@ -1,5 +1,7 @@
 import numpy as np
 
+from class_polygon import Polygon
+
 
 def dxf2polygons(path):
     file = open(path)
@@ -14,7 +16,7 @@ def dxf2polygons(path):
 
         if line.strip() == "POLYLINE" and len(polygon) != 0:
             polygon.pop()
-            polygonsList.append(np.array(polygon))
+            polygonsList.append(Polygon(polygon))
             polygon = []
 
         if beforeLine.strip() == "10":
@@ -27,7 +29,7 @@ def dxf2polygons(path):
         beforeLine = line
 
     file.close()
-    return np.array(polygonsList, dtype=object)
+    return polygonsList
 
 
 if __name__ == "__main__":
