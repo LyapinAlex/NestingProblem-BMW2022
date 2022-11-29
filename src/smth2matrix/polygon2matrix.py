@@ -89,4 +89,4 @@ def polygon2matrix(points, h):
     return mat
 
 if __name__=='__main__':
-    print(polygon2matrix(np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]), 2.6))
+    print(polygon2matrix(np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]), 0.3))

@@ -1,7 +1,7 @@
 import numpy as np
 
 def txt2polygons(path=r'src\input\test0.txt'):
-    """Создаёт файл содержащий многоугольники из массива 
+    """Читает многоугольники из txt-файла 
     удаляет дублирующуюся в конец начальную точку если она там есть"""
     f = open(path, 'r')
     num_items = int(f.readline())

@@ -6,7 +6,7 @@ from greedy_alg.class_pallets import Pallets
 from class_item import Item
 from data_rendering.items2png import draw_all_pallets
 from putting_data.create_list_of_items import create_list_of_items
-from putting_data.svg_paths2polygons import svg_paths2polygons
+from putting_data.svg2polygons import svg2polygons
 from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
 
 
@@ -66,7 +66,7 @@ def main():
     # num_polygons = 100
     # polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
     
-    [polygons, num_polygons] = svg_paths2polygons(file_name)
+    [polygons, num_polygons] = svg2polygons(file_name)
     
     # print([polygons[6], np.share(polygons[6])])
 

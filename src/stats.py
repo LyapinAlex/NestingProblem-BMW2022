@@ -1,165 +1,385 @@
-from math import log, sqrt
+from cProfile import label
+import time
+import os.path
 import numpy as np
 from matplotlib import pyplot as plt
-import time
 
-from putting_data.create_list_of_items import create_list_of_items
-from putting_data.svg_paths2polygons import svg_paths2polygons
-from class_item import Item
 from class_packing import Packing
-from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
+
+results_dir = 'src\\output\\stats\\results'
+experiments_dir = 'src\\output\\stats\\experiments'
+charts_dir = 'src\\output\\stats\\charts'
 
 
-def new_greedy_alg0(polygons, pallet_width, pallet_height, eps, drill_radius):
-    pal = Packing(pallet_width, pallet_height, eps, drill_radius)
-    # преобразование данных (создание растровых приближений)
-    items = np.full(polygons.shape[0], None)
-    for id in range(polygons.shape[0]):
-        item = Item(id, polygons[id])
-        item.creat_polygon_shell(drill_radius)
-        item.list_of_new_shift_code(eps)
-        items[id] = item
-
-    # препроцессинги
-    items = sorted(items, key=lambda item: -item.matrix.size)
-
-    t_convert = time.time()
-    # упаковка
-    pallets = fit_pallets_with_rotation(pal.pallet_shape, items, eps)
-
-    # вычисление высоты первой паллеты
-    i = 0
-    while (i < pallets[len(pallets) - 1].shape[0]) and (
-            pallets[len(pallets) - 1][i][0] != -pal.pallet_shape[0]):
-        i += 1
+def calc_num_files(path: str):
+    num_files = len(
+        [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))])
+    return num_files
 
 
-    return time.time() - t_convert, (i + pal.pallet_shape[1] * (len(pallets) - 1)) * eps
+def calc_stats_eps(packaging: Packing,
+                   num_exp: int,
+                   num_items: int,
+                   eps: list,
+                   save_file_name_h='',
+                   save_file_name_t='',
+                   initial_files=[],
+                   is_save_polygons=False,
+                   num_rot=4):
+    stats_h = ''
+    stats_t = ''
 
+    if len(initial_files) != 0:
+        packaging.input_dir = "src\\output\\stats\\experiments"
+        num_exp = len(initial_files)
 
-def moment(mas, n=1):
-    s = 0
-    for it in mas:
-        s += it**n
-    return s / mas.size
+    for i in range(num_exp):
+        if len(initial_files) == 0:
+            packaging.create_random_polygons(num_items)
+        else:
+            packaging.read_polygons_from_file(initial_files[i])
 
+        if is_save_polygons:
+            packaging.save_items_in_file(
+                "stats\\experiments\\experiment" +
+                str(calc_num_files(experiments_dir) - i) + " " + str(i) +
+                ".txt")
 
-def disp(mas):
-    if mas.size == 1:
-        return 0
+        str_stat_h = ''
+        str_stat_t = ''
+
+        for h in eps:
+            packaging.make_items(h, num_rout=num_rot)
+            packaging.sort_items()
+            packaging.greedy_packing()
+            stat = packaging.get_stats()
+
+            str_stat_h += str(stat[0]) + ' '
+            str_stat_t += str(stat[1]) + ' '
+
+        stats_h += str_stat_h + '\n'
+        stats_t += str_stat_t + '\n'
+
+        if i == 0:
+            list_timings = str_stat_t.split(' ')
+            time_one_iter = 0
+            for timing in list_timings:
+                if timing != '':
+                    time_one_iter += float(timing)
+            print("\nВремя одной итерации: ", round(time_one_iter, 3))
+            print("Текущее время", time.strftime("%H:%M:%S", time.localtime()))
+            print("Прогнозируемое время работы: ",
+                  int(time_one_iter * num_exp // 60), ":",
+                  round(time_one_iter * num_exp % 60), "\n")
+
+        print(i + 1, '/', num_exp)
+
+    str_eps = ''
+    for h in eps:
+        str_eps += str(h) + ' '
+
+    if save_file_name_h == '':
+        save_path_h = results_dir + "\\stats_h" + str(
+            calc_num_files(results_dir)) + ".txt"
     else:
-        return sqrt(mas.size / (mas.size - 1) *
-                    (moment(mas, 2) - moment(mas)**2))
+        save_path_h = results_dir + "\\" + save_file_name_h
+    if save_file_name_t == '':
+        save_path_t = results_dir + "\\stats_t" + str(
+            calc_num_files(results_dir)) + ".txt"
+    else:
+        save_path_t = results_dir + "\\" + save_file_name_t
+
+    initial_data = str(num_exp) + '\n' + str(num_items) + '\n' + str_eps + '\n'
+
+    f = open(save_path_h, 'w')
+    f.write(initial_data)
+    f.write(stats_h)
+    f.close()
+
+    f = open(save_path_t, 'w')
+    f.write(initial_data)
+    f.write(stats_t)
+    f.close()
+
+    print("Текущее время", time.strftime("%H:%M:%S", time.localtime()))
+    print("\nРабота завершена, результаты сохранены в \n" + save_path_h +
+          "\n" + save_path_t + "\n")
+
+    return None
 
 
-def drow_stats(x, y, y_min, y_max, y_disp, xlabel="", ylabel="", annotations="No annotations", path = "src\output\stats.png"):
+def pick_one(packaging: Packing, eps: float, file_name: str):
+    packaging.input_dir = "src\\output\\stats\\experiments"
+    packaging.read_polygons_from_file(file_name)
+    packaging.make_items(eps, 4)
+    packaging.sort_items()
+    packaging.greedy_packing()
+
+    # Результаты упаковки
+    packaging.change_position()
+    packaging.clear_output()
+    packaging.save_pallets_in_files('pallet.png')
+    return
+
+
+def read_stats(path: str):
+    f = open(path, 'r')
+    num_exp = int(f.readline())
+    num_items = int(f.readline())
+
+    list_eps = f.readline().split(' ')
+    epsilons = []
+    for j in range(len(list_eps) - 1):  # -1 т.к. строка заканчивается '\n'
+        epsilons.append(float(list_eps[j]))
+    stats_eps = np.array(epsilons)
+
+    stats_of_exp = np.full((num_exp, len(list_eps) - 1), None)
+    for i in range(num_exp):
+        list_values = f.readline().split(' ')
+        values = []
+        for j in range(len(list_values) -
+                       1):  # -1 т.к. строка заканчивается '\n'
+            values.append(float(list_values[j]))
+        stats_of_exp[i] = np.array(values)
+    f.close()
+    return num_exp, num_items, stats_eps, stats_of_exp
+
+
+def draw_stats_different_eps(file_name: str, is_time_stats=True):
+    path = results_dir + "\\" + file_name
+    num_exp, num_items, stats_eps, stats_of_exp = read_stats(path)
+
+    if is_time_stats:
+        expected_label = "Среднее время решения"
+        min_max_label = "Max/min время решения"
+        save_path = charts_dir + "\\time_stats " + str(
+            calc_num_files(charts_dir)) + ".png"
+    else:
+        expected_label = "Средняя высота решения"
+        min_max_label = "Max/min высота решения"
+        save_path = charts_dir + "\\height_stats " + str(
+            calc_num_files(charts_dir)) + ".png"
+
+    # Настройки вида графика
+    fig, ax = plt.subplots()
+    fig.set_figheight(7)
+    fig.set_figwidth(10)
+    annotations = "Запусков: " + str(num_exp) + "\nФигур в упаковке: " + str(
+        num_items)
+    plt.title(annotations)
+    plt.xlabel("Шаг сетки")
+    plt.ylabel("Время работы алгоритма")
+    plt.grid(True)
+
+    # Содержимое графика
+    expected_value = np.mean(stats_of_exp, axis=0, dtype=float)
+    standard_deviation = np.std(stats_of_exp, axis=0, dtype=float)
+    maximum_value = np.amax(stats_of_exp, axis=0)
+    minimum_value = np.amin(stats_of_exp, axis=0)
+
+    plt.plot(stats_eps, expected_value, label=expected_label)
+    plt.plot(stats_eps, expected_value, 'b.')
+
+    plt.plot(stats_eps,
+             expected_value + standard_deviation,
+             'k:',
+             label="Стандартное отклонение")
+    plt.plot(stats_eps, expected_value - standard_deviation, 'k:')
+
+    plt.plot(stats_eps, maximum_value, 'r.', label=min_max_label)
+    plt.plot(stats_eps, minimum_value, 'r.')
+
+    ax.legend()
+    plt.savefig(save_path)
+    return
+
+
+def draw_stats_different_packing(file_names: list,
+                                 lables_of_path=[],
+                                 save_file_name='',
+                                 ylabel="Среднее время работы алгоритма",
+                                 annotations="Сравнение разных упаковок"):
+
+    if len(lables_of_path) != 0 and len(lables_of_path) != len(file_names):
+        raise Exception("Названий линий больше/меньше, чем фалов")
+
+    if save_file_name == '':
+        save_path = charts_dir + "\\different_packing" + str(
+            calc_num_files(charts_dir)) + ".png"
+    else:
+        save_path = charts_dir + "\\" + save_file_name
+
+    # Настройки вида графика
     fig, ax = plt.subplots()
     fig.set_figheight(7)
     fig.set_figwidth(10)
     plt.title(annotations)
-    plt.xlabel(xlabel)
+    plt.xlabel("Шаг сетки")
     plt.ylabel(ylabel)
     plt.grid(True)
     ax.set_xscale('log', base=2)
+    # ax.set_yscale('log', base=3)
 
-    plt.plot(x, y, label = 'Среднее время решения')
-    plt.plot(x, y,'b.')
-    plt.plot(x, y + y_disp, 'k:', label = 'Стандартное откланение')
-    plt.plot(x, y - y_disp, 'k:')
-    plt.plot(x, y_max,'r.', label = 'Max/min время решения')
-    plt.plot(x, y_min,'r.')
+    # Содержимое графика
+    for num_path in range(len(file_names)):
+        num_exp, num_items, stats_eps, stats_of_exp = read_stats(
+            results_dir + "\\" + file_names[num_path])
+
+        expected_value = np.mean(stats_of_exp, axis=0, dtype=float)
+        if len(lables_of_path) != 0:
+            expected_label = lables_of_path[num_path]
+        else:
+            expected_label = 'num_exp=' + str(num_exp) + '  num_items=' + str(
+                num_items)
+
+        plt.plot(stats_eps, expected_value, label=expected_label)
+        plt.plot(stats_eps, expected_value, 'b.')
 
     ax.legend()
-    plt.savefig(path)
+    plt.savefig(save_path)
+
+    return
 
 
-def main1(num_it, num_eps=5):
-    # Начальные данные
-    pallet_width = 2000
-    pallet_height = 1000
-    drill_radius = 2
+def bar_diag(file_names, lables_of_path, xlabel = "Шаг сетки", ylabel = "Высота", title = "Среднее отклонение"):
+    f = open(results_dir + "\\" + file_names[0], 'r')
+    f.readline()
+    f.readline()
+    list_eps = f.readline().split(' ')
+    f.close()
 
-    work_time = np.zeros(num_eps)
-    height = np.zeros(num_eps)
+    num_column = len(file_names)
+    num_groups = len(list_eps) - 1
 
-    eps = round(sqrt(pallet_height * pallet_width) / 50, 2)
-    # ----------------------------------------------------------------------------------------
-    for i in range(1, num_eps):
-        eps0 = eps / i
-        # Инициализация предметов
-        polygons = create_list_of_items(num_it, pallet_height, pallet_width)
-        # polygons = svg_paths2polygons('src/input/NEST001-108.svg')
+    ind = np.arange(num_groups)
+    width = 1 / (num_column + 2)
+    bars = []
+    stats_eps = None
+    for i in range(num_column):
+        num_exp, num_items, stats_eps, stats_of_exp = read_stats(results_dir +
+                                                                 "\\" +
+                                                                 file_names[i])
+        expected_value = np.mean(stats_of_exp, axis=0, dtype=float)
+        standard_deviation = np.std(stats_of_exp, axis=0, dtype=float)
+        bar = plt.bar(ind + width * i, standard_deviation, width)
+        bars.append(bar)
 
-        # Жадный алгоритм
-        work_time[i], height[i] = new_greedy_alg0(polygons, pallet_width,
-                                                  pallet_height, eps0,
-                                                  drill_radius)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
 
-    return work_time[1:num_eps], height[1:num_eps]
+    plt.xticks(ind + width/2 * (num_column-1), stats_eps)
+    plt.legend(bars, lables_of_path)
+    plt.show()
+    return
 
 
-def main2(num_exp = 10, num_item = 50, num_eps = 8):
-    stats_t = np.zeros((num_exp, num_eps))
-    stats_h = np.zeros((num_exp, num_eps))
+def main0():
+    """проверить одно решение"""
+    pack = Packing(width=2000, height=1000, drill_radius=0)
+    pick_one(pack, 4, "experiment1 0.txt")
+    return
 
-    stats_t[0], stats_h[0] = main1(num_item, num_eps + 1)
-    print(1, ':', num_exp)
-    print("Прогнозируемое время работы: ", np.sum(stats_t[0]) * num_exp)
-    for i in range(1, num_exp):
-        stats_t[i], stats_h[i] = main1(num_item, num_eps + 1)
-        print(i+1, ':', num_exp)
 
-    eps = round(sqrt(1000 * 2000) / 50, 2)
-    sr_time = 0
-    eps_plt = np.zeros(num_eps)
-    sr_time_plt = np.zeros(num_eps)
-    sr_height_plt = np.zeros(num_eps)
-    disp_time = np.zeros(num_eps)
-    disp_height = np.zeros(num_eps)
+def main1():
+    """сбор статистики"""
+    pack = Packing(width=2000, height=1000, drill_radius=0)
+    calc_stats_eps(packaging=pack,
+                   num_exp=100,
+                   num_items=100,
+                   eps=[4.375, 6.25, 8.75, 12.5, 17.5, 25, 35, 50, 70, 100],
+                   save_file_name_h='rot0_100_h' +
+                   str(calc_num_files(results_dir)) + '.txt',
+                   save_file_name_t='rot0_100_t' +
+                   str(calc_num_files(results_dir)) + '.txt',
+                   is_save_polygons=True)
+    return
 
-    for i in range(num_eps):
-        sr_time += moment(stats_t[:, i])
-        eps_plt[i] = eps / (i + 1) 
-        sr_time_plt[i] = round(moment(stats_t[:, i]), 4)
-        sr_height_plt[i] = round(moment(stats_h[:, i]), 4)
-        disp_time[i] = round(disp(stats_t[:, i]), 4)
-        disp_height[i] = round(disp(stats_h[:, i]), 4)
-    
-    sr_time_plt_min = np.amin(stats_t, axis = 0)
-    sr_time_plt_max = np.amax(stats_t, axis = 0)
-    sr_height_plt_min = np.amin(stats_h, axis = 0)
-    sr_height_plt_max = np.amax(stats_h, axis = 0)
 
-    print("В среднем на один цикл:", sr_time)
-    print("В сумме на все циклы:", sr_time * num_exp)
-    print()
+def main2():
+    """сбор статистики из существующих тестов"""
+    for num_rotation in range(3, 5):
+        pack = Packing(width=2000, height=1000, drill_radius=0)
+        init_files = ['experiment1 ' + str(i) + '.txt' for i in range(100)]
+        calc_stats_eps(
+            packaging=pack,
+            num_exp=0,
+            num_items=100,
+            eps=[4.375, 6.25, 8.75, 12.5, 17.5, 25, 35, 50, 70, 100],
+            save_file_name_h='rot' + str(num_rotation) + '_100_h' +
+            str(calc_num_files(results_dir)) + '.txt',
+            save_file_name_t='rot' + str(num_rotation) + '_100_t' +
+            str(calc_num_files(results_dir)) + '.txt',
+            initial_files=init_files,
+            num_rot=num_rotation)
+    return
 
-    drow_stats(eps_plt,
-               sr_time_plt,
-               sr_time_plt_min,
-               sr_time_plt_max,
-               disp_time,
-               xlabel="Шаг сетки",
-               ylabel="Среднее время работы",
-               annotations="Запусков: " + str(num_exp) +
-               "\nКоличество фигур: " + str(num_item),
-               path = r"src\output\time_stats.png")
-    
-    drow_stats(eps_plt,
-               sr_height_plt,
-               sr_height_plt_min,
-               sr_height_plt_max,
-               disp_height,
-               xlabel="Шаг сетки",
-               ylabel="Средняя высота упаковки",
-               annotations="Запусков: " + str(num_exp) +
-               " Фигур в упаковке: " + str(num_item) +
-               "\nРазмер паллеты: " + str(2000) + " x " + str(1000),
-               path = r"src\output\height_stats.png")
-    return stats_t, stats_h
+
+def main4():
+    """отрисовка одного файла"""
+    draw_stats_different_eps(r'rot4_t0.txt')
+    draw_stats_different_eps(r'rot4_h0.txt', is_time_stats=False)
+    return
+
+
+def main5():
+    """отрисовка нескольких файлов в одном графике"""
+    file_names = [
+        # 'rot0_t4.txt', 'rot1_t6.txt', 'rot2_t8.txt',
+        # 'rot3_t10.txt', 'rot4_t2.txt',
+        'rot0_100_t12.txt',
+        'rot1_100_t14.txt',
+        'rot2_100_t16.txt',
+        'rot3_100_t18.txt',
+        'rot4_100_t20.txt'
+    ]
+    lables_of_path = [
+        # "Без поворота (70)",
+        # "На длиннейшую сторону (70)",
+        # "На случайную сторону (70)",
+        # "Поворот* (70)",
+        # "Минимальная площадь описанного прямоугольника (70)",
+        "Без поворота (100)",
+        "На длиннейшую сторону (100)",
+        "На случайную сторону (100)",
+        "Поворот* (100)",
+        "Минимальная площадь описанного прямоугольника (100)",
+    ]
+    draw_stats_different_packing(
+        file_names,
+        lables_of_path,
+        # save_file_name = '100it_100exp_t',
+        # ylabel = "Средняя высота упаковки",
+        annotations='Сравнение разных упаковок при объёме выборки n = 100')
+    return
+
+
+def main6():
+    """Представление данных в виде диаграммы"""
+    file_names = [
+        # 'rot0_h4.txt', 'rot1_h6.txt', 'rot2_h8.txt',
+        # 'rot3_h10.txt', 'rot4_h2.txt',
+        'rot0_100_h12.txt',
+        'rot1_100_h14.txt',
+        'rot2_100_h16.txt',
+        'rot3_100_h18.txt',
+        'rot4_100_h20.txt'
+    ]
+    lables_of_path = [
+        # "Without rotation (70)",
+        # "The longest side (70)",
+        # "Random side (70)",
+        # "Rotation* (70)",
+        # "Min area (70)",
+        "Without rotation (100)",
+        "The longest side (100)",
+        "Random side (100)",
+        "Rotation* (100)",
+        "Min area (100)"
+    ]
+    bar_diag(file_names, lables_of_path)
+    return
 
 
 if __name__ == '__main__':
-    stats_t, stats_h = main2(num_exp = 10, num_item = 30, num_eps = 4)
-
-    
+    main6()

@@ -46,7 +46,7 @@ def create_list_of_items(num_items, max_width = 20, max_height = 20):
         num_corners = random.randint(4, 16)
         points = generate_polygon(center=(100, 100),
                                   avg_radius=random.uniform(radius/25, radius/4),
-                                  irregularity=0.05,
+                                  irregularity=0.15,
                                   spikiness=0.4,
                                   num_vertices=num_corners)
         rotation(points)
