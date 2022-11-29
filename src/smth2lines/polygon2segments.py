@@ -162,7 +162,7 @@ def polygon2segments(points, h):
                 i0 += 1
                 continue
             if k_prev * k_next != 0:
-                if k_prev * k_next == 1:
+                if k_prev * k_next == 1 and not (i==0 and i0==0):
                     if k_prev == -1:
                         k_prev = 0
                         k_next = 0

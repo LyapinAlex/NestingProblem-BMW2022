@@ -10,6 +10,29 @@ def pack_item(item, pallets, t_vector, r):
             pallets.pallet_lines[r+s].append(copy(new_line))
         pallets.pallet_lines[r+s].sort(key=lambda x: int(x[0]), reverse=False)
 
+    def first_elem(e):
+      return e[0]
+
+    for line in pallets.pallet_lines:
+        for segment in line:
+            segment.sort()
+        line.sort(key=first_elem)
+        i = 0
+        while i < (len(line) - 1):
+            if line[i][1] == line[i+1][0]:
+                line[i][1] = line[i+1][1]
+                line.pop(i+1)
+                continue
+            if line[i][1] > line[i+1][0]:
+                if line[i][1] < line[i+1][1]:
+                    line[i][1] = line[i+1][1]
+                    line.pop(i+1)
+                    continue
+                elif line[i][1] >= line[i+1][1]:
+                    line.pop(i+1)
+                    continue
+            i+=1
+
 def pack_segments(items, pallets):
     for item in items:
         r = 0
@@ -32,6 +55,15 @@ def pack_segments(items, pallets):
                                     i = 0
                                 elif pallets.pallet_lines[r+i][m][0] <= item.segments[i][j][1] + t_vector < pallets.pallet_lines[r+i][m][1]:
                                     t_vector += pallets.pallet_lines[r+i][m][1] - (item.segments[i][j][0] + t_vector)
+                                    i = 0
+                                elif item.segments[i][j][0] + t_vector < pallets.pallet_lines[r + i][m][0] and \
+                                        pallets.pallet_lines[r + i][m][1] < item.segments[i][j][1] + t_vector:
+                                    t_vector += pallets.pallet_lines[r + i][m][1] - (item.segments[i][j][0] + t_vector)
+                                    i = 0
+                                elif pallets.pallet_lines[r + i][m][0] == item.segments[i][j][0] + t_vector == \
+                                        item.segments[i][j][1] + t_vector or pallets.pallet_lines[r + i][m][1] == \
+                                        item.segments[i][j][0] + t_vector == item.segments[i][j][1] + t_vector:
+                                    t_vector += pallets.pallet_lines[r + i][m][1] - (item.segments[i][j][0] + t_vector)
                                     i = 0
                                 # объект выходит за границы палеты
                                 elif item.segments[i][j][0] + t_vector < 0:
