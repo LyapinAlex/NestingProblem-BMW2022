@@ -72,6 +72,7 @@ class Segment:
             return round(((x1 - x0) / (y1 - y0)) * (y - y0) + x0, _NDIGITS)
         return None
 
+
 class Node_sweep_line(Node):
     def __init__(self, key: Segment):
         self.key = key
@@ -82,10 +83,6 @@ class Node_sweep_line(Node):
 
     # ----------------------------  Logical operations   ----------------------------
     
-    # def __eq__(self, other): # ==
-    #     dist = other.key.distance_point_from_segment(self.event[0])
-    #     return abs(dist) < 10**(2-_NDIGITS) 
-
     def __lt__(self, other):  # <
         dist = other.key.distance_point_from_segment(self.event[0])
         return dist > 0 and (abs(dist) > 10**(2-_NDIGITS))
@@ -172,19 +169,25 @@ class AVL_sweep_line(AVL):
                     node = None
                 else:
                     if self._balance(node) > 0:
+                        # rgt = self.max_key_node(node.left) # можно убрать "костыль 1" если удалять прямо здесь (новую аналогичную функцию создать)
+                        # node.key = rgt.key
+                        # current_event = self.event[0] #костыль 1
+                        # self.change_event(Vector(rgt.key.get_X(self.event[0].y), self.event[0].y)) #костыль 1
+                        # node.left = self.node_delete(node.left, rgt) 
+                        # self.change_event(current_event) #костыль 1
                         rgt = self.max_key_node(node.left)
                         node.key = rgt.key
-                        current_event = self.event[0]
-                        self.change_event(rgt.key.begin)
-                        node.left = self.node_delete(node.left, rgt)
-                        self.change_event(current_event)
+                        node.left = self._delete_max(node.left) 
                     else:
+                        # rgt = self.min_key_node(node.right) # можно убрать "костыль 2" если удалять прямо здесь (новую аналогичную функцию создать)
+                        # node.key = rgt.key
+                        # current_event = self.event[0] #костыль 2
+                        # self.change_event(Vector(rgt.key.get_X(self.event[0].y), self.event[0].y)) #костыль 2
+                        # node.right = self.node_delete(node.right, rgt)
+                        # self.change_event(current_event) #костыль 2
                         rgt = self.min_key_node(node.right)
                         node.key = rgt.key
-                        current_event = self.event[0]
-                        self.change_event(rgt.key.begin)
-                        node.right = self.node_delete(node.right, rgt)
-                        self.change_event(current_event)
+                        node.right = self._delete_min(node.right)
 
         if node is None:
             return node
@@ -194,17 +197,18 @@ class AVL_sweep_line(AVL):
     def inorder_print(self):
         err = False
         nodes = self.inorder()
-        lp = nodes[0].key.get_X(self.event[0].y)
-        print(lp, nodes[0])
-        for node in nodes:
-            if node != nodes[0]:
-                np = node.key.get_X(self.event[0].y)
-                if (np-lp < 0) and (abs(np-lp) > 10**(2-_NDIGITS)):
-                    err = True
-                print(np, node)
-                lp = np
-        if err:
-            raise Exception("Ошибка в поиске " + str(self.event[0].x))
+        if nodes:
+            lp = nodes[0].key.get_X(self.event[0].y)
+            print(lp, nodes[0])
+            for node in nodes:
+                if node != nodes[0]:
+                    np = node.key.get_X(self.event[0].y)
+                    if (np-lp < 0) and (abs(np-lp) > 10**(2-_NDIGITS)):
+                        err = True
+                    print(np, node)
+                    lp = np
+            if err:
+                raise Exception("Ошибка в поиске " + str(self.event[0].x))
         return
 
 
@@ -236,31 +240,12 @@ def sweep_line(array_segments: list[Segment]):
                 # print(point)
         return
 
-    def is_dublicate_point(q1, q2):
-        equal_segments = (q1[1]==q2[1] and q1[2]==q2[2]) or (q1[1]==q2[2] and q1[2]==q2[1])
-        return equal_segments and (q1[0]==q2[0])
-
-    def is_dublicate_event(q1, q2):
-        if (q1[1]==3) and (q2[1]==3):
-            equal_segments = (q1[2]==q2[2] and q1[3]==q2[3]) or (q1[2]==q2[3] and q1[3]==q2[2])
-        else:
-            equal_segments = q1[2] == q2[2]
-        return (q1[0]==q2[0]) and (q1[1]==q2[1]) and equal_segments
-
     for segment in array_segments:
         hq.heappush(unprocessed_events, (segment.begin, 1, segment))
         hq.heappush(unprocessed_events, (segment.end, 2, segment))
     status = AVL_sweep_line()
     while unprocessed_events:
-        q = hq.heappop(unprocessed_events)
-
-        # # удаление повторов событий
-        # if unprocessed_events:
-        #     while is_dublicate_event(q, unprocessed_events[0]):
-        #         q = hq.heappop(unprocessed_events)
-        #         if not unprocessed_events:
-        #             break
-        
+        q = hq.heappop(unprocessed_events)       
         # сдвиг сканирующей точки
         status.change_event(q[0])
         if q[1] == 1:
@@ -306,22 +291,10 @@ def sweep_line(array_segments: list[Segment]):
                         append_point(q[0].y, neighbors2[1].key, node1.key)
             # поменять местами пересекающиеся отрезки
             status.swap(node1, node2)
-        print(q[1])
-        status.inorder_print()
-        print('------------=================------------')
-    
-    status.inorder_print()
-    # # удаление дубликатов точек пересечения
-    # intersection_points = []
-    # while intersection_points_with_dublicate:
-    #     q = hq.heappop(intersection_points_with_dublicate)
-    #     intersection_points.append(q)
-    #     # print(intersection_points)
-    #     if intersection_points_with_dublicate:
-    #         while is_dublicate_point(q, intersection_points_with_dublicate[0]):
-    #             q = hq.heappop(intersection_points_with_dublicate)
-    #             if not intersection_points_with_dublicate:
-    #                 break
+    #     print(q[1])
+    #     status.inorder_print()
+    #     print('------------=================------------')
+    # status.inorder_print()
     return intersection_points_with_dublicate
 
 
@@ -356,7 +329,7 @@ def rundom_segments(num_segments = 10) -> list[Segment]:
 
 
 def main():
-    array_segments = rundom_segments(100)
+    array_segments = rundom_segments(400)
     draw_lines(array_segments, [])
     intersection_points = sweep_line(array_segments)
     print(len(intersection_points))
@@ -365,7 +338,6 @@ def main():
 if __name__ == '__main__':
     main()
 
-    # p = Vector(1, 0.50002)
     # a0 = Vector(0, 0)
     # b0 = Vector(1, 0)
     # c0 = Vector(2, 0)
@@ -376,9 +348,26 @@ if __name__ == '__main__':
     # s2 = Segment(b0, b1, 2)
     # s3 = Segment(c0, a1, 3)
     # segments = [s1, s2, s3]
-    # intersection_points = [b1, b0, p]
-    # draw_lines(segments, sweep_line(segments))
-    
+
+    # v1 = Vector(1, 1)
+    # v0 = 0*v1
+    # v2 = 2*v1
+    # v3 = 3*v1
+    # w1 = Segment(v0, v2, 4)
+    # w2 = Segment(v0, b0, 5)
+    # segments = [w1, w2]
+
+    # m0 = Vector(0, 1)
+    # m1 = Vector(1, 0)
+    # p0 = Vector(2, 1)
+    # p1 = Vector(1, 2)
+    # t1 = Segment(m0, p0, 6)
+    # t2 = Segment(m1, p1, 7)
+    # segments = [t1, t2]
+
+    # intersections = sweep_line(segments)
+    # print(len(intersections))
+    # draw_lines(segments, intersections)
 
     # print(s1, s2, s3)
     # print(b1, s1.distance_point_from_segment(b1))

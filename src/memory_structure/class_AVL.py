@@ -222,6 +222,34 @@ class AVL:
         self._correction_height(node)
         return self.balancing_node(node)
 
+    def _delete_min(self, node):
+        if (node.left is None) and (node.right is None):
+            return None
+        if not (node.left is None):
+            node.left = self._delete_min(node.left)
+        else:
+            node.key = node.right.key
+            node.right = None
+            
+        if node is None:
+            return node
+        self._correction_height(node)
+        return self.balancing_node(node)
+
+    def _delete_max(self, node):
+        if (node.left is None) and (node.right is None):
+            return None
+        if not (node.right is None):
+            node.right = self._delete_max(node.right)
+        else:
+            node.key = node.left.key
+            node.left = None
+            
+        if node is None:
+            return node
+        self._correction_height(node)
+        return self.balancing_node(node)
+
     # ----------------------------  other representations  ----------------------------
 
     def node_preorder(self, node):
@@ -270,9 +298,9 @@ if __name__ == '__main__':
     Tree.insert(5)
     Tree.insert(14)
     Tree.insert(6)
+    Tree.insert(9)
     Tree.insert(8)
-    Tree.insert(8)
-    Tree.insert(8)
+    Tree.insert(10)
     Tree.insert(13)
     Tree.insert(2)
     Tree.insert(3)
@@ -280,27 +308,8 @@ if __name__ == '__main__':
     Tree.insert(15)
     Tree.insert(7)
 
-    print("                   ", Tree.root)
-    print("               ", Tree.root.left, Tree.root.right)
-    print("         ", Tree.root.left.left, Tree.root.left.right,
-          Tree.root.right.left, Tree.root.right.right)
-    print(Tree.root.left.left.left, Tree.root.left.left.right,
-          Tree.root.left.right.left, Tree.root.left.right.right,
-          Tree.root.right.left.left, Tree.root.right.left.right,
-          Tree.root.right.right.left, Tree.root.right.right.right)
+    print("-------------------=====================-------------------")
     print()
-
-    # neig = Tree.get_nearests(8)
-    # print(neig[0], neig[1])
-    # neig = Tree.get_nearests(8,0)
-    # print(neig[0], neig[1])
-    # neig = Tree.get_nearests(8,1)
-    # print(neig[0], neig[1])
-    # neig = Tree.get_nearests(8,2)
-    # print(neig[0], neig[1])
-    # print(Tree.find(8,2))
-
-    Tree.delete(4)
 
     print("                   ", Tree.root)
     print("               ", Tree.root.left, Tree.root.right)
@@ -310,15 +319,26 @@ if __name__ == '__main__':
           Tree.root.left.right.left, Tree.root.left.right.right,
           Tree.root.right.left.left, Tree.root.right.left.right,
           Tree.root.right.right.left, Tree.root.right.right.right)
+    
+    print()
+    print("-------------------=====================-------------------")
+    # Tree.inorder_print()
+
+    # Tree._delete_max(Tree.root.left.left)
+    Tree.root.left.left = Tree._delete_min(Tree.root.left.left)
+
+    print("-------------------=====================-------------------")
+    print()
+
+    print("                   ", Tree.root)
+    print("               ", Tree.root.left, Tree.root.right)
+    print("         ", Tree.root.left.left, Tree.root.left.right,
+          Tree.root.right.left, Tree.root.right.right)
+    print(Tree.root.left.left.left, Tree.root.left.left.right,
+          Tree.root.left.right.left, Tree.root.left.right.right,
+          Tree.root.right.left.left, Tree.root.right.left.right,
+          Tree.root.right.right.left, Tree.root.right.right.right)
+    
     print()
     print("-------------------=====================-------------------")
     Tree.inorder_print()
-    print("-------------------=====================-------------------")
-    print(Tree.swap(Tree.find(8), Tree.find(12)))
-    print(Tree.get_nearests(8)[1])
-    Tree.delete(27)
-    Tree.delete(8)
-    Tree.delete(14)
-    print("-------------------=====================-------------------")
-    Tree.inorder_print()
-    print("-------------------=====================-------------------")
