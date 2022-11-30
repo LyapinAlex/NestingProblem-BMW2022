@@ -33,11 +33,13 @@ class Node:
         return self == other or self > other
 
 
-
 class AVL:
-    #! есть вероятность, что одинаковые ключи сломают структуру через балансировку
+    #! есть вероятность, что одинаковые ключи "сломают" структуру через балансировку
     def __init__(self):
         self.root = None
+
+    def __repr__(self):
+        return 'AVL({})'.format(self.root)
 
     def create_node(self, key):
         return Node(key)
@@ -212,11 +214,11 @@ class AVL:
                 if self._balance(node) > 0:
                     rgt = self.max_key_node(node.left)
                     node.key = rgt.key
-                    node.left = self.node_delete(node.left, rgt)
+                    node.left = self._delete_max(node.left)
                 else:
                     rgt = self.min_key_node(node.right)
                     node.key = rgt.key
-                    node.right = self.node_delete(node.right, rgt)
+                    node.right = self._delete_min(node.right)
         if node is None:
             return node
         self._correction_height(node)
@@ -322,10 +324,8 @@ if __name__ == '__main__':
     
     print()
     print("-------------------=====================-------------------")
-    # Tree.inorder_print()
-
-    # Tree._delete_max(Tree.root.left.left)
-    Tree.root.left.left = Tree._delete_min(Tree.root.left.left)
+    
+    Tree.delete(2)
 
     print("-------------------=====================-------------------")
     print()
