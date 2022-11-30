@@ -2,7 +2,7 @@ import heapq as hq
 import numpy as np
 import matplotlib.pyplot as plt
 from class_vector import Vector, _NDIGITS
-from memory_structure.class_AVL import AVL, Node
+from memory_structure.class_AVL_KV import AVL_KV, Node_KV
 
 class Segment:
     def __init__(self, p1: Vector, p2: Vector):
@@ -67,7 +67,7 @@ class Segment:
         return None
 
 
-class Node_sweep_line(Node):
+class Node_sweep_line(Node_KV):
 
     def __init__(self, key: Vector, value: Segment):
         self.key = key
@@ -95,7 +95,7 @@ class Node_sweep_line(Node):
         return self == other or self > other
 
 
-class AVL_sweep_line(AVL):
+class AVL_sweep_line(AVL_KV):
 
     def __init__(self):
         self.root = None
@@ -383,7 +383,7 @@ def main():
     # draw_lines(array_segments, [])
     intersection_points = sweep_line(array_segments)
     print(len(intersection_points))
-    # draw_lines(array_segments, intersection_points)
+    draw_lines(array_segments, intersection_points)
 
     return
 
