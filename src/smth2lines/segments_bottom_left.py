@@ -35,6 +35,7 @@ def pack_item(item, pallets, t_vector, r):
 
 def pack_segments(items, pallets):
     for item in items:
+        # print(item.id)
         r = 0
         while r < len(pallets.pallet_lines) and item.packed == False:
             row = pallets.pallet_lines[r]
@@ -49,37 +50,69 @@ def pack_segments(items, pallets):
                         while j < len(item.segments[i]) and ex_flag == 0:
                             m = 0
                             while m < len(pallets.pallet_lines[r+i]) and ex_flag == 0:
+                                # if item.id == 9:
+                                #     # print('you are right')
+                                #     print('row', r,' item line ', i, ' sigment in line ', j, 'sigment in packing', m, item.segments[i])
+                                # if j >=  len(item.segments[i]):
+                                #     m += 1
+                                #     continue
                                 # случаи пересечения линии и упаковки
-                                if pallets.pallet_lines[r+i][m][0] <= item.segments[i][j][0] + t_vector < pallets.pallet_lines[r+i][m][1]:
-                                    t_vector += pallets.pallet_lines[r+i][m][1] - (item.segments[i][j][0] + t_vector)
+                                if item.segments[i][j][1] + t_vector > pallets.shape[0]:
+                                    ex_flag = 1
+                                elif pallets.pallet_lines[r+i][m][0] <= item.segments[i][j][0] + t_vector < pallets.pallet_lines[r+i][m][1] and item.segments[i][j][0] + t_vector != item.segments[i][j][1] + t_vector:
+                                    # t_vector += pallets.pallet_lines[r+i][m][1] - (item.segments[i][j][0] + t_vector)
+                                    t_vector = pallets.pallet_lines[r+i][m][1]
                                     i = 0
-                                elif pallets.pallet_lines[r+i][m][0] <= item.segments[i][j][1] + t_vector < pallets.pallet_lines[r+i][m][1]:
-                                    t_vector += pallets.pallet_lines[r+i][m][1] - (item.segments[i][j][0] + t_vector)
+                                    j = 0
+                                    # if item.id == 9:
+                                    #     print('hi', 1, t_vector)
+                                elif pallets.pallet_lines[r+i][m][0] < item.segments[i][j][1] + t_vector <= pallets.pallet_lines[r+i][m][1] and item.segments[i][j][0] + t_vector != item.segments[i][j][1] + t_vector:
+                                    # t_vector += pallets.pallet_lines[r+i][m][1] - (item.segments[i][j][0] + t_vector)
+                                    t_vector = pallets.pallet_lines[r+i][m][1]
                                     i = 0
+                                    j = 0
+                                    # if item.id == 9:
+                                    #     print(2)
                                 elif item.segments[i][j][0] + t_vector < pallets.pallet_lines[r + i][m][0] and \
                                         pallets.pallet_lines[r + i][m][1] < item.segments[i][j][1] + t_vector:
-                                    t_vector += pallets.pallet_lines[r + i][m][1] - (item.segments[i][j][0] + t_vector)
+                                    # t_vector += pallets.pallet_lines[r + i][m][1] - (item.segments[i][j][0] + t_vector)
+                                    t_vector = pallets.pallet_lines[r + i][m][1]
                                     i = 0
-                                elif pallets.pallet_lines[r + i][m][0] == item.segments[i][j][0] + t_vector == \
-                                        item.segments[i][j][1] + t_vector or pallets.pallet_lines[r + i][m][1] == \
-                                        item.segments[i][j][0] + t_vector == item.segments[i][j][1] + t_vector:
-                                    t_vector += pallets.pallet_lines[r + i][m][1] - (item.segments[i][j][0] + t_vector)
-                                    i = 0
+                                    j = 0
+                                    # if item.id == 9:
+                                    #     print(3)
+                                    # if t_vector < 0:
+                                    #     print(t_vector, pallets.pallet_lines[r + i][m][1], item.segments[i][j][0])
+                                # elif pallets.pallet_lines[r + i][m][0] == item.segments[i][j][0] + t_vector == \
+                                #         item.segments[i][j][1] + t_vector or pallets.pallet_lines[r + i][m][1] == \
+                                #         item.segments[i][j][0] + t_vector == item.segments[i][j][1] + t_vector:
+                                #     t_vector += pallets.pallet_lines[r + i][m][1] - (item.segments[i][j][0] + t_vector)
+                                #     i = 0
+                                #     j = 0
+                                #     if item.id == 9:
+                                #         print()
+                                #         print(4)
                                 # объект выходит за границы палеты
                                 elif item.segments[i][j][0] + t_vector < 0:
                                     t_vector = - item.segments[i][j][0]
                                     i = 0
+                                    j = 0
+                                    # if item.id == 9:
+                                    #     print(5)
+                                # elif item.segments[i][j][1] + t_vector <= pallets.pallet_lines[r+i][m][0]:
+                                #     good = True
                                 # наверное надо сделать это первым условием, будет чаще всего встречаться
-                                elif item.segments[i][j][1] + t_vector > pallets.shape[0]:
-                                    ex_flag = 1
+                                # elif item.segments[i][j][1] + t_vector > pallets.shape[0]:
+                                #     ex_flag = 1
+
                                 m += 1
                             j += 1
-                        i+=1
+                        i += 1
                 # если объект влезает, добавляем его на палету
                 if ex_flag == 0:
                     pack_item(item, pallets, t_vector, r)
                     ex_flag = 1
-                k+=1
-            r+=1
+                k += 1
+            r += 1
 
     return

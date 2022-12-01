@@ -5,7 +5,7 @@ import os
 
 # from class_item import Item
 from src.putting_data.create_list_of_items import create_list_of_items
-from src.putting_data.svg_paths2polygons import svg_paths2polygons
+# from src.putting_data.svg_paths2polygons import svg_paths2polygons
 from src.data_rendering.items2txt import items2txt
 from src.putting_data.dxf2polygons import dxf2polygons
 from src.greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
@@ -15,18 +15,18 @@ from src.putting_data.txt2polygons import txt2polygons
 from src.class_item import Item
 from src.smth2lines.draw_segments_result_packing import draw_segments_result_packing
 from src.smth2lines.segments_bottom_left import pack_segments
-
-from class_item import Item
-from class_polygon import Polygon
-from putting_data.create_list_of_items import create_list_of_items
-from putting_data.dxf2polygons import dxf2polygons
-from putting_data.svg2polygons import svg2polygons
-from putting_data.txt2polygons import txt2polygons
-from data_rendering.items2DXF import items2DXF
-from data_rendering.items2svg import items2svg
-from data_rendering.items2png import items2png
-from data_rendering.items2txt import items2txt
-from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
+# from class_item import Item
+from src.class_polygon import Polygon
+from src.putting_data.create_list_of_items import create_list_of_items
+from src.putting_data.create_list_of_items import create_list_of_items
+from src.putting_data.dxf2polygons import dxf2polygons
+from src.putting_data.svg2polygons import svg2polygons
+from src.putting_data.txt2polygons import txt2polygons
+from src.data_rendering.items2DXF import items2DXF
+from src.data_rendering.items2svg import items2svg
+from src.data_rendering.items2png import items2png
+from src.data_rendering.items2txt import items2txt
+from src.greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
 
 
 class Packing():

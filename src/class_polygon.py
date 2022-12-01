@@ -5,7 +5,7 @@ from math import ceil, floor
 from matplotlib import patches
 from matplotlib import pyplot as plt
 
-from class_vector import Vector
+from src.class_vector import Vector
 
 
 class Polygon:

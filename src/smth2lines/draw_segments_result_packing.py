@@ -36,9 +36,14 @@ def draw_segments_result_packing(packing):
 
     for polygon in packing.items:
         print(polygon.t_vector)
-        for point in polygon.points:
+        i = 0
+        while i < len(polygon.points):
+            point = copy(polygon.points[i])
             point[0] += polygon.t_vector[0]
             point[1] += polygon.t_vector[1] * h
+            polygon.points[i] = copy(point)
+            i += 1
+
         figure = patches.Polygon(polygon.points,
                                  linewidth=1,
                                  edgecolor='red',

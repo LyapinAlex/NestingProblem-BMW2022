@@ -56,13 +56,13 @@ def polygon2segments(points, h):
         intersection_end = None
         counter = 0
         i0 = 0
-        while i0 < points.shape[0]:
-            if i0 == points.shape[0] - 1:
+        while i0 < len(points):
+            if i0 == len(points) - 1:
                 i1 = 0
             else:
                 i1 = (i0 + 1)
             if i0 == 0:
-                i2 = points.shape[0] - 1
+                i2 = len(points) - 1
             else:
                 i2 = (i0 - 1)
 
@@ -108,18 +108,18 @@ def polygon2segments(points, h):
                 i = len(points) - i0
             if i == len(points):
                 i = -1
-            if i == points.shape[0] - 1:
+            if i == len(points) - 1:
                 i_next = 0
             else:
                 i_next = (i + 1)
             if i == 0:
-                i_prev = points.shape[0] - 1
+                i_prev = len(points) - 1
             else:
                 i_prev = (i - 1)
             if (k + 1) * h >= points[i][1] > k * h >= points[i_prev][1] or k * h < points[i][1] <= (k + 1) * h <= \
                     points[i_prev][1]:
                 # print('case1', points[i], k)
-                if points[i_prev][1] <= k * h:
+                if points[i_prev][1] < k * h:
                     k_prev = -1
                     k_next = 0
                     intersection_point = intersection([points[i_prev], points[i]], [[0, k * h], [n_x, k * h]])[0]
@@ -130,7 +130,7 @@ def polygon2segments(points, h):
                     if min > points[i][0]:
                         min = copy(points[i][0])
                     # print(min, max)
-                elif points[i_prev][1] >= (k + 1) * h:
+                elif points[i_prev][1] > (k + 1) * h:
                     k_prev = 1
                     k_next = 0
                     intersection_point = \
