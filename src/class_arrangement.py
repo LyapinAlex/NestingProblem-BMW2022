@@ -1,9 +1,7 @@
 from matplotlib import pyplot as plt
-from numpy import arange, half, sign
-from class_direction import Direction, is_collinear, is_convex, l_ccw_angle, lq_ccw_angle, psevdoProd
+from class_direction import Direction, is_convex, psevdoProd
 from class_segment import Segment
 from class_vector import Vector
-from enum import Enum
 from shapely.geometry import LineString, Point
 
 
@@ -441,7 +439,7 @@ class DCEL:
     @staticmethod
     def logical_or(d1, d2):
         subdiv = DCEL.subdivision(d1, d2)
-        subdiv.draw()
+        # subdiv.draw()
         log_or = DCEL()
         # for face in subdiv.faces:
         #     if (face.label == 'AB' or face.label == None):
@@ -548,7 +546,7 @@ if __name__ == '__main__':
     #log_and = DCEL.logical_and(dcel1, dcel2)
     # log_and.draw()
     log_or = DCEL.logical_or(dcel1, dcel2)
-    log_or.draw()
+   # log_or.draw()
     log_min = DCEL.logical_minus(dcel1, dcel2)
-    log_min.draw()
+    # log_min.draw()
     print()

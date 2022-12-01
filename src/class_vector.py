@@ -1,5 +1,7 @@
 import math
 
+_NDIGITS = 6
+
 
 class Vector:
 
@@ -115,6 +117,11 @@ class Vector:
             return False
         sin_angle = abs(vec1.x*vec2.y-vec1.y*vec2.x)
         return sin_angle < 0.0000000001
+
+    def round(self, ndigits=_NDIGITS):
+        self.x = round(self.x, ndigits)
+        self.y = round(self.y, ndigits)
+        return self
 
     def copy(self):
         return Vector(self.x, self.y)

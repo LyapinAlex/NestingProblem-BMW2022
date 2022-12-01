@@ -1,73 +1,54 @@
-from shapely.geometry import LineString, Point
-from class_direction import is_collinear
+from numpy import sign
+from class_direction import is_collinear, psevdoProd
 
 from class_vector import Vector
 
 
 class Segment:
-    @staticmethod
-    def split_by_intersections(segments):
-        i = 0
-        while (i < len(segments)):
-            j = i+1
-            while (j < len(segments)):
-                intersection = Segment.segment_intersection(
-                    segments[i], segments[j])
-                if (len(intersection) == 2):
-                    left_point = min(
-                        segments[i][0], segments[i][1], segments[j][0], segments[j][1])
-                    right_point = max(
-                        segments[i][0], segments[i][1], segments[j][0], segments[j][1])
-                    segments[i][0] = left_point
-                    segments[i][1] = right_point
-                    del segments[j]
-                    i -= 1
-                    break
-                if (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1]):
-                    if (is_collinear(segments[i][0]-segments[i][1], segments[j][0]-segments[j][1]) or is_collinear(segments[i][1]-segments[i][0], segments[j][0]-segments[j][1])):
-                        left_point = min(
-                            segments[i][0], segments[i][1], segments[j][0], segments[j][1])
-                        right_point = max(
-                            segments[i][0], segments[i][1], segments[j][0], segments[j][1])
-                        segments[i][0] = left_point
-                        segments[i][1] = right_point
-                        del segments[j]
-                        i -= 1
-                        break
-                j += 1
-            i += 1
+    def __init__(self, a: Vector, b: Vector, id) -> None:
+        self.a = a
+        self.b = b
+        self.min_point = min(a, b)
+        self.max_point = max(a, b)
+        self.id = id
 
-        new_segments = []
-        for i in range(len(segments)):
-            intersections = [segments[i][0], segments[i][1]]
-            for j in range(len(segments)):
-                if (i != j and not (segments[i][0] == segments[j][0] or segments[i][0] == segments[j][1] or segments[i][1] == segments[j][0] or segments[i][1] == segments[j][1])):
-                    intersection = Segment.segment_intersection(
-                        segments[i], segments[j])
-                    if (intersection):
-                        intersections += intersection
-            intersections = list(set(intersections))
-            intersections.sort()
-            for j in range(len(intersections)-1):
-                if ([intersections[j], intersections[j+1]] not in new_segments):
-                    new_segments.append([intersections[j], intersections[j+1]])
+    def __eq__(self, other):  # ==
+        return self.min_point == other.min_point and self.max_point == other.max_point
 
-        return new_segments
+    def __lt__(self, other):  # <
+        return (self.min_point < other.min_point) or ((self.min_point == other.min_point) and
+                                                      (self.max_point < other.max_point))
+
+    def __le__(self, other):  # <=
+        return self < other or self == other
+
+    def __hash__(self) -> int:
+        return hash((self.min_point, self.max_point))
+
+    def compare_with_point(self, point):  # Проверить
+        a = self.max_point - self.min_point
+        b = point - self.min_point
+        signed_area = psevdoProd(a, b)
+        return sign(signed_area)
 
     @staticmethod
-    def segment_intersection(segment1, segment2):
-        A = (segment1[0].x, segment1[0].y)
-        B = (segment1[1].x, segment1[1].y)
+    def intersection(this: 'Segment', other: 'Segment'):  # Проверить
+        """Возвращает координату пересечения пары отрезков, но\\
+            если отрезки параллельны или хотя бы одна из возможных пар из их концов совпадает возвращает None"""
+        a = this.max_point - this.min_point
+        b = other.min_point - other.max_point
+        c = other.min_point - this.min_point
+        if psevdoProd(a, b):
+            l1 = psevdoProd(c, b) / psevdoProd(a, b)
+            l2 = psevdoProd(a, c) / psevdoProd(a, b)
+            if (0 <= l1) and (l1 <= 1) and (0 <= l2) and (l2 <= 1):
+                if (0 == l1 and (0 == l2 or l2 == 1)) or (1 == l1 and (0 == l2 or l2 == 1)):
+                    return None
+                else:
+                    return (this.min_point + a * l1).round()
+        return None
 
-        C = (segment2[0].x, segment2[0].y)
-        D = (segment2[1].x, segment2[1].y)
-
-        line_1 = LineString([A, B])
-        line_2 = LineString([C, D])
-        int_pt = line_1.intersection(line_2)
-        if type(int_pt) == Point:
-            return [Vector(float(int_pt.x), float(int_pt.y))]
-        elif type(int_pt) == LineString:
-            if (len(int_pt.bounds) == 0):
-                return []
-            return [Vector(float(int_pt.bounds[0]), float(int_pt.bounds[1])), Vector(float(int_pt.bounds[2]), float(int_pt.bounds[3]))]
+    def distance_point_from_segment(self, point: Vector):
+        a = self.max_point - self.min_point
+        b = point - self.min_point
+        return psevdoProd(a, b)
