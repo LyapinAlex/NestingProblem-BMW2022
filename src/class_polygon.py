@@ -5,12 +5,13 @@ from math import ceil, floor
 from matplotlib import patches
 from matplotlib import pyplot as plt
 
-from class_vector import Vector
+from class_vector import Vector, _NDIGITS
 
 
 class Polygon:
 
-    def __init__(self, points):
+    def __init__(self, points: list[Vector]):
+        """На вход либо массив векторов, либо массив Nx2"""
         if type(points[0]) == type(Vector(0, 0)):
             self.points = points
         else:
@@ -29,23 +30,24 @@ class Polygon:
 
 # -------------------------------  Structure   ---------------------------------
 
-    def point(self, i):
+    def point(self, i: int):
         return self.points[i]
 
-    def next(self, i):
+    def next(self, i: int):
         if i == self.num_sides - 1:
             return self.points[0]
         else:
             return self.points[i + 1]
 
-    def prev(self, i):
+    def prev(self, i: int):
         if i == 0:
             return self.points[self.num_sides - 1]
         else:
             return self.points[i - 1]
 
-    def get_side(self, num_side):
-        """-1 <= num_side <= self.num_sides"""
+    def get_side(self, num_side: int) -> Vector:
+        """-1 <= num_side <= self.num_sides\\
+            возвращает сторону отложенную от начала координат"""
         if num_side == self.num_sides:
             return self.next(0) - self.point(0)
         elif num_side == -1:
@@ -70,10 +72,11 @@ class Polygon:
         return Vector(max_x, max_y)
 
     def resize(self):
+        """Возвращает правую верхнюю точку описанного прямоугольника отложенного от начала координат"""
         self.size = self.maxXY() - self.minXY()
         return self.size
 
-    def round_points(self, ndigits=4):
+    def round_points(self, ndigits=_NDIGITS):
         for point in self.points:
             point.x = round(point.x, ndigits)
             point.y = round(point.y, ndigits)
@@ -117,14 +120,15 @@ class Polygon:
         return
 
     def del_duplicate_points(self):
-        _RADIUS_NEIGHBORHOOD = 0.1 # в милиметрах
+        _RADIUS_NEIGHBORHOOD = 0.1  # в милиметрах
         new_points = [self.points[0]]
         new_prev_point = self.points[0]
         for i in range(1, self.num_sides):
             if not abs(new_prev_point - self.point(i)) < _RADIUS_NEIGHBORHOOD:
                 new_points.append(self.point(i))
                 new_prev_point = self.points[i]
-        if abs(new_points[0] - new_points[len(new_points)-1]) < _RADIUS_NEIGHBORHOOD:
+        if abs(new_points[0] -
+               new_points[len(new_points) - 1]) < _RADIUS_NEIGHBORHOOD:
             new_points.pop()
         self.points = new_points
         self.num_sides = len(self.points)
@@ -141,13 +145,13 @@ class Polygon:
 
 # ------------------------------  Calculations   -------------------------------
 
-    def side_length(self, num_side):
+    def side_length(self, num_side: int):
         return abs(self.get_side(num_side))
 
-    def side_angle(self, num_side):
+    def side_angle(self, num_side: int):
         return self.get_side(num_side).angle()
 
-    def calc_area(self, without_sign=True):
+    def calc_area(self, without_sign=True) -> float:
         area_value = 0
         for i in range(self.num_sides):
             area_value += self.point(i).x * self.next(i).y - self.next(
@@ -157,11 +161,12 @@ class Polygon:
             area_value = abs(area_value)
         return area_value
 
-    def area_circumscribed_rectangle(self):
+    def area_circumscribed_rectangle(self) -> float:
         self.resize()
         return self.size.x * self.size.y
 
     def calc_centroid(self):
+        """Возвращает центр масс многоугольника"""
         centroid = Vector(0, 0)
         for i in range(self.num_sides):
             area_value = self.point(i).x * self.next(i).y - self.next(
@@ -223,13 +228,13 @@ class Polygon:
             exp_points.append(self.point(i) + v)
         return Polygon(exp_points)
 
-    def is_side_horizontal(self, num_side):
+    def is_side_horizontal(self, num_side) -> bool:
         return self.point(num_side).y == self.next(num_side).y
 
-    def is_side_vertical(self, num_side):
+    def is_side_vertical(self, num_side) -> bool:
         return self.point(num_side).x == self.next(num_side).x
 
-    def is_side_intersect_horizontal(self, num_side, height):
+    def is_side_intersect_horizontal(self, num_side, height) -> bool:
         """Пересекает ли сторона num_side прямую: y = height"""
         return (self.point(num_side).y - height) * (self.next(num_side).y -
                                                     height) <= 0
@@ -365,18 +370,18 @@ class Polygon:
 
 # -----------------------------  Rotate and move   -----------------------------
 
-    def rotate(self, angle):
+    def rotate(self, angle: float):
         for point in self.points:
             point.rotate(angle)
         self.round_points()
         self.resize()
         return self
 
-    def rotate_on_side(self, num_side):
+    def rotate_on_side(self, num_side: int):
         ang = self.side_angle(num_side)
         return self.rotate(-ang)
 
-    def move_to(self, vector):
+    def move_to(self, vector: Vector):
         shift_vector = vector - self.minXY()
         for point in self.points:
             point += shift_vector
@@ -385,6 +390,7 @@ class Polygon:
 
     def move_to_origin(self):
         return self.move_to(Vector(0, 0))
+
 
 # ---------------------------------   Output   ---------------------------------
 
@@ -506,26 +512,27 @@ if __name__ == '__main__':
                    [577.463, 759.286], [596.705, 725.959], [596.495, 724.021],
                    [594.958, 722.823], [593.992, 722.565], [592.205, 719.577],
                    [592.205, 683.9]]
-    
+
     pol1 = Polygon([[592.205, 683.901], [593.992, 680.914], [594.958, 680.656],
-                   [596.495, 679.457], [596.705, 677.52], [577.463, 644.192],
-                   [575.68, 643.405], [573.874, 644.137], [573.167, 644.845],
-                   [569.687, 644.898], [538.79, 627.06], [537.097, 624.02],
-                   [537.356, 623.054], [537.087, 621.123], [535.514, 619.973],
-                   [497.03, 619.973], [495.457, 621.123], [495.188, 623.053],
-                   [495.447, 624.02], [493.754, 627.06], [462.857, 644.898],
-                   [459.377, 644.844], [458.67, 644.138], [456.864, 643.405],
-                   [455.081, 644.192], [435.839, 677.52], [436.049, 679.457],
-                   [437.586, 680.655], [438.553, 680.915], [440.339, 683.901],
-                   [440.339, 719.577], [438.553, 722.564], [437.586, 722.824],
-                   [436.049, 724.021], [435.839, 725.959], [455.081, 759.286],
-                   [456.864, 760.073], [458.67, 759.341], [459.377, 758.634],
-                   [462.857, 758.58], [493.754, 776.418], [495.447, 779.459],
-                   [495.188, 780.426], [495.457, 782.355], [497.03, 783.506],
-                   [535.514, 783.506], [537.087, 782.355], [537.356, 780.425],
-                   [537.097, 779.459], [538.79, 776.418], [569.687, 758.58],
-                   [573.167, 758.634], [573.874, 759.342], [575.68, 760.073],
-                   [577.463, 759.286], [596.705, 725.959], [596.495, 724.021],
-                   [594.958, 722.823], [593.992, 722.565], [592.205, 719.577],
-                   [592.205, 683.9]])
+                    [596.495, 679.457], [596.705, 677.52], [577.463, 644.192],
+                    [575.68, 643.405], [573.874, 644.137], [573.167, 644.845],
+                    [569.687, 644.898], [538.79, 627.06], [537.097, 624.02],
+                    [537.356, 623.054], [537.087, 621.123], [535.514, 619.973],
+                    [497.03, 619.973], [495.457, 621.123], [495.188, 623.053],
+                    [495.447, 624.02], [493.754, 627.06], [462.857, 644.898],
+                    [459.377, 644.844], [458.67, 644.138], [456.864, 643.405],
+                    [455.081, 644.192], [435.839, 677.52], [436.049, 679.457],
+                    [437.586, 680.655], [438.553, 680.915], [440.339, 683.901],
+                    [440.339, 719.577], [438.553, 722.564], [437.586, 722.824],
+                    [436.049, 724.021], [435.839, 725.959], [455.081, 759.286],
+                    [456.864, 760.073], [458.67, 759.341], [459.377, 758.634],
+                    [462.857, 758.58], [493.754, 776.418], [495.447, 779.459],
+                    [495.188, 780.426], [495.457, 782.355], [497.03, 783.506],
+                    [535.514, 783.506], [537.087, 782.355], [537.356, 780.425],
+                    [537.097, 779.459], [538.79, 776.418], [569.687, 758.58],
+                    [573.167, 758.634], [573.874, 759.342], [575.68, 760.073],
+                    [577.463, 759.286], [596.705, 725.959], [596.495, 724.021],
+                    [594.958, 722.823], [593.992, 722.565], [592.205, 719.577],
+                    [592.205, 683.9]])
     # print(pol1)
+    pol1.draw()

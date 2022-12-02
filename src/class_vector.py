@@ -4,6 +4,7 @@ _NDIGITS = 6
 _ANGLE_ERROR = 0.0001
 _LENGTH_ERROR = 0.000001
 
+
 class Vector:
 
     def __init__(self, x, y):
@@ -24,26 +25,26 @@ class Vector:
 
 # ---------------------------  Computational operations   ---------------------------
 
-    def __add__(self, other):  # +
+    def __add__(self, other: 'Vector'):  # +
         return Vector(self.x + other.x, self.y + other.y)
 
-    def __iadd__(self, other):  # +=
+    def __iadd__(self, other: 'Vector'):  # +=
         self.x += other.x
         self.y += other.y
         return self
 
-    def __sub__(self, other):  # -
+    def __sub__(self, other: 'Vector'):  # -
         return Vector(self.x - other.x, self.y - other.y)
 
-    def __isub__(self, other):  # -=
+    def __isub__(self, other: 'Vector'):  # -=
         self.x -= other.x
         self.y -= other.y
         return self
 
-    def __mul__(self, scalar):  # *
+    def __mul__(self, scalar) -> 'Vector':  # *
         return Vector(self.x * scalar, self.y * scalar)
 
-    def __rmul__(self, scalar):  # *
+    def __rmul__(self, scalar) -> 'Vector':  # *
         return self * scalar
 
     def __imul__(self, scalar):  # *=
@@ -56,7 +57,7 @@ class Vector:
         self.y /= scalar
         return self
 
-    def __neg__(self):  # -
+    def __neg__(self) -> 'Vector':  # -
         return Vector(-self.x, -self.y)
 
 # ----------------------------  Logical operations   ----------------------------
@@ -65,14 +66,15 @@ class Vector:
     def __bool__(self):  # != Vector(0,0)
         return self.x != 0 or self.y != 0
 
-    def __eq__(self, other): # ==
+    def __eq__(self, other: 'Vector') -> bool:  # ==
         return (self.x == other.x) and (self.y == other.y)
 
-    def __lt__(self, other):  # <
+    def __lt__(self, other: 'Vector') -> bool:  # <
         return (self.y < other.y) or ((self.y == other.y) and self.x < other.x)
 
-    def __le__(self, other):  # <=
+    def __le__(self, other: 'Vector') -> bool:  # <=
         return self < other or self == other
+
 
 # ---------------------------  Geometric operations   ---------------------------
 
@@ -98,7 +100,7 @@ class Vector:
     def get_orthogonal(self):
         return Vector(self.y, -self.x).normalize()
 
-    def rotate(self, angle):
+    def rotate(self, angle: float):
         a = self.x
         b = self.y
         self.x = a * math.cos(angle) - b * math.sin(angle)
@@ -115,7 +117,7 @@ class Vector:
     def in_neighborhood_zero(self):
         return abs(self) <= _LENGTH_ERROR
 
-    def is_collinear(self, other):
+    def is_collinear(self, other) -> bool:
         angle_difference = abs(self.angle() - other.angle())
         if angle_difference > math.pi: angle_difference -= math.pi
         return angle_difference <= _ANGLE_ERROR
@@ -123,21 +125,22 @@ class Vector:
     def psevdo_prod(self, other):
         return self.x * other.y - self.y * other.x
 
-    def round(self, ndigits = _NDIGITS):
+    def round(self, ndigits=_NDIGITS):
         self.x = round(self.x, ndigits)
         self.y = round(self.y, ndigits)
         return self
 
 
-def intersection_pair_segments(p1: Vector, p2: Vector, q1: Vector, q2: Vector):
+def intersection_pair_segments(p1: Vector, p2: Vector, q1: Vector, q2: Vector) -> Vector:
+    """Возвращает точку пересечения двух отрезков (p1, p2) и (q1, q2) если она есть, иначе None"""
     a = p2 - p1
     b = q1 - q2
     c = q1 - p1
     if a.psevdo_prod(b):
         l1 = c.psevdo_prod(b) / a.psevdo_prod(b)
         l2 = a.psevdo_prod(c) / a.psevdo_prod(b)
-        if (0<=l1) and (l1<=1) and (0<=l2) and (l2<=1):
-            return p1+a*l1
+        if (0 <= l1) and (l1 <= 1) and (0 <= l2) and (l2 <= 1):
+            return p1 + a * l1
     return None
 
 

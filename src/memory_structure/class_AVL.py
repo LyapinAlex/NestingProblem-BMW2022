@@ -12,24 +12,29 @@ class Node:
     def __repr__(self):
         return 'Node({})'.format(self.key)
 
+    def swap_data(self, other: 'Node'):
+        key = self.key
+        self.key = other.key
+        other.key = key
+
     # ----------------------------  Logical operations   ----------------------------
-    
-    def __eq__(self, other): # ==
+
+    def __eq__(self, other: 'Node') -> bool:  # ==
         return self.key == other.key
 
-    def __lt__(self, other):  # <
+    def __lt__(self, other: 'Node') -> bool:  # <
         return self.key < other.key
 
-    def __gt__(self, other):  # >
+    def __gt__(self, other: 'Node') -> bool:  # >
         return self.key > other.key
 
-    def __ne__(self, other): # !=
+    def __ne__(self, other: 'Node') -> bool:  # !=
         return not (self == other)
 
-    def __le__(self, other):  # <=
+    def __le__(self, other: 'Node') -> bool:  # <=
         return self == other or self < other
 
-    def __ge__(self, other):  # >=
+    def __ge__(self, other: 'Node') -> bool:  # >=
         return self == other or self > other
 
 
@@ -41,10 +46,10 @@ class AVL:
     def __repr__(self):
         return 'AVL({})'.format(self.root)
 
-    def create_node(self, key):
+    def create_node(self, key) -> Node:
         return Node(key)
 
-    def swap(self, node1, node2):
+    def swap(self, node1: Node, node2: Node):
         """Меняет местами только ключи"""
         key = node1.key
         node1.key = node2.key
@@ -52,45 +57,50 @@ class AVL:
 
     # ----------------------------  structure information  ----------------------------
 
-    def height(self):
+    def height(self) -> int:
+        """Возвращает высоту дерева"""
         return self.node_height(self.root)
 
-    def node_height(self, node):
+    def node_height(self, node: Node) -> int:
         if node is None:
             return 0
         else:
             return node.height
 
-    def _balance(self, node):
+    def _balance(self, node: Node) -> int:
         if node is None:
             return 0
         else:
             return self.node_height(node.left) - self.node_height(node.right)
 
-    def _correction_height(self, node):
+    def _correction_height(self, node: Node) -> int:
         node.height = 1 + max(self.node_height(node.left),
                               self.node_height(node.right))
         return node.height
 
     # ----------------------------  extracting nodes  ----------------------------
 
-    def min_key_node(self, node):
+    def min_key_node(self, node: Node) -> Node:
+        """Возвращает \"минимальный\" узел в поддереве, корень которого node (если такого нет, то None)"""
         if node is None or node.left is None:
             return node
         else:
             return self.min_key_node(node.left)
 
-    def max_key_node(self, node):
+    def max_key_node(self, node: Node) -> Node:
+        """Возвращает \"максимальный\" узел в поддереве, корень которого node (если такого нет, то None)"""
         if node is None or node.right is None:
             return node
         else:
             return self.max_key_node(node.right)
 
-    def find(self, key):
+    def find(self, key) -> Node:
+        """По ключу ищет узел в дереве"""
         searchable_node = self.create_node(key)
         return self.node_find(self.root, searchable_node)
 
-    def node_find(self, node, searchable_node):
+    def node_find(self, node: Node, searchable_node: Node) -> Node:
+        """По узлу ищет узел в поддереве, корнем которого является node"""
         if node is None:
             return
         if searchable_node > node:
@@ -100,10 +110,10 @@ class AVL:
         else:
             return node
 
-    def get_nearests(self, key):
+    def get_nearests(self, key) -> list[Node]:
         """Ищет пару чисел по ключу таких, что \\ 
-        первое - минимальное среди тех кто больше (если нет то None) \\
-        второе - максимальное среди тех кто меньше (если нет то None)"""
+        первое - минимальное среди тех кто больше (соседа который больше), если нет то None \\
+        второе - максимальное среди тех кто меньше (соседа который меньше), если нет то None"""
         node_key = self.find(key)
         neighbors = [None, None]
         if not (node_key is None):
@@ -119,7 +129,8 @@ class AVL:
                 neighbors[1] = turnsLR[1]
         return neighbors
 
-    def _find_last_turnsLR(self, node, searchable_node):
+    def _find_last_turnsLR(self, node: Node,
+                           searchable_node: Node) -> list[Node]:
         turnsLR = [None, None]
         if node is None:
             return turnsLR
@@ -135,7 +146,7 @@ class AVL:
 
     # ----------------------------  change the tree structure  ----------------------------
 
-    def _small_rotate_R(self, node):
+    def _small_rotate_R(self, node: Node) -> Node:
         a = node.left
         node.left = a.right
         a.right = node
@@ -143,11 +154,11 @@ class AVL:
         self._correction_height(a)
         return a
 
-    def _big_rotate_R(self, node):
+    def _big_rotate_R(self, node: Node) -> Node:
         node.left = self._small_rotate_L(node.left)
         return self._small_rotate_R(node)
 
-    def _small_rotate_L(self, node):
+    def _small_rotate_L(self, node: Node) -> Node:
         a = node.right
         node.right = a.left
         a.left = node
@@ -155,11 +166,11 @@ class AVL:
         self._correction_height(a)
         return a
 
-    def _big_rotate_L(self, node):
+    def _big_rotate_L(self, node: Node) -> Node:
         node.right = self._small_rotate_R(node.right)
         return self._small_rotate_L(node)
 
-    def balancing_node(self, node):
+    def balancing_node(self, node: Node) -> Node:
         balance = self._balance(node)
 
         balanceR = self._balance(node.right)
@@ -179,11 +190,13 @@ class AVL:
     # ----------------------------  change the content  ----------------------------
 
     def insert(self, key):
+        """Производит вставку элемента в дерево"""
         implemented_node = self.create_node(key)
         a = self.node_insert(self.root, implemented_node)
         self.root = a
 
-    def node_insert(self, node, implemented_node):
+    def node_insert(self, node: Node, implemented_node: Node) -> Node:
+        """Производит вставку узла в поддерево с корнем node"""
         if node is None:
             return implemented_node
         elif implemented_node > node:
@@ -200,7 +213,7 @@ class AVL:
         a = self.node_delete(self.root, excluded_node)
         self.root = a
 
-    def node_delete(self, node, excluded_node):
+    def node_delete(self, node: Node, excluded_node: Node) -> Node:
         if node is None:
             return node
         elif excluded_node < node:
@@ -213,40 +226,40 @@ class AVL:
             else:
                 if self._balance(node) > 0:
                     rgt = self.max_key_node(node.left)
-                    node.key = rgt.key
+                    node.swap_data(rgt)
                     node.left = self._delete_max(node.left)
                 else:
                     rgt = self.min_key_node(node.right)
-                    node.key = rgt.key
+                    node.swap_data(rgt)
                     node.right = self._delete_min(node.right)
         if node is None:
             return node
         self._correction_height(node)
         return self.balancing_node(node)
 
-    def _delete_min(self, node):
+    def _delete_min(self, node: Node) -> Node:
         if (node.left is None) and (node.right is None):
             return None
         if not (node.left is None):
             node.left = self._delete_min(node.left)
         else:
-            node.key = node.right.key
+            node.swap_data(node.right)
             node.right = None
-            
+
         if node is None:
             return node
         self._correction_height(node)
         return self.balancing_node(node)
 
-    def _delete_max(self, node):
+    def _delete_max(self, node: Node) -> Node:
         if (node.left is None) and (node.right is None):
             return None
         if not (node.right is None):
             node.right = self._delete_max(node.right)
         else:
-            node.key = node.left.key
+            node.swap_data(node.left)
             node.left = None
-            
+
         if node is None:
             return node
         self._correction_height(node)
@@ -254,7 +267,7 @@ class AVL:
 
     # ----------------------------  other representations  ----------------------------
 
-    def node_preorder(self, node):
+    def node_preorder(self, node: Node) -> list[Node]:
         res = []
         if node is None:
             return []
@@ -263,10 +276,10 @@ class AVL:
         res = res + self.node_preorder(node.right)
         return res
 
-    def preorder(self):
+    def preorder(self) -> list[Node]:
         return self.node_preorder(self.root)
 
-    def node_inorder(self, node):
+    def node_inorder(self, node: Node) -> list[Node]:
         res = []
         if node is None:
             return []
@@ -275,20 +288,16 @@ class AVL:
         res = res + self.node_inorder(node.right)
         return res
 
-    def inorder(self):
+    def inorder(self) -> list[Node]:
         """Возвращает список узлов в возростающем порядке"""
         return self.node_inorder(self.root)
 
     def inorder_print(self):
+        """Вывод дерева в возростающем порядке"""
         nodes = self.inorder()
         for node in nodes:
             print(node)
-        return
-    
-    def print2(self):
-        print("      ", self.root)
-        print(self.root.left, self.root.right)
-        return
+
 
 
 if __name__ == '__main__':
@@ -321,11 +330,14 @@ if __name__ == '__main__':
           Tree.root.left.right.left, Tree.root.left.right.right,
           Tree.root.right.left.left, Tree.root.right.left.right,
           Tree.root.right.right.left, Tree.root.right.right.right)
-    
+
     print()
     print("-------------------=====================-------------------")
-    
+
+    Tree.delete(9)
     Tree.delete(2)
+    Tree.delete(1)
+    Tree.delete(14)
 
     print("-------------------=====================-------------------")
     print()
@@ -338,7 +350,9 @@ if __name__ == '__main__':
           Tree.root.left.right.left, Tree.root.left.right.right,
           Tree.root.right.left.left, Tree.root.right.left.right,
           Tree.root.right.right.left, Tree.root.right.right.right)
-    
+
     print()
     print("-------------------=====================-------------------")
     Tree.inorder_print()
+
+    print(Tree.get_nearests(8))
