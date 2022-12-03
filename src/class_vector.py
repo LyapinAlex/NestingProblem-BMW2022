@@ -63,7 +63,13 @@ class Vector:
         return Vector(-self.x, -self.y)
 
     def __lt__(self, other):  # лексикографический порядок
-        return (self.y < other.y) or ((self.y == other.y) and self.x < other.x)
+        return self != other and (self.y < other.y) or ((self.y == other.y) and self.x < other.x)
+
+    def __le__(self, other):
+        return self == other or self < other
+
+    def __gt__(self, other):
+        return other < self
 
     def to_tuple(self):
         return (self.x, self.y)

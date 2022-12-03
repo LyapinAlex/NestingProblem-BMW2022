@@ -28,11 +28,16 @@ class Segment:
     def compare_with_point(self, point):  # Проверить
         a = self.max_point - self.min_point
         b = point - self.min_point
+        if (is_collinear(a, b) or a == Vector(0, 0) or b == Vector(0, 0)):
+            return 0
         signed_area = psevdoProd(a, b)
+        if (abs(signed_area) < 0.0001):
+            return 0
         return sign(signed_area)
 
     @staticmethod
-    def intersection(this: 'Segment', other: 'Segment'):  # Проверить
+    # TODO: Проверить и сделать чтобы работало для пересечений при касании по внутренности
+    def intersection(this: 'Segment', other: 'Segment'):
         """Возвращает координату пересечения пары отрезков, но\\
             если отрезки параллельны или хотя бы одна из возможных пар из их концов совпадает возвращает None"""
         a = this.max_point - this.min_point
@@ -45,10 +50,17 @@ class Segment:
                 if (0 == l1 and (0 == l2 or l2 == 1)) or (1 == l1 and (0 == l2 or l2 == 1)):
                     return None
                 else:
-                    return (this.min_point + a * l1).round()
+                    return this.min_point + a * l1
         return None
 
     def distance_point_from_segment(self, point: Vector):
         a = self.max_point - self.min_point
         b = point - self.min_point
         return psevdoProd(a, b)
+
+
+if __name__ == '__main__':
+    s1 = Segment(Vector(0, 0), Vector(1, 0), 0)
+    s2 = Segment(Vector(0.5, 0), Vector(0.5, 1), 1)
+    intersection = Segment.intersection(s2, s1)
+    print(intersection)

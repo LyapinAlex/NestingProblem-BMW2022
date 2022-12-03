@@ -1,7 +1,8 @@
 class Node:
 
-    def __init__(self, key):  # NEED VALUE
+    def __init__(self, key, value=None):  # NEED VALUE
         self.key = key
+        self.value = value
         self.left = None
         self.right = None
         self.height = 1
@@ -34,8 +35,11 @@ class Node:
 
     def swap_data(self, other):  # MAYBE NOT OK
         tmp_key = other.key
+        tmp_value = other.value
         other.key = self.key
+        other.value = self.value
         self.key = tmp_key
+        self.value = tmp_value
 
 
 class AvlTree:
@@ -50,10 +54,8 @@ class AvlTree:
         return Node(key)
 
     def swap(self, node1, node2):  # NOT OK!!!!!!!!!!!!
-        """Меняет местами только ключи"""
-        key = node1.key
-        node1.key = node2.key
-        node2.key = key
+        """Меняет местами ключи и значения"""
+        node1.swap_data(node2)
 
     # ----------------------------  structure information  ----------------------------
 
@@ -92,7 +94,7 @@ class AvlTree:
             return self.max_key_node(node.right)
 
     def find(self, key):
-        searchable_node = self.create_node(key)  # NOT OK!
+        searchable_node = self.create_node(key)  # Maybe OK!
         return self.node_find(self.root, searchable_node)
 
     def node_find(self, node, searchable_node):  # Maybe OK
@@ -103,6 +105,13 @@ class AvlTree:
         elif searchable_node < node:
             return self.node_find(node.left, searchable_node)
         else:
+            # if (node.key == searchable_node.key):
+            #     return node
+            # else:
+            # ans1 = self.node_find(node.left, searchable_node)
+            # if ans1 is None:
+            #     ans1 = self.node_find(node.right, searchable_node)
+            # return ans1
             return node
 
     def get_nearests(self, key):  # NOT OK!
@@ -137,6 +146,18 @@ class AvlTree:
             if turnsLR[0] is None:
                 turnsLR[0] = node
         return turnsLR
+        # if node.key == searchable_node.key:
+        #     return turnsLR
+        # else:
+        #     if self.node_find(node.right, searchable_node) is None:
+        #         turnsLR = self._find_last_turnsLR(node.left, searchable_node)
+        #         if turnsLR[0] is None:
+        #             turnsLR[0] = node
+        #     else:
+        #         turnsLR = self._find_last_turnsLR(node.right, searchable_node)
+        #         if turnsLR[1] is None:
+        #             turnsLR[1] = node
+        #     return turnsLR
 
     # ----------------------------  change the tree structure  ----------------------------
 

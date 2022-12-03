@@ -22,7 +22,7 @@ def is_collinear(vec1: Vector, vec2: Vector):
     if (quadrant_1 != quadrant_2):
         return False
     sin_angle = abs(vec1.x*vec2.y-vec1.y*vec2.x)
-    return sin_angle < 0.0000000001
+    return sin_angle < 0.000001
 
 
 def isBetween(p: Vector, q: Vector, r: Vector):
