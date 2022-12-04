@@ -104,14 +104,9 @@ class AvlTree:
             return self.node_find(node.right, searchable_node)
         elif searchable_node < node:
             return self.node_find(node.left, searchable_node)
+        elif searchable_node.key != node.key:
+            return None
         else:
-            # if (node.key == searchable_node.key):
-            #     return node
-            # else:
-            # ans1 = self.node_find(node.left, searchable_node)
-            # if ans1 is None:
-            #     ans1 = self.node_find(node.right, searchable_node)
-            # return ans1
             return node
 
     def get_nearests(self, key):  # NOT OK!

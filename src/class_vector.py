@@ -75,7 +75,7 @@ class Vector:
         return (self.x, self.y)
 
     def __hash__(self) -> int:
-        return hash((self.x, self.y))
+        return hash((round(self.x, 6), round(self.y, 6)))
 
 # ---------------------------  Geometric operations   ---------------------------
 
