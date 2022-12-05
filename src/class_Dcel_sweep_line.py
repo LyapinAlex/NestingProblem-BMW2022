@@ -18,8 +18,10 @@ class EventValue:  # OK
 
 
 class Event(Node):  # OK
-    def __init__(self, point):
-        super().__init__(point, EventValue())
+    def __init__(self, point, value=None):
+        if value is None:
+            value = EventValue()
+        super().__init__(point, value)
 
     # Чтобы при одинаковых y извлекалась сначала самая левая точка, а не правая
     def __lt__(self: 'Event', other: 'Event'):
@@ -29,9 +31,8 @@ class Event(Node):  # OK
         return self.key != other.key and other.__lt__(self)
 
 
-# НЕ УЧТЕНО ДОБАВЛЕНИЕ НАЛАГАЮЩИХСЯ СЕГМЕНТОВ НАЧИНАЮЩИХСЯ ИЛИ КОНЧАЮЩИХСЯ И ОКАНСИВАЮЩИХСЯ В ОДНОЙ ТОЧКЕ
 class EventQueue(AvlTree):
-    def __init__(self, status: 'Status'):
+    def __init__(self):
         super().__init__()
 
     def insert_events_by_segment(self, segment: Segment):
@@ -57,7 +58,7 @@ class EventQueue(AvlTree):
                     return
                 else:
                     new_segment = Segment(
-                        collinear_segment.min_point, segment.min_point, 0)
+                        collinear_segment.min_point, segment.min_point)
                     self.insert_events_by_segment(new_segment)
                     return
             if (collinear_segment.min_point == segment.min_point):  # Совпадают end point'ы
@@ -66,26 +67,26 @@ class EventQueue(AvlTree):
                     return
                 else:
                     new_segment = Segment(
-                        collinear_segment.max_point, segment.max_point, 0)
+                        collinear_segment.max_point, segment.max_point)
                     self.insert_events_by_segment(new_segment)
                     return
 
         if (not found_start_event):
-            event = Event(segment.max_point)
+            event = self.create_node(segment.max_point)
             event.value.upper_segments.add(segment)
             self.insert(event)
         else:
             found_start_event.value.upper_segments.add(segment)
 
         if (not found_end_event):
-            event = Event(segment.min_point)
+            event = self.create_node(segment.min_point)
             event.value.lower_segments.add(segment)
             self.insert(event)
         else:
             found_end_event.value.lower_segments.add(segment)
 
     def insert_event_by_intersection(self, point, segment1, segment2):
-        found_event: Event = self.find(point)
+        found_event = self.find(point)
         if (not found_event):
             event = Event(point)
             event.value.inner_segments.add(segment1)
@@ -108,8 +109,10 @@ class StatusValue:  # OK
 
 class StatusNode(Node):  # TODO
 
-    def __init__(self, key):
-        super().__init__(key, StatusValue())
+    def __init__(self, key, value=None):
+        if value is None:
+            value = StatusValue()
+        super().__init__(key, value)
 
     def __lt__(self: 'StatusNode', other: 'StatusNode'):
         '''Имеем следующий инвариант dist1==0 or dist2 ==0, то есть хотя бы один сегмент при
@@ -122,19 +125,6 @@ class StatusNode(Node):  # TODO
 
         if (dist2 != 0):  # other не проходит через точку, значит self проходит, и точка должна лежать слева от other
             return dist2 == 1
-
-        # TODO: Поправить для горизонтальный сегментов
-
-        # Случай двух горизонтальных (Только для поиска, для пересекающихся одновременно не могут быть в дереве)
-        if (self.key.min_point.y == self.key.max_point.y and other.key.max_point.y == other.key.min_point.y):
-            return False
-
-        # Если self - горизонтальный, то он меньше всех
-        # if (self.key.min_point.y == self.key.max_point.y):
-        #     return True
-        # # Если other - горизонтальный, то он меньше всех
-        # if (other.key.min_point.y == other.key.max_point.y):
-        #     return False
 
         # Если и self и other проходят через точку, то порядок определяется малым отклонением sweep_line (ненастоящим) по оси y
 
@@ -169,12 +159,13 @@ class Status(AvlTree):
 
 
 class SweepLine:
-    def __init__(self, segments: list[Segment]) -> None:
+    def __init__(self, segments: list[Segment], status, event_qeue, handler=None) -> None:
         self.intersection_points = []
-        self.status = Status()
-        self.event_queue = EventQueue(self.status)
+        self.status = status
+        self.event_queue = event_qeue
+        self.event_queue.status = self.status
         self.new_segments = []
-        self.object_handler = None
+        self.handler = handler
 
         for segment in segments:
             self.event_queue.insert_events_by_segment(segment)
@@ -194,11 +185,13 @@ class SweepLine:
         if (len(event.value.inner_segments) == 1 and len(event.value.lower_segments)+len(event.value.upper_segments) == 0):
             return
 
-        # Определяем эту функцию в нужном объекте и по сути обобщение готово
-        # self.object_handler.handle(event, self.status, self.event_queue)
-
         if (self.handle_overlap_case(event)):
             return
+
+        # Определяем эту функцию в нужном объекте и по сути обобщение готово
+
+        if (self.handler is not None):
+            self.handler(event, self.event_queue, self.status)
 
         # Если какой-то сегмент проходит через upper_segments (Только один, то есть еще пересечение не было найдено, а оно есть)
         if (len(event.value.inner_segments) == 0 and len(event.value.lower_segments) == 0):
@@ -222,9 +215,7 @@ class SweepLine:
 
     def check_on_new_inner_segments(self, event):
         fictive_segment = Segment(
-            event.key+Vector(0, -1000), event.key+Vector(0, 1000), 0)  # Можно ли убрать id ?
-        fictive_status = StatusNode(fictive_segment)
-        fictive_status.value.status = self.status
+            event.key+Vector(0, -1000), event.key+Vector(0, 1000))  # Можно ли убрать id ?
         right_neighbour, left_neighbour = self.status.get_nearests(
             fictive_segment)
         if left_neighbour is not None:
@@ -289,27 +280,30 @@ class SweepLine:
             self.status.delete(segment)
 
     def reverse_inner_segments(self, event):
+
+        status_values = []
         for segment in event.value.inner_segments:
+            status_values.append(self.status.find(segment).value)
             self.status.delete(segment)
 
         self.status.is_sweep_line_above_event_point = False
 
+        i = 0
         for segment in event.value.inner_segments:
-            status = StatusNode(segment)
-            status.value.status = self.status
+            status = self.status.create_node(segment)
+            status.value = status_values[i]
             self.status.insert(status)
+            i += 1
 
     def insert_upper_segments(self, event):
         for segment in event.value.upper_segments:
-            status = StatusNode(segment)
+            status = self.status.create_node(segment)
             status.value.status = self.status
             self.status.insert(status)
 
     def handle_only_lower_segments_case(self, event):
         fictive_segment = Segment(
-            event.key+Vector(0, -1000), event.key+Vector(0, 1000), 0)  # Можно ли убрать id ?
-        fictive_status = StatusNode(fictive_segment)
-        fictive_status.value.status = self.status
+            event.key+Vector(0, -1000), event.key+Vector(0, 1000))
         right_neighbour, left_neighbour = self.status.get_nearests(
             fictive_segment)
 
@@ -330,13 +324,11 @@ class SweepLine:
         inner_segments_status = []
 
         for segment in event.value.upper_segments:
-            status = StatusNode(segment)
-            status.value.status = self.status
+            status = self.status.create_node(segment)
             upper_segments_status.append(status)
 
         for segment in event.value.inner_segments:
-            status = StatusNode(segment)
-            status.value.status = self.status
+            status = self.status.create_node(segment)
             inner_segments_status.append(status)
 
         upper_segments_status.sort()  # Сортируем чтобы выбрать самое правое и левое
@@ -423,24 +415,24 @@ def rundom_segments(num_segments=10) -> list[Segment]:
     D = Vector(60, 50)
     E = Vector(80, 50)
     F = Vector(100, 50)
-    s1 = Segment(A, B, 0)
-    s2 = Segment(B, C, 1)
-    s3 = Segment(C, D, 2)
-    s4 = Segment(A, F, 3)
+    s1 = Segment(A, B)
+    s2 = Segment(B, C)
+    s3 = Segment(C, D)
+    s4 = Segment(A, F)
     array_segments = [s1, s2, s3, s4]
     for i in range(num_segments):
         p1 = Vector(
             float(random_float_array[4*i]), float(random_float_array[4*i+1])).round()
         p2 = Vector(float(random_float_array[4*i+2]),
                     float(random_float_array[4*i+3])).round()
-        array_segments.append(Segment(p1, p2, i))
+        array_segments.append(Segment(p1, p2))
     return array_segments
 
 
 def main():
-    array_segments = rundom_segments(100)
+    array_segments = rundom_segments(10)
     draw_lines(array_segments, [])
-    sweep_line = SweepLine(array_segments)
+    sweep_line = SweepLine(array_segments, Status(), EventQueue())
     sweep_line.event_queue.inorder_print()
     print(len(sweep_line.intersection_points))
     draw_lines(array_segments, sweep_line.intersection_points)

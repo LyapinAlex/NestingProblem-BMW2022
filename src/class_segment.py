@@ -5,12 +5,11 @@ from class_vector import Vector
 
 
 class Segment:
-    def __init__(self, a: Vector, b: Vector, id) -> None:
+    def __init__(self, a: Vector, b: Vector) -> None:
         self.a = a
         self.b = b
         self.min_point = min(a, b)
         self.max_point = max(a, b)
-        self.id = id
 
     def __eq__(self, other):  # ==
         return self.min_point == other.min_point and self.max_point == other.max_point
