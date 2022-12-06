@@ -134,10 +134,6 @@ class Face:
             if (point == segment[0] or point == segment[1]):
                 return False
             intersection = segment_intersection(line, segment)
-            # if (len(intersection) == 2):
-            #     if point.x < intersection[0].x and point.x > intersection[1].x:
-            #         return False
-            #     continue
             if (intersection):
                 number_of_intersections += 1
         return True if number_of_intersections % 2 == 1 else False

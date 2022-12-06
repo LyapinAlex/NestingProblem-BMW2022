@@ -188,10 +188,13 @@ class SweepLine:
         if (self.handle_overlap_case(event)):
             return
 
+        if (self.handler is not None):
+            self.handler.handle_vertex(event)
+
         # Определяем эту функцию в нужном объекте и по сути обобщение готово
 
         if (self.handler is not None):
-            self.handler(event, self.event_queue, self.status)
+            self.handler.handle_lower(event, self.event_queue, self.status)
 
         # Если какой-то сегмент проходит через upper_segments (Только один, то есть еще пересечение не было найдено, а оно есть)
         if (len(event.value.inner_segments) == 0 and len(event.value.lower_segments) == 0):
@@ -206,7 +209,13 @@ class SweepLine:
 
         self.reverse_inner_segments(event)
 
+        if (self.handler is not None):
+            self.handler.handle_inner(event, self.event_queue, self.status)
+
         self.insert_upper_segments(event)
+
+        if (self.handler is not None):
+            self.handler.handle_upper(event, self.event_queue, self.status)
 
         if (len(event.value.upper_segments)+len(event.value.inner_segments) == 0):
             self.handle_only_lower_segments_case(event)
@@ -242,10 +251,6 @@ class SweepLine:
             if (collinear_segment_status is not None and collinear_segment_status.key != segment):
                 collinear_segments = [segment, collinear_segment_status.key]
                 break
-
-        """Верхняя точка нового сегмента точно меньше старого, значит ее можно удалить,
-         нижняя точка может быть ниже, а может быть выше. Надо найти большую из них, удалить ее,
-          а в другой поменять сегмент на новый, кроме того надо отдельно обработать горизонтальный случай"""
 
         if (collinear_segments is not None):
             prev_min_point = collinear_segments[1].min_point
