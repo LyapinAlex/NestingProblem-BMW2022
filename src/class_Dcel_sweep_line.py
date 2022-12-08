@@ -1,5 +1,6 @@
 
 import copy
+import time
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -157,6 +158,10 @@ class Status(AvlTree):
         node.value.status = self
         return node
 
+    def find_neares_for_point(self, point):
+        left_neighbour = None
+        right_neighbour = None
+
 
 class SweepLine:
     def __init__(self, segments: list[Segment], status, event_qeue, handler=None) -> None:
@@ -166,7 +171,6 @@ class SweepLine:
         self.event_queue.status = self.status
         self.new_segments = []
         self.handler = handler
-
         for segment in segments:
             self.event_queue.insert_events_by_segment(segment)
         while (self.event_queue.root):
@@ -196,7 +200,7 @@ class SweepLine:
         if (self.handler is not None):
             self.handler.handle_lower(event, self.event_queue, self.status)
 
-        # Если какой-то сегмент проходит через upper_segments (Только один, то есть еще пересечение не было найдено, а оно есть)
+        # Если какой-то сегмент проходит через upper_segments(Только один, то есть еще пересечение не было найдено, а оно есть)
         if (len(event.value.inner_segments) == 0 and len(event.value.lower_segments) == 0):
             self.check_on_new_inner_segments(event)
 
@@ -424,96 +428,106 @@ def rundom_segments(num_segments=10) -> list[Segment]:
     s2 = Segment(B, C)
     s3 = Segment(C, D)
     s4 = Segment(A, F)
-    array_segments = [s1, s2, s3, s4]
+    array_segments = []
     for i in range(num_segments):
         p1 = Vector(
-            float(random_float_array[4*i]), float(random_float_array[4*i+1])).round()
+            float(random_float_array[4*i]), float(random_float_array[4*i+1]))
         p2 = Vector(float(random_float_array[4*i+2]),
-                    float(random_float_array[4*i+3])).round()
+                    float(random_float_array[4*i+3]))
         array_segments.append(Segment(p1, p2))
     return array_segments
 
 
 def main():
-    array_segments = rundom_segments(10)
+    array_segments = rundom_segments(1000)
     draw_lines(array_segments, [])
+    start_time = time.time()
     sweep_line = SweepLine(array_segments, Status(), EventQueue())
-    sweep_line.event_queue.inorder_print()
+    print(time.time()-start_time)
     print(len(sweep_line.intersection_points))
     draw_lines(array_segments, sweep_line.intersection_points)
 
 
 if __name__ == '__main__':
-    main()
+    # main()
     # ТЕСТЫ
-    # a0 = Vector(0, 0)
-    # b0 = Vector(1, 0)
-    # c0 = Vector(2, 0)
-    # a1 = Vector(0, 1)
-    # b1 = Vector(1, 1)
-    # c1 = Vector(2, 1)
-    # s1 = Segment(a0, c1, 1)
-    # s2 = Segment(b0, b1, 2)
-    # s3 = Segment(c0, a1, 3)
-    # s1 = Segment(Vector(0, 0), Vector(1, 1), 0)
-    # s2 = Segment(Vector(0, -1), Vector(1, 0), 1)
-    # s3 = Segment(Vector(0.7, -2), Vector(0.3, 1), 2)
-    # s4 = Segment(Vector(0, -3), Vector(1, 2.5), 2)
+    a0 = Vector(0, 0)
+    b0 = Vector(1, 0)
+    c0 = Vector(2, 0)
+    a1 = Vector(0, 1)
+    b1 = Vector(1, 1)
+    c1 = Vector(2, 1)
+    s1 = Segment(a0, c1)
+    s2 = Segment(b0, b1)
+    s3 = Segment(c0, a1)
+    s1 = Segment(Vector(0, 0), Vector(1, 1))
+    s2 = Segment(Vector(0, -1), Vector(1, 0))
+    s3 = Segment(Vector(0.7, -2), Vector(0.3, 1))
+    s4 = Segment(Vector(0, -3), Vector(1, 2.5))
 
-    # segments = [s1, s2, s3]
-    # v1 = Vector(1, 1)
-    # v0 = 0*v1
-    # v2 = 2*v1
-    # v3 = 3*v1
-    # w1 = Segment(v0, v2, 4)
-    # w2 = Segment(v0, b0, 5)
-    # segments = [w1, w2]
+    segments = [s1, s2, s3]
+    v1 = Vector(1, 1)
+    v0 = 0*v1
+    v2 = 2*v1
+    v3 = 3*v1
+    w1 = Segment(v0, v2)
+    w2 = Segment(v0, b0)
+    segments = [w1, w2]
 
-    # m0 = Vector(0, 1)
-    # m1 = Vector(1, 0)
-    # p0 = Vector(2, 1)
-    # p1 = Vector(1, 2)
-    # t1 = Segment(m0, p0, 6)
-    # t2 = Segment(m1, p1, 7)
-    # segments = [t1, t2]
+    m0 = Vector(0, 1)
+    m1 = Vector(1, 0)
+    p0 = Vector(2, 1)
+    p1 = Vector(1, 2)
+    t1 = Segment(m0, p0)
+    t2 = Segment(m1, p1)
+    segments = [t1, t2]
 
     # intersections = SweepLine(segments).intersection_points
     # print(len(intersections))
     # draw_lines(segments, intersections)
 
-    # A = Vector(0, 0)
-    # B = Vector(1, -1)
-    # C = Vector(2, 0)
-    # D = Vector(1, 1)
+    A = Vector(0, 0)
+    B = Vector(1, -1)
+    C = Vector(2, 0)
+    D = Vector(1, 1)
 
-    # s1 = Segment(A, B, 0)
-    # s2 = Segment(B, C, 1)
-    # s3 = Segment(C, D, 2)
-    # s4 = Segment(D, A, 3)
-    # s5 = Segment(A, C, 4)
-    # s6 = Segment(B, D, 5)
-    # s7 = Segment(A, C, 12)
+    s1 = Segment(A, B)
+    s2 = Segment(B, C)
+    s3 = Segment(C, D)
+    s4 = Segment(D, A)
+    s5 = Segment(A, C)
+    s6 = Segment(B, D)
+    s7 = Segment(A, C)
 
-    # segments = [s1, s2, s3, s4, s5, s6, Segment(
-    #     Vector(-1, -2), Vector(3, 2), 6), Segment(Vector(0.5, 0), Vector(0.5, 2), 7), Segment(Vector(1.5, -2), Vector(1.5, 2), 7), s7]
-    # A = Vector(0, 1)
-    # B = Vector(1, 0)
-    # C = Vector(2, 0)
-    # D = Vector(3, 0)
-    # E = Vector(4, 0)
-    # F = Vector(5, 0)
-    # s1 = Segment(A, B, 0)
-    # s2 = Segment(B, C, 1)
-    # s3 = Segment(C, D, 2)
-    # s4 = Segment(A, F, 3)
-    # segments = [s1, s2, s3, Segment(
-    #     Vector(-1, 2), Vector(3, 2), 3), Segment(Vector(-1, 2.5), Vector(3, 2.5), 3), Segment(Vector(2, 2), Vector(3, 0), 4), Segment(Vector(-1, 0), Vector(4, 10/3), 5)]
-    # segments = [s1, s2, s3, s4]
-    # draw_lines(segments, [])
-    # sweep = SweepLine(segments)
-    # print(len(sweep.intersection_points))
-    # for point in sweep.intersection_points:
-    #     print(point)
-    # for segment in sweep.new_segments:
-    #     print(segment.min_point, segment.max_point)
-    # draw_lines(sweep.new_segments, sweep.intersection_points)
+    segments = [s1, s2, s3, s4, s5, s6, Segment(
+        Vector(-1, -2), Vector(3, 2)), Segment(Vector(0.5, 0), Vector(0.5, 2)), Segment(Vector(1.5, -2), Vector(1.5, 2)), s7]
+    A = Vector(0, 1)
+    B = Vector(1, 0)
+    C = Vector(2, 0)
+    D = Vector(3, 0)
+    E = Vector(4, 0)
+    F = Vector(5, 0)
+    s1 = Segment(A, B)
+    s2 = Segment(B, C)
+    s3 = Segment(C, D)
+    s4 = Segment(A, F)
+    segments = [s1, s2, s3, Segment(
+        Vector(-1, 2), Vector(3, 2)), Segment(Vector(-1, 2.5), Vector(3, 2.5)), Segment(Vector(2, 2), Vector(3, 0)), Segment(Vector(-1, 0), Vector(4, 10/3))]
+    segments = [s1, s2, s3, s4]
+    A = Vector(0, 0)
+    B = Vector(0, 1)
+    C = Vector(1, 1)
+    D = Vector(1, 0)
+    s1 = Segment(A, B)
+    s2 = Segment(B, C)
+    s3 = Segment(C, D)
+    s4 = Segment(D, A)
+    s6 = Segment(Vector(-1, -1), Vector(0.5, 0.5))
+    s7 = Segment(Vector(0, 0.5), Vector(0.5, 0))
+    segments = [s1, s2, s3, s4, s6, s7]
+    #draw_lines(segments, [])
+    sweep = SweepLine(segments, Status(), EventQueue())
+    print(len(sweep.intersection_points))
+    for point in sweep.intersection_points:
+        print(point)
+    draw_lines(sweep.new_segments, sweep.intersection_points)

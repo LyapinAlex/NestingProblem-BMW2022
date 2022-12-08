@@ -1,3 +1,4 @@
+import math
 from numpy import sign
 from class_vector import Vector
 

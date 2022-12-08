@@ -6,7 +6,7 @@ import numpy as np
 from math import ceil, floor
 from matplotlib import patches
 from matplotlib import pyplot as plt
-from class_arrangement import DCEL
+from class_DCEL import DCEL
 from class_direction import is_convex, isBetween
 from class_segment import Segment
 
@@ -431,37 +431,43 @@ class Polygon:
                     if (convex):
                         start_point = p1.point(i1)+p2.point(i2)
                         end_point = p1.point(new_i1)+p2.point(new_i2)
-                        reduced_convolution.append([start_point, end_point])
+                        reduced_convolution.append(
+                            Segment(start_point, end_point))
         return reduced_convolution
 
     @staticmethod
     def minkowski_sum_arrangement(p1: 'Polygon', p2: 'Polygon'):
-        reduce_conv = deepcopy(Polygon.reduced_convolution(p1, p2))
-        reduce_conv = Segment.split_by_intersections(reduce_conv)
-
-        max_point_b = Vector(-1000000, -1000000)
+        p2.sort_points()
+        reduce_conv = Polygon.reduced_convolution(p1, p2)
+        arrangement_without_translate = DCEL(reduce_conv)  # Костыль
+        max_point_b = arrangement_without_translate.vertices.max_key_node(
+            arrangement_without_translate.vertices.root).key
         max_point_a = Vector(-1000000, -1000000)
-
-        for segment in reduce_conv:
-            if (segment[0] > max_point_b):
-                max_point_b = segment[0]
-            if (segment[1] > max_point_b):
-                max_point_b = segment[1]
 
         for point in p1.points:
             if (point > max_point_a):
                 max_point_a = point
 
-        for segment in reduce_conv:  # Когда писал += почему то происходил баг
-            segment[0] = segment[0] + \
+        segments_with_translate = []
+        for half_edge in arrangement_without_translate.half_edges:
+            half_edge.is_visited = False
+
+        for half_edge in arrangement_without_translate.half_edges:
+            if (half_edge.is_visited):
+                continue
+            half_edge.is_visited = True
+            half_edge.twin.is_visited = True
+            segments_with_translate.append(
+                Segment(half_edge.origin, half_edge.end))
+
+        for segment in segments_with_translate:  # Когда писал += почему то происходил баг
+            segment.min_point = segment.min_point + \
                 (max_point_a-max_point_b)
-            segment[1] = segment[1] + \
+            segment.max_point = segment.max_point + \
                 (max_point_a-max_point_b)
 
-        arrangement = DCEL()
-        for segment in reduce_conv:
-            arrangement.add_edge(segment)
-        arrangement.init_faces()
+        arrangement = DCEL(segments_with_translate)
+
         return arrangement
 
     @staticmethod
@@ -473,15 +479,18 @@ class Polygon:
 
         no_fit_polygon = Polygon.minkowski_sum_arrangement(
             p1, Polygon(minus_points))
+        # Костыль
         boundary_half_edge = no_fit_polygon.unbounded_face.holes_half_edges[0]
-        new_nfp = DCEL()  # Костыль
-        new_nfp.add_edge(boundary_half_edge.original_edge)
+        edges = []
+        edges.append(
+            Segment(boundary_half_edge.origin, boundary_half_edge.end))
         current_half_edge = boundary_half_edge.next
         while (current_half_edge != boundary_half_edge):
-            new_nfp.add_edge(current_half_edge.original_edge)
+            edges.append(
+                Segment(current_half_edge.origin, current_half_edge.end))
             current_half_edge = current_half_edge.next
 
-        new_nfp.init_faces()
+        new_nfp = DCEL(edges)
 
         return new_nfp
 

@@ -1,5 +1,6 @@
 from copy import deepcopy
 import copy
+import math
 from matplotlib import pyplot as plt
 
 import numpy as np
@@ -23,7 +24,7 @@ class DcelEventValue:  # OK
 
 class DcelEvent(Event):
     def __init__(self, point, value=None):
-        if (value in None):
+        if (value is None):
             value = DcelEventValue()
         super().__init__(point, value)
 
@@ -42,14 +43,17 @@ class DcelStatusValue(StatusValue):
         self.half_edge: HalfEdge = None
         self.twin_half_edge: HalfEdge = None
         self.incindent_vertex: Vertex = None
+        self.original_incendent_face = None
 
 
 class DcelStatusNode(StatusNode):
-    def __init__(self, key, value=None):
+    def __init__(self, key, original_incendent_face=None, value=None):
         if (value is None):
             value = DcelStatusValue()
         super().__init__(key, value)
         self.init_half_edges(key)
+        if (original_incendent_face is not None):
+            self.value.original_incendent_face = original_incendent_face
 
     def init_half_edges(self, key):
         half_edge, twin_half_edge = HalfEdge.init_pair_halfedges(key)
@@ -243,6 +247,7 @@ class Face:  # OK
         self.holes_half_edges: list[HalfEdge] = []
         self.label = None
         self.is_hole = False
+        self.is_visited = False
 
     def get_inside_point(self):
         current_half_edge = self.boundary_half_edge
@@ -261,12 +266,13 @@ class Face:  # OK
 
         min_distance = -1
         min_point = Vector(0, 0)
-        next_half_edge = next_half_edge.next
 
         def is_inside(p):
-            if (psevdoProd(p-a, v-a) >= 0 or psevdoProd(p-v, b-v) >= 0 or psevdoProd(p-b, a-b) >= 0):
+            if (psevdoProd(p-a, v-a) > 0 or psevdoProd(p-v, b-v) > 0 or psevdoProd(p-b, a-b) > 0):
                 return False
             return True
+
+        next_half_edge = next_half_edge.next
 
         while (next_half_edge != current_half_edge):
             point = next_half_edge.end
@@ -276,24 +282,104 @@ class Face:  # OK
                     min_distance = distance
                     min_point = point
             next_half_edge = next_half_edge.next
-        return (a+b+v)*(0.3333333) if (min_point.x == 0 and min_point.y == 0) else (v+min_point)*0.5
+        return (a+b+v)*(1/3) if (min_point.x == 0 and min_point.y == 0) else (v+min_point)*(1/2)
+
+    def init_hole(self, prev_face):
+        self.is_visited = True
+        if (prev_face is None):
+            self.is_hole = True
+        else:
+            self.is_hole = not prev_face.is_hole
+        for hole_half_edge in self.holes_half_edges:
+            start_half_edge = hole_half_edge
+            start_half_edge.face = self
+            if (start_half_edge.twin.face is not None and not start_half_edge.twin.face.is_visited):
+                start_half_edge.twin.face.is_visited = True
+                start_half_edge.twin.face.init_hole(self)
+            current_half_edge = hole_half_edge.next
+            while (current_half_edge != start_half_edge):
+                current_half_edge.face = self
+                if (current_half_edge.twin.face is not None and not current_half_edge.twin.face.is_visited):
+                    current_half_edge.twin.face.is_visited = True
+                    current_half_edge.twin.face.init_hole(self)
+                current_half_edge = current_half_edge.next
+
+    def is_inside(self, point: Vector):
+        if (self.boundary_half_edge is None):
+            return True
+
+        start_half_edge = self.boundary_half_edge
+        current_half_edge = start_half_edge.next
+        v = start_half_edge.end - start_half_edge.origin
+        angle = 0
+
+        a = start_half_edge.origin
+        b = start_half_edge.end
+
+        pa = a-point
+        pb = b-point
+
+        if (pa.x**2+pa.y**2 < 0.000000001 or pb.x**2+pb.y**2 < 0.000000001):
+            return True
+
+        orient = psevdoProd(b-point, a-point)
+        cos = (pa.x*pb.x+pa.y*pb.y) / \
+            (math.sqrt(pa.x**2+pa.y**2)*math.sqrt(pb.x**2+pb.y**2))
+        if (cos > 1):
+            cos = 1
+        if (cos < -1):
+            cos = -1
+
+        if (orient > 0):
+            angle += math.acos(cos)
+        elif (orient < 0):
+            angle -= math.acos(cos)
+
+        while (current_half_edge != start_half_edge):
+            a = current_half_edge.origin
+            b = current_half_edge.end
+
+            pa = a-point
+            pb = b-point
+
+            if (pa.x**2+pa.y**2 < 0.000000001 or pb.x**2+pb.y**2 < 0.000000001):
+                return True
+            v = current_half_edge.end - current_half_edge.origin
+            orient = psevdoProd(b - point, a-point)
+            cos = (pa.x*pb.x+pa.y*pb.y) / \
+                (math.sqrt(pa.x**2+pa.y**2)*math.sqrt(pb.x**2+pb.y**2))
+            if (cos > 1):
+                cos = 1
+            if (cos < -1):
+                cos = -1
+            if (orient > 0):
+                angle += math.acos(cos)
+            elif (orient < 0):
+                angle -= math.acos(cos)
+            current_half_edge = current_half_edge.next
+
+        if (abs(angle) > 0.00001):
+            return True
+        return False
 
 
 class DCEL:
     def __init__(self, edges: list[tuple[Vector, Vector]] = []) -> None:
         self.unbounded_face: Face = Face()
-        self.faces: list[Face] = []
+        self.faces: list[Face] = [self.unbounded_face]
         self.vertices: Verticies = Verticies()
         self.half_edges: list[HalfEdge] = []
-        self.build_dcel(edges)
+        if (len(edges) != 0):
+            self.build_dcel(edges)
 
     def build_dcel(self, edges):
         # Начальная инициализация
         status = DcelStatus()
         event_qeue = EventQueue()
         handler = BuildHandler(self)
-        sweep_line = SweepLine(edges, status, event_qeue, handler)
+        sweep_line = DcelBuilder(edges, handler)
         self.init_faces()
+        self.init_holes()
 
     def init_faces(self):  # change
         cycle_graph = Graph()
@@ -367,33 +453,72 @@ class DCEL:
         for node in cycle_graph.nodes:
             if node.is_hole:
                 continue
+            if (node.half_edge is None):
+                self.unbounded_face.holes_half_edges = list(
+                    map(lambda elem: elem.half_edge, cycle_graph.get_all_neighbours(node)))
+                continue
             face = Face()
             face.boundary_half_edge = node.half_edge
+            node.half_edge.face = face
             face.holes_half_edges = list(
                 map(lambda elem: elem.half_edge, cycle_graph.get_all_neighbours(node)))
 
             self.faces.append(face)
 
         for half_edge in self.half_edges:
+            half_edge.face = half_edge.cycle_node.half_edge.face
             half_edge.is_visited = False
+
+    def init_holes(self):
+        self.unbounded_face.init_hole(prev_face=None)
+
+    def get_face_by_inside_point(self, point: Vector):
+        face = self.unbounded_face
+        for current_face in self.faces:
+            if (current_face.boundary_half_edge is None):
+                continue
+            if (current_face.is_inside(point) and face.is_inside(current_face.boundary_half_edge.origin)):
+                face = current_face
+        return face
+
+    def draw(self):
+        segments = []
+        for face in self.faces:
+            start_half_edge = face.boundary_half_edge
+            if (start_half_edge is None):
+                continue
+            segments.append((start_half_edge.origin, start_half_edge.end))
+            current_half_edge = start_half_edge.next
+            while (start_half_edge != current_half_edge):
+                segments.append(
+                    (current_half_edge.origin, current_half_edge.end))
+                current_half_edge = current_half_edge.next
+        for segment in segments:
+            plt.arrow(segment[0].x, segment[0].y, segment[1].x-segment[0].x, segment[1].y-segment[0].y,
+                      shape='full', lw=0.5, length_includes_head=True, head_width=.05)
+        plt.show()
 
     @staticmethod
     # TODO: Сделать через sweep line нормально
     def subdivision(d1: 'DCEL', d2: 'DCEL') -> 'DCEL':
         edges = []
         for half_edge in d1.half_edges:
+            if (half_edge.is_visited):
+                continue
             half_edge.is_visited = True
             half_edge.twin.is_visited = True
-            edges.append(Segment(half_edge.origin, half_edge.end))
+            segment = Segment(half_edge.origin, half_edge.end)
+            edges.append(segment)
 
         for half_edge in d2.half_edges:
+            if (half_edge.is_visited):
+                continue
             half_edge.is_visited = True
             half_edge.twin.is_visited = True
-            edges.append(Segment(half_edge.origin, half_edge.end))
+            segment = Segment(half_edge.origin, half_edge.end)
+            edges.append(segment)
 
         subdiv = DCEL(edges)
-
-        subdiv.painting_faces(subdiv.unbounded_face, False)
 
         for face in subdiv.faces:
             if (face.boundary_half_edge == None):
@@ -415,49 +540,45 @@ class DCEL:
     def set_and(d1, d2):  # NEED TEST
         subdiv = DCEL.subdivision(d1, d2)
 
-        def is_belong(edge_with_half_edges):
-            return (edge_with_half_edges[1].face.label == 'AB' or
-                    edge_with_half_edges[2].face.label == 'AB')
+        def is_belong(half_edge):
+            return (half_edge.face.label == 'AB' and half_edge.twin.face.label != 'AB')
 
-        belonging_edges_with_half_edges = filter(is_belong, subdiv.edges)
-
+        belonging_half_edges = filter(is_belong, subdiv.half_edges)
         belonging_edges = list(
-            map(lambda x: x[0], belonging_edges_with_half_edges))
+            map(lambda x: Segment(x.origin, x.end), belonging_half_edges))
 
-        set_and = DCEL(belonging_edges, without_intersection=True)
+        set_and = DCEL(belonging_edges)
         return set_and
 
     @ staticmethod
     def set_or(d1, d2):  # NEED TEST
         subdiv = DCEL.subdivision(d1, d2)
 
-        def is_belong(edge):
-            return ((edge[1].face.label in ('A', 'B') and edge[2].face.label != 'AB') or
-                    (edge[2].face.label in ('A', 'B') and edge[1].face.label != 'AB') or
-                    (edge[1].face.label == 'AB' and edge[2].face.label == None) or
-                    (edge[2].face.label == 'AB' and edge[1].face.label == None))
+        def is_belong(half_edge):
+            return ((half_edge.face.label in ('A', 'B') and half_edge.twin.face.label != 'AB') or
+                    (half_edge.face.label == 'AB' and half_edge.twin.face.label == None))
 
-        belonging_edges_with_half_edges = filter(is_belong, subdiv.edges)
+        belonging_half_edges = filter(is_belong, subdiv.half_edges)
 
         belonging_edges = list(
-            map(lambda x: x[0], belonging_edges_with_half_edges))
+            map(lambda x: Segment(x.origin, x.end), belonging_half_edges))
 
-        set_or = DCEL(belonging_edges, without_intersection=True)
+        set_or = DCEL(belonging_edges)
         return set_or
 
     @ staticmethod
-    def logical_minus(d1, d2):  # NEED TEST
+    def set_minus(d1, d2):  # NEED TEST
         subdiv = DCEL.subdivision(d1, d2)
 
-        def is_belong(edge_with_half_edges):
-            return edge_with_half_edges[1].face.label == 'A' or edge_with_half_edges[2].face.label == 'A'
+        def is_belong(half_edge):
+            return half_edge.face.label == 'A'
 
-        belonging_edges_with_half_edges = filter(is_belong, subdiv.edges)
+        belonging_half_edges = filter(is_belong, subdiv.half_edges)
 
         belonging_edges = list(
-            map(lambda x: x[0], belonging_edges_with_half_edges))
+            map(lambda x: Segment(x.origin, x.end), belonging_half_edges))
 
-        set_minus = DCEL(belonging_edges, without_intersection=True)
+        set_minus = DCEL(belonging_edges)
         return set_minus
 
 
@@ -484,6 +605,13 @@ def rundom_segments(num_segments=10) -> list[Segment]:
     return array_segments
 
 
+def draw_segments_sequence(segments):
+    for segment in segments:
+        plt.arrow(segment[0].x, segment[0].y, segment[1].x-segment[0].x, segment[1].y-segment[0].y,
+                  shape='full', lw=0.5, length_includes_head=True, head_width=.05)
+    plt.show()
+
+
 def draw_lines(array_segments: list[Segment], intersection_points: list, current_segments=None, left_neighbour=None, right_neighbour=None):
     fig, ax = plt.subplots()
     if intersection_points:
@@ -505,28 +633,30 @@ def draw_lines(array_segments: list[Segment], intersection_points: list, current
             p2 = segment.max_point
             x_values = [p1.x, p2.x]
             y_values = [p1.y, p2.y]
-            plt.plot(x_values, y_values, 'r.', linestyle="--")
+            plt.plot(x_values, y_values, 'r', linestyle="-")
     if (left_neighbour):
         p1 = left_neighbour.min_point
         p2 = left_neighbour.max_point
         x_values = [p1.x, p2.x]
         y_values = [p1.y, p2.y]
-        plt.plot(x_values, y_values, 'g.', linestyle="--")
+        plt.plot(x_values, y_values, 'g', linestyle="-")
     if (right_neighbour):
         p1 = right_neighbour.min_point
         p2 = right_neighbour.max_point
         x_values = [p1.x, p2.x]
         y_values = [p1.y, p2.y]
-        plt.plot(x_values, y_values, 'g.', linestyle="--")
+        plt.plot(x_values, y_values, 'g', linestyle="-")
     plt.show()
     return
 
 
 def main():
     array_segments = rundom_segments(10)
-    draw_lines(array_segments, [])
-    dcel = DCEL(array_segments)
-    print(len(dcel.faces))
+
+    other_array_segments = rundom_segments(10)
+    dcel1 = DCEL(array_segments)
+    dcel2 = DCEL(other_array_segments)
+    set_or = DCEL.set_and(dcel1, dcel2)
     print('some')
     # sweep_line = SweepLine(array_segments, Status(), EventQueue())
     # sweep_line.event_queue.inorder_print()
@@ -535,79 +665,79 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
     # ТЕСТЫ
-    a0 = Vector(0, 0)
-    b0 = Vector(1, 0)
-    c0 = Vector(2, 0)
-    a1 = Vector(0, 1)
-    b1 = Vector(1, 1)
-    c1 = Vector(2, 1)
-    s1 = Segment(a0, c1)
-    s2 = Segment(b0, b1)
-    s3 = Segment(c0, a1)
-    s1 = Segment(Vector(0, 0), Vector(1, 1))
-    s2 = Segment(Vector(0, -1), Vector(1, 0))
-    s3 = Segment(Vector(0.7, -2), Vector(0.3, 1))
-    s4 = Segment(Vector(0, -3), Vector(1, 2.5))
+    # a0 = Vector(0, 0)
+    # b0 = Vector(1, 0)
+    # c0 = Vector(2, 0)
+    # a1 = Vector(0, 1)
+    # b1 = Vector(1, 1)
+    # c1 = Vector(2, 1)
+    # s1 = Segment(a0, c1)
+    # s2 = Segment(b0, b1)
+    # s3 = Segment(c0, a1)
+    # s1 = Segment(Vector(0, 0), Vector(1, 1))
+    # s2 = Segment(Vector(0, -1), Vector(1, 0))
+    # s3 = Segment(Vector(0.7, -2), Vector(0.3, 1))
+    # s4 = Segment(Vector(0, -3), Vector(1, 2.5))
 
-    segments = [s1, s2, s3]
-    v1 = Vector(1, 1)
-    v0 = 0*v1
-    v2 = 2*v1
-    v3 = 3*v1
-    w1 = Segment(v0, v2)
-    w2 = Segment(v0, b0)
-    segments = [w1, w2]
+    # segments = [s1, s2, s3]
+    # v1 = Vector(1, 1)
+    # v0 = 0*v1
+    # v2 = 2*v1
+    # v3 = 3*v1
+    # w1 = Segment(v0, v2)
+    # w2 = Segment(v0, b0)
+    # segments = [w1, w2]
 
-    m0 = Vector(0, 1)
-    m1 = Vector(1, 0)
-    p0 = Vector(2, 1)
-    p1 = Vector(1, 2)
-    t1 = Segment(m0, p0)
-    t2 = Segment(m1, p1)
-    segments = [t1, t2]
+    # m0 = Vector(0, 1)
+    # m1 = Vector(1, 0)
+    # p0 = Vector(2, 1)
+    # p1 = Vector(1, 2)
+    # t1 = Segment(m0, p0)
+    # t2 = Segment(m1, p1)
+    # segments = [t1, t2]
 
-    # intersections = SweepLine(segments).intersection_points
-    # print(len(intersections))
-    # draw_lines(segments, intersections)
+    # # intersections = SweepLine(segments).intersection_points
+    # # print(len(intersections))
+    # # draw_lines(segments, intersections)
 
-    A = Vector(0, 0)
-    B = Vector(1, -1)
-    C = Vector(2, 0)
-    D = Vector(1, 1)
+    # A = Vector(0, 0)
+    # B = Vector(1, -1)
+    # C = Vector(2, 0)
+    # D = Vector(1, 1)
 
-    s1 = Segment(A, B)
-    s2 = Segment(B, C)
-    s3 = Segment(C, D)
-    s4 = Segment(D, A)
-    s5 = Segment(A, C)
-    s6 = Segment(B, D)
-    s7 = Segment(A, C)
+    # s1 = Segment(A, B)
+    # s2 = Segment(B, C)
+    # s3 = Segment(C, D)
+    # s4 = Segment(D, A)
+    # s5 = Segment(A, C)
+    # s6 = Segment(B, D)
+    # s7 = Segment(A, C)
 
-    segments = [s1, s2, s3, s4, s5, s6, Segment(
-        Vector(-1, -2), Vector(3, 2)), Segment(Vector(0.5, 0), Vector(0.5, 2)), Segment(Vector(1.5, -2), Vector(1.5, 2)), s7]
-    A = Vector(0, 1)
-    B = Vector(1, 0)
-    C = Vector(2, 0)
-    D = Vector(3, 0)
-    E = Vector(4, 0)
-    F = Vector(5, 0)
-    s1 = Segment(A, B)
-    s2 = Segment(B, C)
-    s3 = Segment(C, D)
-    s4 = Segment(A, F)
-    segments = [s1, s2, s3, Segment(
-        Vector(-1, 2), Vector(3, 2)), Segment(Vector(-1, 2.5), Vector(3, 2.5)), Segment(Vector(2, 2), Vector(3, 0)), Segment(Vector(-1, 0), Vector(4, 10/3))]
-    segments = [s1, s2, s3, s4]
+    # segments = [s1, s2, s3, s4, s5, s6, Segment(
+    #     Vector(-1, -2), Vector(3, 2)), Segment(Vector(0.5, 0), Vector(0.5, 2)), Segment(Vector(1.5, -2), Vector(1.5, 2)), s7]
+    # A = Vector(0, 1)
+    # B = Vector(1, 0)
+    # C = Vector(2, 0)
+    # D = Vector(3, 0)
+    # E = Vector(4, 0)
+    # F = Vector(5, 0)
+    # s1 = Segment(A, B)
+    # s2 = Segment(B, C)
+    # s3 = Segment(C, D)
+    # s4 = Segment(A, F)
+    # segments = [s1, s2, s3, Segment(
+    #     Vector(-1, 2), Vector(3, 2)), Segment(Vector(-1, 2.5), Vector(3, 2.5)), Segment(Vector(2, 2), Vector(3, 0)), Segment(Vector(-1, 0), Vector(4, 10/3))]
+    # segments = [s1, s2, s3, s4]
+    # # draw_lines(segments, [])
+    # # sweep = SweepLine(segments)
+    # # print(len(sweep.intersection_points))
+    # # for point in sweep.intersection_points:
+    # #     print(point)
+    # # for segment in sweep.new_segments:
+    # #     print(segment.min_point, segment.max_point)
+    # # draw_lines(sweep.new_segments, sweep.intersection_points)
     # draw_lines(segments, [])
-    # sweep = SweepLine(segments)
-    # print(len(sweep.intersection_points))
-    # for point in sweep.intersection_points:
-    #     print(point)
-    # for segment in sweep.new_segments:
-    #     print(segment.min_point, segment.max_point)
-    # draw_lines(sweep.new_segments, sweep.intersection_points)
-    draw_lines(segments, [])
-    dcel = DCEL(segments)
-    print(len(dcel.faces))
+    # dcel = DCEL(segments)
+    # print(len(dcel.faces))

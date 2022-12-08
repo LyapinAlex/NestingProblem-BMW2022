@@ -33,7 +33,8 @@ class Graph:
         second_node.connected_nodes.append(first_node)
 
     def get_all_neighbours(self, node: GraphNode):
-        nodes = []
+        nodes = [node]  # Костыль
         for connected_node in node.connected_nodes:
             connected_node.get_all_neighbours(nodes)
+        nodes.remove(node)
         return nodes
