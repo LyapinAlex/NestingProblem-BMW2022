@@ -111,7 +111,7 @@ class Packing():
                     poly.choose_best_turn1()
                 elif num_rout == 4: # пока лучший
                     poly.choose_best_turn2()
-                item.points = poly.points_to_array()
+            item.points = poly.points_to_array()
             item.area = poly.area
             item.creat_polygon_shell(self.drill_radius)
             item.list_of_new_shift_code(self.h)
@@ -121,9 +121,9 @@ class Packing():
         return
 
     def sort_items(self, num_sort = 0):
-        """Сортировка в порядке неубывания по\n
-        0 - количеству пикселей в растровой кодировке\n
-        1 - по площади растрового приближения\n
+        """Сортировка в порядке неубывания по\\
+        0 - количеству пикселей в растровой кодировке\\
+        1 - по площади растрового приближения\\
         2 - площади фигур"""
         if num_sort == 0:
             self.items = sorted(self.items, key=lambda item: -item.matrix.size)

@@ -5,12 +5,13 @@ from class_item import Item
 # Датасеты: https://www.euro-online.org/websites/esicup/data-sets/
 
 def packing_from_our_tests(input_file_name: str,
+                            input_dir = "src\\input\\tests\\",
                             output_file_name='',
                             num_rot=4,
                             num_sort=2,
                             eps=0.0):
     """Входные данные типа test1"""
-    path = "src\\input\\tests\\" + input_file_name
+    path = input_dir + input_file_name
     f = open(path, 'r')
     num_items = int(f.readline())
     polygons = np.full(num_items, None)
@@ -40,15 +41,15 @@ def packing_from_our_tests(input_file_name: str,
     packaging.sort_items(num_sort=num_sort)
     packaging.greedy_packing()
     packaging.print_stats()
-    # packaging.change_position()
-    # if output_file_name=='':
-    #     output_file_name = input_file_name[0:-3]+'png'
-    # packaging.save_pallets_in_files(output_file_name)
+    packaging.change_position()
+    if output_file_name=='':
+        output_file_name = input_file_name[0:-3]+'png'
+    packaging.save_pallets_in_files(output_file_name)
     return packaging.get_stats()
 
 
 def packing_from_Terashima2(input_file_name: str,
-                            output_file_name: str,
+                            output_file_name='',
                             num_rot=4,
                             num_sort=2,
                             eps=0.0):
@@ -86,16 +87,18 @@ def packing_from_Terashima2(input_file_name: str,
     packaging.greedy_packing()
     packaging.print_stats()
     packaging.change_position()
+    if output_file_name=='':
+        output_file_name = input_file_name[0:-3]+'png'
     packaging.save_pallets_in_files(output_file_name)
     return packaging.get_stats()
 
 
 def packing_from_swim(input_file_name: str,
-                      output_file_name: str,
-                      width=5000,
-                      height=10000,
-                      num_rot=4,
-                      num_sort=2,
+                      output_file_name = '',
+                      width=10000,
+                      height=5752,
+                      num_rot=0,
+                      num_sort=0,
                       eps=0.0):
     """Входные данные типа swim.txt (trousers.txt)"""
     # ------------  чтение файла  ------------
@@ -129,7 +132,7 @@ def packing_from_swim(input_file_name: str,
                         drill_radius=0,
                         border_distance=0)
 
-    packaging.polygons = np.array(polygons)
+    packaging.polygons = np.array(polygons, dtype=object)
     packaging.num_items = len(polygons)
     packaging.items = np.full(packaging.num_items, None)
     for id in range(packaging.num_items):
@@ -140,6 +143,8 @@ def packing_from_swim(input_file_name: str,
     packaging.greedy_packing()
     packaging.print_stats()
     packaging.change_position()
+    if output_file_name=='':
+        output_file_name = input_file_name[0:-3]+'png'
     packaging.save_pallets_in_files(output_file_name)
     return packaging.get_stats()
 
@@ -150,10 +155,15 @@ def create_pack(output_file_name: str):
                         drill_radius=0,
                         border_distance=0)
     packaging.create_random_polygons(50)
+    packaging.output_dir = "src\\input\\tests"
     packaging.save_items_in_file(output_file_name, False)
     return
 
 
 if __name__ == '__main__':
-    for i in range(10,50):
-        packing_from_our_tests(input_file_name='test'+str(i)+'.txt')
+    for i in range(0,10):
+        create_pack('test'+str(i)+'.txt')
+        # packing_from_our_tests(input_file_name='test'+str(i)+'.txt')
+    # packing_from_swim('swim.txt', eps=36/2)
+    # packing_from_swim('trousers.txt', width=500, height=79)
+    # packing_from_our_tests(input_file_name='my_test1.txt', input_dir = "src\\input\\special_tests\\")
