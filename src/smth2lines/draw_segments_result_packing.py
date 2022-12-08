@@ -31,8 +31,10 @@ def draw_segments_result_packing(packing):
     ax.set_xlim(-0.5, pallet_width + 2)
     ax.set_ylim(-0.5, pallet_height + 2)
 
-    for i in range(int(pallet_height / h)):
-        plt.plot([0, pallet_width], [i * h, i * h], linestyle='dotted', color='black')
+    # for i in range(int(pallet_height / h)):
+    #     plt.plot([0, pallet_width], [i * h, i * h], linestyle='dotted', color='black')
+
+    max_height = 0
 
     for polygon in packing.items:
         print(polygon.t_vector)
@@ -41,6 +43,8 @@ def draw_segments_result_packing(packing):
             point = copy(polygon.points[i])
             point[0] += polygon.t_vector[0]
             point[1] += polygon.t_vector[1] * h
+            if point[1] > max_height:
+                max_height = copy(point[1])
             polygon.points[i] = copy(point)
             i += 1
 
@@ -49,17 +53,18 @@ def draw_segments_result_packing(packing):
                                  edgecolor='red',
                                  fill=False)
         ax.add_patch(figure)
-        random_color = "#" + \
-                       ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
-        for i in range(len(polygon.segments)):
-            for sigment in polygon.segments[i]:
-                sigment[0] += polygon.t_vector[0]
-                sigment[1] += polygon.t_vector[0]
-                if sigment[0] != sigment[1]:
-                    plt.plot(sigment, [(i + polygon.t_vector[1]) * h, (i + polygon.t_vector[1]) * h],
-                             color=random_color, alpha=0.7)
-                else:
-                    ax.scatter(sigment[0], (i + polygon.t_vector[1]) * h, color=random_color, s=4, alpha=0.7)
+        # random_color = "#" + \
+        #                ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
+        # for i in range(len(polygon.segments)):
+        #     for sigment in polygon.segments[i]:
+        #         sigment[0] += polygon.t_vector[0]
+        #         sigment[1] += polygon.t_vector[0]
+        #         if sigment[0] != sigment[1]:
+        #             plt.plot(sigment, [(i + polygon.t_vector[1]) * h, (i + polygon.t_vector[1]) * h],
+        #                      color=random_color, alpha=0.7)
+        #         else:
+        #             ax.scatter(sigment[0], (i + polygon.t_vector[1]) * h, color=random_color, s=4, alpha=0.7)
+    plt.title('Max height: ' + str(max_height))
 
     plt.savefig('line-packing.png')
 

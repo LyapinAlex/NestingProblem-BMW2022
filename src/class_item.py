@@ -1,5 +1,7 @@
 import math
 import random
+from copy import copy
+
 import numpy as np
 from matplotlib import patches
 from matplotlib import pyplot as plt
@@ -26,9 +28,10 @@ class Item:
         self.list_new_shift = None
         self.list_check_order = None
         self.pixel_area = None
-        self.segments = None
+        self.segments = []
         self.t_vector = None
         self.packed = False
+        self.best_rotation = None
 
         # --------  Position   ---------
         self.raster_coord = None
@@ -100,7 +103,57 @@ class Item:
 
     def set_segments(self, h):
         """Приближение объекта отрезками, с размером пискля - h"""
-        self.segments = polygon2segments(self.points, h)
+        # i = 0
+        # while i <= self.rotation:
+        #     self.segments = polygon2segments(self.points, h)
+        if self.rotation == 0:
+            self.segments.append(polygon2segments(self.points, h))
+        else:
+            lines = polygon2segments(self.points, h)
+            self.segments.append(copy(lines))
+
+            max = 0
+            for line in lines:
+                if max < line[-1][1]:
+                    max = line[-1][1]
+
+            for line in lines:
+                # print(line)
+                for sigment in line:
+                    sigment[0] = abs(sigment[0] - max)
+                    sigment[1] = abs(sigment[1] - max)
+
+            new_lines = []
+            for _ in range(len(lines)):
+                new_lines.append([])
+            for i in range(len(lines)):
+                new_lines[abs(i - len(lines)) - 1] = copy(lines[i])
+
+            def first_elem(e):
+                return e[0]
+
+            for line in new_lines:
+                for segment in line:
+                    segment.sort()
+                line.sort(key=first_elem)
+                i = 0
+                while i < (len(line) - 1):
+                    if line[i][1] == line[i + 1][0]:
+                        line[i][1] = line[i + 1][1]
+                        line.pop(i + 1)
+                        continue
+                    if line[i][1] > line[i + 1][0]:
+                        if line[i][1] < line[i + 1][1]:
+                            line[i][1] = line[i + 1][1]
+                            line.pop(i + 1)
+                            continue
+                    if line[i][1] > line[i + 1][0]:
+                        if line[i][1] >= line[i + 1][1]:
+                            line.pop(i + 1)
+                            continue
+                    i += 1
+            self.segments.append(new_lines)
+
         return None
 
     def list_segments_items(self, h):

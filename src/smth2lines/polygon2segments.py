@@ -30,6 +30,7 @@ def intersection(points1, points2):
     else:
         return False
 
+
 def polygon2segments(points, h):
 
     shift2zero(points)
@@ -119,7 +120,7 @@ def polygon2segments(points, h):
             if (k + 1) * h >= points[i][1] > k * h >= points[i_prev][1] or k * h < points[i][1] <= (k + 1) * h <= \
                     points[i_prev][1]:
                 # print('case1', points[i], k)
-                if points[i_prev][1] < k * h:
+                if points[i_prev][1] <= k * h:
                     k_prev = -1
                     k_next = 0
                     intersection_point = intersection([points[i_prev], points[i]], [[0, k * h], [n_x, k * h]])[0]
@@ -130,7 +131,7 @@ def polygon2segments(points, h):
                     if min > points[i][0]:
                         min = copy(points[i][0])
                     # print(min, max)
-                elif points[i_prev][1] > (k + 1) * h:
+                elif points[i_prev][1] >= (k + 1) * h:
                     k_prev = 1
                     k_next = 0
                     intersection_point = \
