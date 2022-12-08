@@ -519,7 +519,7 @@ def segment_intersection(segment1, segment2):
 
 def draw_segments_sequence(segments):
     for segment in segments:
-        plt.arrow(segment[0].x, segment[0].y, segment[1].x-segment[0].x, segment[1].y-segment[0].y,
+        plt.arrow(segment.min_point.x, segment.min_point.y, segment.max_point.x-segment.min_point.x, segment.max_point.y-segment.min_point.y,
                   shape='full', lw=0.5, length_includes_head=True, head_width=.05)
     plt.show()
 

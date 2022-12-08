@@ -40,4 +40,5 @@ class Nfp_Packer:
 
         polygon.move_to(polygon.minXY() +
                         optimal_point-polygon.point(0))
+        polygon.points[0] = optimal_point
         self.polygons.append(polygon)

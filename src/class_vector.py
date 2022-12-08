@@ -35,7 +35,7 @@ class Vector:
 
     def __eq__(self, other):
         pt = self-other
-        return (pt.x**2+pt.y**2) < 0.000000000001
+        return (pt.x**2+pt.y**2) < 0.000000000000001
 
     def __mul__(self, scalar):  # *
         return Vector(self.x * scalar, self.y * scalar)

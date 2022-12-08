@@ -100,6 +100,8 @@ class AvlTree:
     def node_find(self, node, searchable_node):  # Maybe OK
         if node is None:
             return
+        if (node.key == searchable_node.key):
+            return node
         if searchable_node > node:
             return self.node_find(node.right, searchable_node)
         elif searchable_node < node:

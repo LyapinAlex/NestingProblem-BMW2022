@@ -268,7 +268,7 @@ class Face:  # OK
         min_point = Vector(0, 0)
 
         def is_inside(p):
-            if (psevdoProd(p-a, v-a) > 0 or psevdoProd(p-v, b-v) > 0 or psevdoProd(p-b, a-b) > 0):
+            if (psevdoProd(p-a, v-a) >= 0 or psevdoProd(p-v, b-v) >= 0 or psevdoProd(p-b, a-b) >= 0):
                 return False
             return True
 
@@ -319,8 +319,8 @@ class Face:  # OK
         pa = a-point
         pb = b-point
 
-        if (pa.x**2+pa.y**2 < 0.000000001 or pb.x**2+pb.y**2 < 0.000000001):
-            return True
+        if (pa.x**2+pa.y**2 < 0.0000000000000001 or pb.x**2+pb.y**2 < 0.0000000000000001):
+            return False
 
         orient = psevdoProd(b-point, a-point)
         cos = (pa.x*pb.x+pa.y*pb.y) / \
@@ -342,7 +342,7 @@ class Face:  # OK
             pa = a-point
             pb = b-point
 
-            if (pa.x**2+pa.y**2 < 0.000000001 or pb.x**2+pb.y**2 < 0.000000001):
+            if (pa.x**2+pa.y**2 < 0.0000000000000001 or pb.x**2+pb.y**2 < 0.0000000000000001):
                 return True
             v = current_half_edge.end - current_half_edge.origin
             orient = psevdoProd(b - point, a-point)
@@ -358,7 +358,7 @@ class Face:  # OK
                 angle -= math.acos(cos)
             current_half_edge = current_half_edge.next
 
-        if (abs(angle) > 0.00001):
+        if (abs(angle) > 1):
             return True
         return False
 
@@ -534,6 +534,10 @@ class DCEL:
                 face.label = 'B'
             elif (is_inside_fist_face and not is_inside_second_face):
                 face.label = 'A'
+
+        for half_edge in subdiv.half_edges:
+            half_edge.is_visited = False
+
         return subdiv
 
     @staticmethod
@@ -541,7 +545,8 @@ class DCEL:
         subdiv = DCEL.subdivision(d1, d2)
 
         def is_belong(half_edge):
-            return (half_edge.face.label == 'AB' and half_edge.twin.face.label != 'AB')
+            half_edge.twin.is_visited = True
+            return (half_edge.face.label == 'AB' and half_edge.twin.face.label != 'AB') and not half_edge.is_visited
 
         belonging_half_edges = filter(is_belong, subdiv.half_edges)
         belonging_edges = list(

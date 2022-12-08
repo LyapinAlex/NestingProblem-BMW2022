@@ -54,6 +54,8 @@ class EventQueue(AvlTree):
                     collinear_segment = seg
                     break
         if (collinear_segment):
+            if (collinear_segment == segment):
+                return
             if (collinear_segment.max_point == segment.max_point):  # Совпадают start point'ы\
                 if (collinear_segment.min_point < segment.min_point):  # Забиваем на это, никакой новой информации мы не получим
                     return
@@ -129,6 +131,9 @@ class StatusNode(Node):  # TODO
 
         # Если и self и other проходят через точку, то порядок определяется малым отклонением sweep_line (ненастоящим) по оси y
 
+        if (is_collinear(self.key.max_point - self.key.min_point, other.key.max_point - other.key.min_point)):
+            return self.key.max_point < other.key.max_point
+
         if (self.value.status.is_sweep_line_above_event_point):
             # Если порядок определяется верхним отклонением
             # То максимальная точка self должна лежать слева от other
@@ -158,10 +163,6 @@ class Status(AvlTree):
         node.value.status = self
         return node
 
-    def find_neares_for_point(self, point):
-        left_neighbour = None
-        right_neighbour = None
-
 
 class SweepLine:
     def __init__(self, segments: list[Segment], status, event_qeue, handler=None) -> None:
@@ -186,11 +187,10 @@ class SweepLine:
         self.status.is_sweep_line_above_event_point = True
 
         # Фиктивный event порожденный наложением
-        if (len(event.value.inner_segments) == 1 and len(event.value.lower_segments)+len(event.value.upper_segments) == 0):
+        if (len(event.value.inner_segments) + len(event.value.lower_segments)+len(event.value.upper_segments) == 0):
             return
 
-        if (self.handle_overlap_case(event)):
-            return
+        self.handle_overlap_case(event)
 
         if (self.handler is not None):
             self.handler.handle_vertex(event)
@@ -228,7 +228,7 @@ class SweepLine:
 
     def check_on_new_inner_segments(self, event):
         fictive_segment = Segment(
-            event.key+Vector(0, -1000), event.key+Vector(0, 1000))  # Можно ли убрать id ?
+            event.key+Vector(-1000, 0), event.key+Vector(1000, 0))  # Можно ли убрать id ?
         right_neighbour, left_neighbour = self.status.get_nearests(
             fictive_segment)
         if left_neighbour is not None:
@@ -260,25 +260,27 @@ class SweepLine:
             prev_min_point = collinear_segments[1].min_point
             current_min_point = collinear_segments[0].min_point
             prev_max_point = collinear_segments[1].max_point
+            current_max_point = collinear_segments[0].max_point
 
             if (current_min_point > prev_min_point):
-                event = self.event_queue.find(current_min_point)
-                event.value.lower_segments.remove(collinear_segments[0])
-                event.value.inner_segments.add(collinear_segments[1])
-                return True
+                event_for_delete = self.event_queue.find(current_min_point)
+                event_for_delete.value.lower_segments.remove(
+                    collinear_segments[0])
+                event_for_delete = self.event_queue.find(current_max_point)
+                event_for_delete.value.upper_segments.remove(
+                    collinear_segments[0])
             else:
-                event = self.event_queue.find(current_min_point)
-                prev_event = self.event_queue.find(prev_min_point)
-                status = self.status.find(collinear_segments[1])
-                status.key.min_point = current_min_point
-                for elem in event.value.lower_segments:
-                    if elem == collinear_segments[0]:
-                        elem.max_point = prev_max_point
-                        break
-                prev_event.value.lower_segments.remove(collinear_segments[1])
-                prev_event.value.inner_segments.add(status.key)
-                return True
-        return False
+                event_for_delete = self.event_queue.find(prev_min_point)
+                event_for_delete.value.upper_segments.add(
+                    Segment(event.key, collinear_segments[0].min_point))
+                event_for_delete = self.event_queue.find(current_max_point)
+                event_for_delete.value.upper_segments.remove(
+                    collinear_segments[0])
+                event_for_delete = self.event_queue.find(current_min_point)
+                event_for_delete.value.lower_segments.remove(
+                    collinear_segments[0])
+                event_for_delete.value.lower_segments.add(
+                    Segment(event.key, collinear_segments[0].min_point))
 
     def handle_intersection_case(self, event):
         self.intersection_points.append(event.key)
@@ -439,7 +441,7 @@ def rundom_segments(num_segments=10) -> list[Segment]:
 
 
 def main():
-    array_segments = rundom_segments(1000)
+    array_segments = rundom_segments(500)
     draw_lines(array_segments, [])
     start_time = time.time()
     sweep_line = SweepLine(array_segments, Status(), EventQueue())
@@ -449,85 +451,85 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
     # ТЕСТЫ
-    a0 = Vector(0, 0)
-    b0 = Vector(1, 0)
-    c0 = Vector(2, 0)
-    a1 = Vector(0, 1)
-    b1 = Vector(1, 1)
-    c1 = Vector(2, 1)
-    s1 = Segment(a0, c1)
-    s2 = Segment(b0, b1)
-    s3 = Segment(c0, a1)
-    s1 = Segment(Vector(0, 0), Vector(1, 1))
-    s2 = Segment(Vector(0, -1), Vector(1, 0))
-    s3 = Segment(Vector(0.7, -2), Vector(0.3, 1))
-    s4 = Segment(Vector(0, -3), Vector(1, 2.5))
+    # a0 = Vector(0, 0)
+    # b0 = Vector(1, 0)
+    # c0 = Vector(2, 0)
+    # a1 = Vector(0, 1)
+    # b1 = Vector(1, 1)
+    # c1 = Vector(2, 1)
+    # s1 = Segment(a0, c1)
+    # s2 = Segment(b0, b1)
+    # s3 = Segment(c0, a1)
+    # s1 = Segment(Vector(0, 0), Vector(1, 1))
+    # s2 = Segment(Vector(0, -1), Vector(1, 0))
+    # s3 = Segment(Vector(0.7, -2), Vector(0.3, 1))
+    # s4 = Segment(Vector(0, -3), Vector(1, 2.5))
 
-    segments = [s1, s2, s3]
-    v1 = Vector(1, 1)
-    v0 = 0*v1
-    v2 = 2*v1
-    v3 = 3*v1
-    w1 = Segment(v0, v2)
-    w2 = Segment(v0, b0)
-    segments = [w1, w2]
+    # segments = [s1, s2, s3]
+    # v1 = Vector(1, 1)
+    # v0 = 0*v1
+    # v2 = 2*v1
+    # v3 = 3*v1
+    # w1 = Segment(v0, v2)
+    # w2 = Segment(v0, b0)
+    # segments = [w1, w2]
 
-    m0 = Vector(0, 1)
-    m1 = Vector(1, 0)
-    p0 = Vector(2, 1)
-    p1 = Vector(1, 2)
-    t1 = Segment(m0, p0)
-    t2 = Segment(m1, p1)
-    segments = [t1, t2]
+    # m0 = Vector(0, 1)
+    # m1 = Vector(1, 0)
+    # p0 = Vector(2, 1)
+    # p1 = Vector(1, 2)
+    # t1 = Segment(m0, p0)
+    # t2 = Segment(m1, p1)
+    # segments = [t1, t2]
 
-    # intersections = SweepLine(segments).intersection_points
-    # print(len(intersections))
-    # draw_lines(segments, intersections)
+    # # intersections = SweepLine(segments).intersection_points
+    # # print(len(intersections))
+    # # draw_lines(segments, intersections)
 
-    A = Vector(0, 0)
-    B = Vector(1, -1)
-    C = Vector(2, 0)
-    D = Vector(1, 1)
+    # A = Vector(0, 0)
+    # B = Vector(1, -1)
+    # C = Vector(2, 0)
+    # D = Vector(1, 1)
 
-    s1 = Segment(A, B)
-    s2 = Segment(B, C)
-    s3 = Segment(C, D)
-    s4 = Segment(D, A)
-    s5 = Segment(A, C)
-    s6 = Segment(B, D)
-    s7 = Segment(A, C)
+    # s1 = Segment(A, B)
+    # s2 = Segment(B, C)
+    # s3 = Segment(C, D)
+    # s4 = Segment(D, A)
+    # s5 = Segment(A, C)
+    # s6 = Segment(B, D)
+    # s7 = Segment(A, C)
 
-    segments = [s1, s2, s3, s4, s5, s6, Segment(
-        Vector(-1, -2), Vector(3, 2)), Segment(Vector(0.5, 0), Vector(0.5, 2)), Segment(Vector(1.5, -2), Vector(1.5, 2)), s7]
-    A = Vector(0, 1)
-    B = Vector(1, 0)
-    C = Vector(2, 0)
-    D = Vector(3, 0)
-    E = Vector(4, 0)
-    F = Vector(5, 0)
-    s1 = Segment(A, B)
-    s2 = Segment(B, C)
-    s3 = Segment(C, D)
-    s4 = Segment(A, F)
-    segments = [s1, s2, s3, Segment(
-        Vector(-1, 2), Vector(3, 2)), Segment(Vector(-1, 2.5), Vector(3, 2.5)), Segment(Vector(2, 2), Vector(3, 0)), Segment(Vector(-1, 0), Vector(4, 10/3))]
-    segments = [s1, s2, s3, s4]
-    A = Vector(0, 0)
-    B = Vector(0, 1)
-    C = Vector(1, 1)
-    D = Vector(1, 0)
-    s1 = Segment(A, B)
-    s2 = Segment(B, C)
-    s3 = Segment(C, D)
-    s4 = Segment(D, A)
-    s6 = Segment(Vector(-1, -1), Vector(0.5, 0.5))
-    s7 = Segment(Vector(0, 0.5), Vector(0.5, 0))
-    segments = [s1, s2, s3, s4, s6, s7]
-    #draw_lines(segments, [])
-    sweep = SweepLine(segments, Status(), EventQueue())
-    print(len(sweep.intersection_points))
-    for point in sweep.intersection_points:
-        print(point)
-    draw_lines(sweep.new_segments, sweep.intersection_points)
+    # segments = [s1, s2, s3, s4, s5, s6, Segment(
+    #     Vector(-1, -2), Vector(3, 2)), Segment(Vector(0.5, 0), Vector(0.5, 2)), Segment(Vector(1.5, -2), Vector(1.5, 2)), s7]
+    # A = Vector(0, 1)
+    # B = Vector(1, 0)
+    # C = Vector(2, 0)
+    # D = Vector(3, 0)
+    # E = Vector(4, 0)
+    # F = Vector(5, 0)
+    # s1 = Segment(A, B)
+    # s2 = Segment(B, C)
+    # s3 = Segment(C, D)
+    # s4 = Segment(A, F)
+    # segments = [s1, s2, s3, Segment(
+    #     Vector(-1, 2), Vector(3, 2)), Segment(Vector(-1, 2.5), Vector(3, 2.5)), Segment(Vector(2, 2), Vector(3, 0)), Segment(Vector(-1, 0), Vector(4, 10/3))]
+    # segments = [s1, s2, s3, s4]
+    # A = Vector(0, 0)
+    # B = Vector(0, 1)
+    # C = Vector(1, 1)
+    # D = Vector(1, 0)
+    # s1 = Segment(A, B)
+    # s2 = Segment(B, C)
+    # s3 = Segment(C, D)
+    # s4 = Segment(D, A)
+    # s6 = Segment(Vector(-1, -1), Vector(0.5, 0.5))
+    # s7 = Segment(Vector(0, 0.5), Vector(0.5, 0))
+    # segments = [s1, s2, s3, s4, s6, s7]
+    # #draw_lines(segments, [])
+    # sweep = SweepLine(segments, Status(), EventQueue())
+    # print(len(sweep.intersection_points))
+    # for point in sweep.intersection_points:
+    #     print(point)
+    # draw_lines(sweep.new_segments, sweep.intersection_points)

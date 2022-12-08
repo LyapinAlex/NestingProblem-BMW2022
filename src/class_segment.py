@@ -15,8 +15,8 @@ class Segment:
         return self.min_point == other.min_point and self.max_point == other.max_point
 
     def __lt__(self, other):  # <
-        return (self.min_point < other.min_point) or ((self.min_point == other.min_point) and
-                                                      (self.max_point < other.max_point))
+        return self != other and (self.min_point < other.min_point) or ((self.min_point == other.min_point) and
+                                                                        (self.max_point < other.max_point))
 
     def __le__(self, other):  # <=
         return self < other or self == other
@@ -30,7 +30,7 @@ class Segment:
         if (is_collinear(a, b) or a == Vector(0, 0) or b == Vector(0, 0)):
             return 0
         signed_area = psevdoProd(a, b)
-        if (abs(signed_area) < 0.0001):
+        if (abs(signed_area) < 0.000001):
             return 0
         return sign(signed_area)
 

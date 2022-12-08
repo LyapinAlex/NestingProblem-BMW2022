@@ -7,6 +7,7 @@ from math import ceil, floor
 from matplotlib import patches
 from matplotlib import pyplot as plt
 from class_DCEL import DCEL
+from class_arrangement import draw_segments_sequence
 from class_direction import is_convex, isBetween
 from class_segment import Segment
 
@@ -25,6 +26,7 @@ class Polygon:
         self.num_sides = len(points)
         self.size = self.resize()
         self.area = self.calc_area()
+        self.expanded_polygon = None
 
     def __str__(self):
         s = ""
@@ -117,13 +119,13 @@ class Polygon:
         return
 
     def del_points_on_one_line(self):
-        if not self.get_side(0).is_collinear(
-                self.get_side(self.num_sides - 1)):
+        if not Vector.is_collinear(self.get_side(0),
+                                   self.get_side(self.num_sides - 1)):
             new_points = [self.points[0]]
         else:
             new_points = []
         for i in range(1, self.num_sides):
-            if not self.get_side(i).is_collinear(self.get_side(i - 1)):
+            if not Vector.is_collinear(self.get_side(i), self.get_side(i - 1)):
                 new_points.append(self.point(i))
         self.points = new_points
         self.num_sides = len(self.points)
