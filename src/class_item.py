@@ -13,7 +13,7 @@ from src.shift_code.simple2mixed_shift import simple2mixed_shift
 from src.preprocess.expand_polygon import expand_polygon
 from src.shift_code.classic2new_shift import classic2new_shift
 from src.smth2lines.polygon2segments import polygon2segments
-
+from math import atan2
 
 class Item:
 
@@ -155,6 +155,32 @@ class Item:
             self.segments.append(new_lines)
 
         return None
+
+    def set_square(self):
+
+        def sort_phy(arr):
+
+            ind = []
+            a, b = arr[0]
+            for i, v in enumerate(arr):
+                phi = atan2(v[1] - a, v[0] - b)
+                ind.append([i, phi])
+            ind.sort(key=lambda f: f[1])
+            return [i[0] for i in ind]
+
+        def sqc(xa, ya, xb, yb, xc, yc):
+            return abs((xb - xa) * (yc - ya) - (xc - xa) * (yb - ya)) / 2
+
+        n = len(self.points)
+        points = copy(self.points)
+
+        p = sort_phy(points)
+
+        sq = 0
+
+        for i in range(1, n - 1):
+            sq += sqc(*points[p[0]], *points[p[i]], *points[p[i + 1]])
+        self.area = sq
 
     def list_segments_items(self, h):
         """Приближение объекта отрезками, с размером пискля - h

@@ -117,6 +117,11 @@ class Packing():
                 point[1] += polygon.t_vector[1] * self.h
         return
 
+    def set_squares(self):
+        for item in self.items:
+            item.set_square()
+
+
 # --------------------------------  Calculations   --------------------------------
 
     def make_items(self, h = 0.0, num_rout = 0):
@@ -151,7 +156,7 @@ class Packing():
         self.time_convert_data = round(time.time() - t_convert, 3)
         return
 
-    def sort_items(self, num_sort = 0):
+    def sort_items(self, num_sort=0):
         """Сортировка в порядке неубывания по\n
         0 - количеству пикселей в растровой кодировке\n
         1 - по площади растрового приближения\n
