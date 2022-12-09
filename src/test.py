@@ -27,6 +27,9 @@ if __name__ == '__main__':
     poly3.sort_points()
     # polygons = dxf2polygons(
     #     r'C:\Users\1\Desktop\NestingProblem-BMW2022\src\input\NEST001-108.DXF')
+    # polygons = polygons[:3]
+    # for polygon in polygons:
+    #     polygon.sort_points()
     polygons = []
     for i in range(1):
         polygons.append(deepcopy(poly1))

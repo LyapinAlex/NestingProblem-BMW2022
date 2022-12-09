@@ -12,6 +12,8 @@ def compare_ccw_angle(vec1: Vector, vec2: Vector):
         return 1
     elif (quadrant_1 < quadrant_2):
         return -1
+    if (abs(vec1.x*vec2.y-vec1.y*vec2.x) < 0.0000000001):
+        return 0
     return -sign(vec1.x*vec2.y-vec1.y*vec2.x)
 
 
@@ -23,7 +25,7 @@ def is_collinear(vec1: Vector, vec2: Vector):
     if (quadrant_1 != quadrant_2):
         return False
     sin_angle = abs(vec1.x*vec2.y-vec1.y*vec2.x)
-    return sin_angle < 0.0000001
+    return sin_angle < 0.0000000001
 
 
 def isBetween(p: Vector, q: Vector, r: Vector):

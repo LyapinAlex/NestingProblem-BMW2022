@@ -517,9 +517,7 @@ class DCEL:
             half_edge.twin.is_visited = True
             segment = Segment(half_edge.origin, half_edge.end)
             edges.append(segment)
-
         subdiv = DCEL(edges)
-
         for face in subdiv.faces:
             if (face.boundary_half_edge == None):
                 continue
@@ -612,7 +610,7 @@ def rundom_segments(num_segments=10) -> list[Segment]:
 
 def draw_segments_sequence(segments):
     for segment in segments:
-        plt.arrow(segment[0].x, segment[0].y, segment[1].x-segment[0].x, segment[1].y-segment[0].y,
+        plt.arrow(segment.min_point.x, segment.min_point.y, segment.max_point.x-segment.min_point.x, segment.max_point.y-segment.min_point.y,
                   shape='full', lw=0.5, length_includes_head=True, head_width=.05)
     plt.show()
 

@@ -31,10 +31,8 @@ class Nfp_Packer:
             part_of_nfp = Polygon.nfp(packed_polygon, polygon)
             no_fit_polygon_arrangement = DCEL.set_or(
                 no_fit_polygon_arrangement, part_of_nfp)
-
         no_fit_polygon_arrangement = DCEL.set_minus(
             pallet_border_dcel, no_fit_polygon_arrangement)
-
         optimal_point = no_fit_polygon_arrangement.vertices.min_key_node(
             no_fit_polygon_arrangement.vertices.root).key
 

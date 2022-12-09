@@ -47,11 +47,9 @@ def packing_from_our_tests(input_file_name: str,
 
     for polygon in polygons:
         i += 1
-        if (i == 9):
-            print('some')
         pallet.pack(polygon)
         items.append(Item(i, polygon.points_to_list()))
-        items2png(r'C:\Users\1\Desktop\NestingProblem-BMW2022\src\output\fig' + str(i)+'.png',
+        items2png(r'C:\Users\1\Desktop\NestingProblem-BMW2022\src\output\fig' + str(i) + '.png',
                   items, packaging, False)
     print('Затраченое время:', time.time() - start_time)
 
@@ -155,4 +153,4 @@ def packing_from_swim(input_file_name: str,
 if __name__ == '__main__':
     # for i in range(0, 1):
     #     packing_from_our_tests(input_file_name='test'+str(i)+'.txt')
-    packing_from_our_tests(input_file_name='test'+str(24)+'.txt')
+    packing_from_our_tests(input_file_name='test'+str(30)+'.txt')

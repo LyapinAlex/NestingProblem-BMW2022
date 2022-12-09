@@ -120,6 +120,9 @@ class StatusNode(Node):  # TODO
     def __lt__(self: 'StatusNode', other: 'StatusNode'):
         '''Имеем следующий инвариант dist1==0 or dist2 ==0, то есть хотя бы один сегмент при
         сравнении будет проходящим через точку (Потому что только такие мы ищем, вставляем и удаляем)'''
+        if (self.key == other.key):
+            return False
+
         dist1 = self.key.compare_with_point(self.value.status.event_point)
         dist2 = other.key.compare_with_point(self.value.status.event_point)
 
@@ -132,7 +135,7 @@ class StatusNode(Node):  # TODO
         # Если и self и other проходят через точку, то порядок определяется малым отклонением sweep_line (ненастоящим) по оси y
 
         if (is_collinear(self.key.max_point - self.key.min_point, other.key.max_point - other.key.min_point)):
-            return self.key.max_point < other.key.max_point
+            return self.key.min_point < other.key.min_point or self.key.min_point == other.key.min_point and self.key.max_point < other.key.max_point
 
         if (self.value.status.is_sweep_line_above_event_point):
             # Если порядок определяется верхним отклонением
@@ -192,6 +195,10 @@ class SweepLine:
 
         self.handle_overlap_case(event)
 
+        # Если какой-то сегмент проходит через upper_segments(Только один, то есть еще пересечение не было найдено, а оно есть)
+        if (len(event.value.inner_segments) == 0 and len(event.value.lower_segments) == 0):
+            self.check_on_new_inner_segments(event)
+
         if (self.handler is not None):
             self.handler.handle_vertex(event)
 
@@ -199,10 +206,6 @@ class SweepLine:
 
         if (self.handler is not None):
             self.handler.handle_lower(event, self.event_queue, self.status)
-
-        # Если какой-то сегмент проходит через upper_segments(Только один, то есть еще пересечение не было найдено, а оно есть)
-        if (len(event.value.inner_segments) == 0 and len(event.value.lower_segments) == 0):
-            self.check_on_new_inner_segments(event)
 
         if (len(event.value.upper_segments) +
                 len(event.value.lower_segments) +
@@ -228,7 +231,7 @@ class SweepLine:
 
     def check_on_new_inner_segments(self, event):
         fictive_segment = Segment(
-            event.key+Vector(-1000, 0), event.key+Vector(1000, 0))  # Можно ли убрать id ?
+            event.key+Vector(0, -1000), event.key+Vector(0, 1000))  # Можно ли убрать id ?
         right_neighbour, left_neighbour = self.status.get_nearests(
             fictive_segment)
         if left_neighbour is not None:
@@ -271,16 +274,15 @@ class SweepLine:
                     collinear_segments[0])
             else:
                 event_for_delete = self.event_queue.find(prev_min_point)
-                event_for_delete.value.upper_segments.add(
-                    Segment(event.key, collinear_segments[0].min_point))
+                s = Segment(event.key, collinear_segments[0].min_point)
+                event_for_delete.value.upper_segments.add(s)
                 event_for_delete = self.event_queue.find(current_max_point)
                 event_for_delete.value.upper_segments.remove(
                     collinear_segments[0])
                 event_for_delete = self.event_queue.find(current_min_point)
                 event_for_delete.value.lower_segments.remove(
                     collinear_segments[0])
-                event_for_delete.value.lower_segments.add(
-                    Segment(event.key, collinear_segments[0].min_point))
+                event_for_delete.value.lower_segments.add(s)
 
     def handle_intersection_case(self, event):
         self.intersection_points.append(event.key)
@@ -451,7 +453,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
     # ТЕСТЫ
     # a0 = Vector(0, 0)
     # b0 = Vector(1, 0)
@@ -516,20 +518,15 @@ if __name__ == '__main__':
     # segments = [s1, s2, s3, Segment(
     #     Vector(-1, 2), Vector(3, 2)), Segment(Vector(-1, 2.5), Vector(3, 2.5)), Segment(Vector(2, 2), Vector(3, 0)), Segment(Vector(-1, 0), Vector(4, 10/3))]
     # segments = [s1, s2, s3, s4]
-    # A = Vector(0, 0)
-    # B = Vector(0, 1)
-    # C = Vector(1, 1)
-    # D = Vector(1, 0)
-    # s1 = Segment(A, B)
-    # s2 = Segment(B, C)
-    # s3 = Segment(C, D)
-    # s4 = Segment(D, A)
-    # s6 = Segment(Vector(-1, -1), Vector(0.5, 0.5))
-    # s7 = Segment(Vector(0, 0.5), Vector(0.5, 0))
-    # segments = [s1, s2, s3, s4, s6, s7]
-    # #draw_lines(segments, [])
-    # sweep = SweepLine(segments, Status(), EventQueue())
-    # print(len(sweep.intersection_points))
-    # for point in sweep.intersection_points:
-    #     print(point)
-    # draw_lines(sweep.new_segments, sweep.intersection_points)
+    A = Vector(0, 0)
+    B = Vector(0, 1)
+    C = Vector(1, 1)
+    D = Vector(1, 0)
+    segments = [Segment(Vector(-1, 1), (1, 1)),
+                Segment(Vector(0, 0), Vector(0, 1))]
+    #draw_lines(segments, [])
+    sweep = SweepLine(segments, Status(), EventQueue())
+    print(len(sweep.intersection_points))
+    for point in sweep.intersection_points:
+        print(point)
+    draw_lines(sweep.new_segments, sweep.intersection_points)

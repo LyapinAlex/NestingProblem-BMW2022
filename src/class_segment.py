@@ -30,7 +30,7 @@ class Segment:
         if (is_collinear(a, b) or a == Vector(0, 0) or b == Vector(0, 0)):
             return 0
         signed_area = psevdoProd(a, b)
-        if (abs(signed_area) < 0.000001):
+        if (abs(signed_area) < 0.000000001):
             return 0
         return sign(signed_area)
 
