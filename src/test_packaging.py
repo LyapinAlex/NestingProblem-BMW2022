@@ -4,13 +4,15 @@ from class_item import Item
 
 # Датасеты: https://www.euro-online.org/websites/esicup/data-sets/
 
+
 def packing_from_our_tests(input_file_name: str,
-                            input_dir = "src\\input\\tests\\",
+                            input_dir = "src\\input\\concave50\\",
                             output_file_name='',
                             num_rot=4,
                             num_sort=2,
                             eps=0.0):
     """Входные данные типа test1"""
+    # ------------  чтение файла  ------------
     path = input_dir + input_file_name
     f = open(path, 'r')
     num_items = int(f.readline())
@@ -26,6 +28,7 @@ def packing_from_our_tests(input_file_name: str,
             points.pop()
         polygons[i] = np.array(points)
     f.close()
+    # ------------  Задание данных  ------------
     packaging = Packing(width=float(list_pallet_shape[0]),
                         height=float(list_pallet_shape[1]),
                         drill_radius=0,
@@ -36,7 +39,7 @@ def packing_from_our_tests(input_file_name: str,
     for id in range(packaging.num_items):
         item = Item(id, polygons[id])
         packaging.items[id] = item
-
+    # ------------  Упаковка  ------------
     packaging.make_items(h=eps, num_rout=num_rot)
     packaging.sort_items(num_sort=num_sort)
     packaging.greedy_packing()
@@ -44,7 +47,7 @@ def packing_from_our_tests(input_file_name: str,
     packaging.change_position()
     if output_file_name=='':
         output_file_name = input_file_name[0:-3]+'png'
-    packaging.save_pallets_in_files(output_file_name)
+    # packaging.save_pallets_in_files(output_file_name)
     return packaging.get_stats()
 
 
@@ -55,7 +58,7 @@ def packing_from_Terashima2(input_file_name: str,
                             eps=0.0):
     """Входные данные типа Terashima2 (распаковываем интересующие файлы и запускаем)"""
     # ------------  чтение файла  ------------
-    path = "src\\input\\" + input_file_name
+    path = "src\\input\\dataset" + input_file_name
     f = open(path, 'r')
     num_items = int(f.readline())
     polygons = np.full(num_items, None)
@@ -70,7 +73,7 @@ def packing_from_Terashima2(input_file_name: str,
             points.pop()
         polygons[i] = np.array(points)
     f.close()
-    # ------------  Упаковка  ------------
+    # ------------  Задание данных  ------------
     packaging = Packing(width=float(list_pallet_shape[1]),
                         height=float(list_pallet_shape[2]),
                         drill_radius=0,
@@ -81,7 +84,7 @@ def packing_from_Terashima2(input_file_name: str,
     for id in range(packaging.num_items):
         item = Item(id, polygons[id])
         packaging.items[id] = item
-
+    # ------------  Упаковка  ------------
     packaging.make_items(h=eps, num_rout=num_rot)
     packaging.sort_items(num_sort=num_sort)
     packaging.greedy_packing()
@@ -97,12 +100,12 @@ def packing_from_swim(input_file_name: str,
                       output_file_name = '',
                       width=10000,
                       height=5752,
-                      num_rot=0,
-                      num_sort=0,
+                      num_rot=4,
+                      num_sort=2,
                       eps=0.0):
-    """Входные данные типа swim.txt (trousers.txt)"""
+    """Входные данные типа swim.txt (trousers.txt, shirts.txt, ...)"""
     # ------------  чтение файла  ------------
-    path = "src\\input\\" + input_file_name
+    path = "src\\input\\dataset\\" + input_file_name
     f = open(path, 'r')
     line = f.readline()
     polygons = []
@@ -126,7 +129,7 @@ def packing_from_swim(input_file_name: str,
         f.readline()  #
         line = f.readline()  #PIECE k
     f.close()
-    # ------------  Упаковка  ------------
+    # ------------  Задание данных  ------------
     packaging = Packing(width=width,
                         height=height,
                         drill_radius=0,
@@ -138,6 +141,7 @@ def packing_from_swim(input_file_name: str,
     for id in range(packaging.num_items):
         item = Item(id, polygons[id])
         packaging.items[id] = item
+    # ------------  Упаковка  ------------
     packaging.make_items(h=eps, num_rout=num_rot)
     packaging.sort_items(num_sort=num_sort)
     packaging.greedy_packing()
@@ -149,21 +153,21 @@ def packing_from_swim(input_file_name: str,
     return packaging.get_stats()
 
 
-def create_pack(output_file_name: str):
-    packaging = Packing(width=1500,
-                        height=1500,
+def create_pack(output_file_name: str, num_items: int, width=2000, height=1000):
+    packaging = Packing(width=width,
+                        height=height,
                         drill_radius=0,
                         border_distance=0)
-    packaging.create_random_polygons(50)
-    packaging.output_dir = "src\\input\\tests"
+    packaging.create_random_polygons(num_items)
+    packaging.output_dir = "src\\input\\concave30"
     packaging.save_items_in_file(output_file_name, False)
     return
 
 
 if __name__ == '__main__':
-    for i in range(0,10):
-        create_pack('test'+str(i)+'.txt')
-        # packing_from_our_tests(input_file_name='test'+str(i)+'.txt')
-    # packing_from_swim('swim.txt', eps=36/2)
-    # packing_from_swim('trousers.txt', width=500, height=79)
-    # packing_from_our_tests(input_file_name='my_test1.txt', input_dir = "src\\input\\special_tests\\")
+    # for i in range(0,1):
+    #     ### create_pack('test'+str(i)+'.txt', 30, 210, 100)
+    #     [height, time] = packing_from_our_tests(input_file_name='test'+str(i)+'.txt', input_dir = "src\\input\\concave30\\")
+    [height, time] = packing_from_swim('shirts.txt', width=100, height=40)
+    [height, time] = packing_from_swim('trousers.txt', width=500, height=79)
+    [height, time] = packing_from_swim('swim.txt', width=10000, height=5752)
