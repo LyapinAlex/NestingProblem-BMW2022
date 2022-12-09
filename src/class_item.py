@@ -6,6 +6,8 @@ import numpy as np
 from matplotlib import patches
 from matplotlib import pyplot as plt
 
+from src.class_polygon import Polygon
+from src.class_vector import Vector
 from src.smth2matrix.polygon2matrix import polygon2matrix
 from src.smth2matrix.polyline2matrix import polyline2matrix
 from src.smth2matrix.shift2zero import shift2zero
@@ -111,48 +113,12 @@ class Item:
         else:
             lines = polygon2segments(self.points, h)
             self.segments.append(copy(lines))
-
-            max = 0
-            for line in lines:
-                if max < line[-1][1]:
-                    max = line[-1][1]
-
-            for line in lines:
-                # print(line)
-                for sigment in line:
-                    sigment[0] = abs(sigment[0] - max)
-                    sigment[1] = abs(sigment[1] - max)
-
-            new_lines = []
-            for _ in range(len(lines)):
-                new_lines.append([])
-            for i in range(len(lines)):
-                new_lines[abs(i - len(lines)) - 1] = copy(lines[i])
-
-            def first_elem(e):
-                return e[0]
-
-            for line in new_lines:
-                for segment in line:
-                    segment.sort()
-                line.sort(key=first_elem)
-                i = 0
-                while i < (len(line) - 1):
-                    if line[i][1] == line[i + 1][0]:
-                        line[i][1] = line[i + 1][1]
-                        line.pop(i + 1)
-                        continue
-                    if line[i][1] > line[i + 1][0]:
-                        if line[i][1] < line[i + 1][1]:
-                            line[i][1] = line[i + 1][1]
-                            line.pop(i + 1)
-                            continue
-                    if line[i][1] > line[i + 1][0]:
-                        if line[i][1] >= line[i + 1][1]:
-                            line.pop(i + 1)
-                            continue
-                    i += 1
-            self.segments.append(new_lines)
+            rotated_points = copy(self.points)
+            rotated_polygon = Polygon(rotated_points)
+            rotated_polygon.rotate(math.pi)
+            rotated_polygon.move_to_origin()
+            rotated_points = rotated_polygon.points_to_list()
+            self.segments.append(polygon2segments(rotated_points, h))
 
         return None
 
@@ -181,6 +147,7 @@ class Item:
         for i in range(1, n - 1):
             sq += sqc(*points[p[0]], *points[p[i]], *points[p[i + 1]])
         self.area = sq
+        # return sq
 
     def list_segments_items(self, h):
         """Приближение объекта отрезками, с размером пискля - h
