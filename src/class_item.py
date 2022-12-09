@@ -105,9 +105,16 @@ class Item:
 
     def set_segments(self, h):
         """Приближение объекта отрезками, с размером пискля - h"""
-        # i = 0
-        # while i <= self.rotation:
-        #     self.segments = polygon2segments(self.points, h)
+
+        # for i in range(self.rotation + 1):
+        #     angle = (2 * math.pi * i) / self.rotation
+        #     rotated_points = copy(self.points)
+        #     rotated_polygon = Polygon(rotated_points)
+        #     rotated_polygon.rotate(angle)
+        #     rotated_polygon.move_to_origin()
+        #     rotated_points = rotated_polygon.points_to_list()
+        #     self.segments.append(polygon2segments(rotated_points, h))
+
         if self.rotation == 0:
             self.segments.append(polygon2segments(self.points, h))
         else:

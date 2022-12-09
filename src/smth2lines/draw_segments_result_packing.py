@@ -1,7 +1,11 @@
+import math
 import random
 from copy import copy
 
 from matplotlib import pyplot as plt, patches
+
+from src.class_polygon import Polygon
+from src.class_vector import Vector
 
 
 def draw_segments_result_packing(packing):
@@ -39,20 +43,38 @@ def draw_segments_result_packing(packing):
     for polygon in packing.items:
         print(polygon.t_vector)
         i = 0
-        while i < len(polygon.points):
-            point = copy(polygon.points[i])
-            point[0] += polygon.t_vector[0]
-            point[1] += polygon.t_vector[1] * h
-            if point[1] > max_height:
-                max_height = copy(point[1])
-            polygon.points[i] = copy(point)
-            i += 1
-
-        figure = patches.Polygon(polygon.points,
-                                 linewidth=1,
-                                 edgecolor='red',
-                                 fill=False)
-        ax.add_patch(figure)
+        if polygon.best_rotation == 0:
+            while i < len(polygon.points):
+                point = copy(polygon.points[i])
+                point[0] += polygon.t_vector[0]
+                point[1] += polygon.t_vector[1] * h
+                if point[1] > max_height:
+                    max_height = copy(point[1])
+            figure = patches.Polygon(polygon.points,
+                                     linewidth=1,
+                                     edgecolor='red',
+                                     fill=False)
+            ax.add_patch(figure)
+            random_color = "#" + \
+                           ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
+        else:
+            rotated_points = copy(polygon.points)
+            new_points = Polygon(rotated_points)
+            new_points.rotate(math.pi)
+            t_vec = copy(polygon.t_vector)
+            t_v = Vector(t_vec[0], t_vec[1] * h)
+            new_points.move_to(t_v)
+            rotated_points = new_points.points_to_list()
+            for r_point in rotated_points:
+                if r_point > max_height:
+                    max_height = copy(r_point)
+            figure = patches.Polygon(rotated_points,
+                                     linewidth=1,
+                                     edgecolor='green',
+                                     fill=False)
+            ax.add_patch(figure)
+            random_color = "#" + \
+                           ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
         # random_color = "#" + \
         #                ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
         # for i in range(len(polygon.segments)):
