@@ -248,6 +248,7 @@ class Packing():
         print("Процент заполненной области растрового приближения (с учётом part_distance):", round(percent2, 2), '\n')
 
     def get_stats(self):
+        """Возвращает высоту и время"""
         return [self.target_height, self.time_packing]
 
     def get_annotation(self):
