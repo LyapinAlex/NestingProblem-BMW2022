@@ -5,7 +5,7 @@ def items2txt(path, items, duplicate_first_point_to_end=True, is_in_one_file = F
     else:
         f = open(path[:-4] + str(items[0].pallet_id) + '.txt', 'w')
     f.write(str(len(items)) + '\n')
-    # f.write(str(2000) + str(1000) + '\n')
+    # f.write(str(210) + " " + str(100) + '\n')
     for item in items:
         s = ''
         for point in item.points:
