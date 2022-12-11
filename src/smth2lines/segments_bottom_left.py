@@ -5,6 +5,7 @@ def pack_item(item, pallets, t_vector, r, best_rotation):
     item.t_vector = [t_vector, r]
     item.packed = True
     item.best_rotation = best_rotation
+    # print(best_rotation)
     for s in range(len(item.segments[best_rotation])):
         for l in range(len(item.segments[best_rotation][s])):
             new_line = [copy(item.segments[best_rotation][s][l][0]) + copy(item.t_vector[0]), copy(item.segments[best_rotation][s][l][1]) + copy(item.t_vector[0])]
@@ -41,6 +42,7 @@ def pack_segments(items, pallets):
         best_rotation = None
         best_r = None
         for rotation in range(item.rotation + 1):
+            # print(rotation)
             segments = copy(item.segments[rotation])
             r = 0
             finish_flag = 0

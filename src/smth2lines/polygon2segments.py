@@ -14,25 +14,25 @@ from src.smth2matrix.shift2zero import shift2zero
 def line(p1, p2):
     A = (p1[1] - p2[1])
     B = (p2[0] - p1[0])
-    C = (p1[0]*p2[1] - p2[0]*p1[1])
+    C = (p1[0] * p2[1] - p2[0] * p1[1])
     return A, B, -C
+
 
 def intersection(points1, points2):
     L1 = line(points1[0], points1[1])
     L2 = line(points2[0], points2[1])
-    D  = L1[0] * L2[1] - L1[1] * L2[0]
+    D = L1[0] * L2[1] - L1[1] * L2[0]
     Dx = L1[2] * L2[1] - L1[1] * L2[2]
     Dy = L1[0] * L2[2] - L1[2] * L2[0]
     if D != 0:
         x = Dx / D
         y = Dy / D
-        return x,y
+        return x, y
     else:
         return False
 
 
 def polygon2segments(points, h):
-
     shift2zero(points)
 
     n_x1 = 0
@@ -48,7 +48,6 @@ def polygon2segments(points, h):
     lines = []
     for _ in range(n_y + 1):
         lines.append([])
-
 
     for k in range(0, n_y + 1):
         start = None
@@ -131,11 +130,11 @@ def polygon2segments(points, h):
                     if min > points[i][0]:
                         min = copy(points[i][0])
                     # print(min, max)
-                elif points[i_prev][1] >= (k + 1) * h:
+                elif points[i_prev][1] > (k + 1) * h:  # добавить равно
                     k_prev = 1
                     k_next = 0
                     intersection_point = \
-                    intersection([points[i_prev], points[i]], [[0, (k + 1) * h], [n_x, (k + 1) * h]])[0]
+                        intersection([points[i_prev], points[i]], [[0, (k + 1) * h], [n_x, (k + 1) * h]])[0]
                     point_prev = copy(intersection_point)
                     point_next = None
                     if max < points[i][0]:
@@ -146,14 +145,14 @@ def polygon2segments(points, h):
             elif points[i][1] <= k * h < points[i_prev][1] <= (k + 1) * h or k * h < points[i_prev][1] <= (
                     k + 1) * h and points[i][1] >= (k + 1) * h:
                 # print('case2', points[i], k)
-                if points[i][1] <= k * h:
+                if points[i][1] < k * h:  # добавить равно
                     k_next = -1
                     intersection_point = intersection([points[i_prev], points[i]], [[0, k * h], [n_x, k * h]])[0]
                     point_next = copy(intersection_point)
-                elif points[i][1] >= (k + 1) * h:
+                elif points[i][1] > (k + 1) * h:  # добавить равно
                     k_next = 1
                     intersection_point = \
-                    intersection([points[i_prev], points[i]], [[0, (k + 1) * h], [n_x, (k + 1) * h]])[0]
+                        intersection([points[i_prev], points[i]], [[0, (k + 1) * h], [n_x, (k + 1) * h]])[0]
                     point_next = copy(intersection_point)
             elif k * h < points[i][1] <= (k + 1) * h and k * h < points[i_prev][1] <= (k + 1) * h:
                 if max < points[i][0]:
@@ -163,7 +162,7 @@ def polygon2segments(points, h):
                 i0 += 1
                 continue
             if k_prev * k_next != 0:
-                if k_prev * k_next == 1 and not (i==0 and i0==0):
+                if k_prev * k_next == 1 and not (i == 0 and i0 == 0):
                     if k_prev == -1:
                         k_prev = 0
                         k_next = 0
