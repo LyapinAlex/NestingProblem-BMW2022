@@ -1,4 +1,3 @@
-from cProfile import label
 import time
 import os.path
 import numpy as np
@@ -26,13 +25,15 @@ def calc_stats_eps(packaging: Packing,
                    initial_files=[],
                    is_save_polygons=False,
                    num_rot=4):
+    """Если initial_files=[], сам генерирует тесты\\
+        1"""
     stats_h = ''
     stats_t = ''
 
     if len(initial_files) != 0:
         packaging.input_dir = "src\\output\\stats\\experiments"
         num_exp = len(initial_files)
-
+    # Упаковка примеров
     for i in range(num_exp):
         if len(initial_files) == 0:
             packaging.create_random_polygons(num_items)

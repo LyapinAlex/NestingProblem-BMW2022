@@ -147,7 +147,7 @@ class Packing():
                     poly.choose_best_turn1()
                 elif num_rout == 4: # пока лучший
                     poly.choose_best_turn2()
-                item.points = poly.points_to_array()
+            item.points = poly.points_to_array()
             item.area = poly.area
             item.creat_polygon_shell(self.drill_radius)
             item.list_of_new_shift_code(self.h)
@@ -155,6 +155,7 @@ class Packing():
             self.total_pixel_area_polygons += item.pixel_area
         self.time_convert_data = round(time.time() - t_convert, 3)
         return
+
 
     def sort_items(self, num_sort=0):
         """Сортировка в порядке неубывания по\n
@@ -284,6 +285,7 @@ class Packing():
         print("Процент заполненной области растрового приближения (с учётом part_distance):", round(percent2, 2), '\n')
 
     def get_stats(self):
+        """Возвращает высоту и время"""
         return [self.target_height, self.time_packing]
 
     def get_annotation(self):
