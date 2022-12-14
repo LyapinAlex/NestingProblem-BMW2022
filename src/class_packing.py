@@ -31,7 +31,7 @@ class Packing():
         self.polygons = None
         self.items = None
         self.items_split_on_pallets = None
-        
+
         # ----------  Stats   ----------
         self.num_items = 0
         self.num_packing_items = 0
@@ -81,13 +81,13 @@ class Packing():
 
 # --------------------------------  Calculations   --------------------------------
 
-    def make_items(self, h = 0, num_rout = 0):
+    def make_items(self, h=0, num_rout=0):
         if h == 0:
-            self.h = round(sqrt(self.pallet_width * self.pallet_height) / 50, 2) / 4
+            self.h = round(
+                sqrt(self.pallet_width * self.pallet_height) / 50, 2) / 4
         else:
             self.h = h
 
-        
         self.pallet_shape = (int(self.pallet_height / self.h),
                              int(self.pallet_width / self.h)
                              )  # округление вниз
@@ -96,16 +96,16 @@ class Packing():
             if num_rout != 0:
                 poly = Polygon(item.points)
                 poly.bring_points2normal_appearance()
-                if num_rout == 1: # не очень
+                if num_rout == 1:  # не очень
                     poly.choose_best_turn3()
-                elif num_rout == 2: # не очень
+                elif num_rout == 2:  # не очень
                     poly.rotate_on_side(0)
-                elif num_rout == 3: # неплохо
+                elif num_rout == 3:  # неплохо
                     poly.choose_best_turn1()
-                elif num_rout == 4: # пока лучший
+                elif num_rout == 4:  # пока лучший
                     poly.choose_best_turn2()
                 item.points = poly.points_to_array()
-            
+
             item.creat_polygon_shell(self.drill_radius)
             item.list_of_new_shift_code(self.h)
         self.time_convert_data = round(time.time() - t_convert, 3)
@@ -127,7 +127,7 @@ class Packing():
                 pallets[self.num_pallets - 1][i][0] != -self.pallet_shape[0]):
             i += 1
 
-        self.num_packing_items += self.num_items #пока формально стоит
+        self.num_packing_items += self.num_items  # пока формально стоит
         self.target_width = round(self.pallet_shape[0] * self.h, 1)
         self.target_height = round(
             (i + self.pallet_shape[1] * (self.num_pallets - 1)) * self.h, 1)
@@ -136,13 +136,14 @@ class Packing():
     def split_items(self):
         """Разделяет объекты в массивы по номеру палет"""
 
-        self.items_split_on_pallets  = [[] for i in range(self.num_pallets)]
-        for item in self.items: 
+        self.items_split_on_pallets = [[] for i in range(self.num_pallets)]
+        for item in self.items:
             if item.pallet_id != None:
-                self.items_split_on_pallets [item.pallet_id].append(item)
-        
-        return self.items_split_on_pallets 
+                self.items_split_on_pallets[item.pallet_id].append(item)
+
+        return self.items_split_on_pallets
 #!доделать
+
     def change_position(self):
         """Пока работает не устойчиво, поэтому не встроить в сохранение"""
         self.split_items()
@@ -172,7 +173,7 @@ class Packing():
 
 # -----------------------------------  Output   -----------------------------------
 
-    def clear_output(self, file_extension = None):
+    def clear_output(self, file_extension=None):
         """Если file_extension==None, удаляет файлы с расширением png, dxf, txt"""
         if file_extension == None:
             filelist = [f for f in os.listdir(
@@ -184,19 +185,22 @@ class Packing():
         for f in filelist:
             os.remove(os.path.join(self.output_dir, f))
 
-    def save_pallets_in_files(self, file_name, duplicate_first_point_to_end=True, draw_pixels = False):
+    def save_pallets_in_files(self, file_name, duplicate_first_point_to_end=True, draw_pixels=False):
         """Сохраняет упаковки паллет в разных файлах
         Поддерживает форматы: txt, dxf, png"""
         path = self.output_dir + '\\' + file_name
         if path.endswith(".txt"):
             for i in range(self.num_pallets):
-                items2txt(path, self.items_split_on_pallets[i], duplicate_first_point_to_end)
+                items2txt(
+                    path, self.items_split_on_pallets[i], duplicate_first_point_to_end)
         elif path.endswith(".dxf"):
             for i in range(self.num_pallets):
-                items2DXF(path, self.items_split_on_pallets[i], self.pallet_width, self.pallet_height)
+                items2DXF(
+                    path, self.items_split_on_pallets[i], self.pallet_width, self.pallet_height)
         elif path.endswith(".png"):
             for i in range(self.num_pallets):
-                items2png(path, self.items_split_on_pallets[i], self, draw_pixels)
+                items2png(
+                    path, self.items_split_on_pallets[i], self, draw_pixels)
         else:
             raise Exception(
                 "Программа не умеет сохранять данные в предложенном вами формате")
@@ -206,7 +210,8 @@ class Packing():
         Поддерживает форматы: txt"""
         path = self.output_dir + '\\' + file_name
         if path.endswith(".txt"):
-            items2txt(path, self.items, duplicate_first_point_to_end, is_in_one_file = True)
+            items2txt(path, self.items, duplicate_first_point_to_end,
+                      is_in_one_file=True)
         else:
             raise Exception(
                 "Программа не умеет сохранять данные в предложенном вами формате")
@@ -219,7 +224,7 @@ class Packing():
         print("Время работы жадного алгоритма:", self.time_packing, '\n')
 
     def get_stats(self):
-        return [self.h, self.target_height, self.time_convert_data + self.time_packing]
+        return [self.target_height, self.time_packing]
 
     def get_annotation(self):
         annotation = "S = " + str(self.target_height) + " x " + str(

@@ -35,7 +35,7 @@ class Vector:
 
     def __eq__(self, other):
         pt = self-other
-        return (pt.x**2+pt.y**2) < 0.00000001
+        return (pt.x**2+pt.y**2) < 0.000000000000001
 
     def __mul__(self, scalar):  # *
         return Vector(self.x * scalar, self.y * scalar)
@@ -122,7 +122,7 @@ class Vector:
         if (quadrant_1 != quadrant_2):
             return False
         sin_angle = abs(vec1.x*vec2.y-vec1.y*vec2.x)
-        return sin_angle < 0.0000000001
+        return sin_angle < 0.00000001
 
     def round(self, ndigits=_NDIGITS):
         self.x = round(self.x, ndigits)

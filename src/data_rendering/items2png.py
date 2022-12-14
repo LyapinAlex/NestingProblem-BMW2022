@@ -8,13 +8,16 @@ def items2png(path, items, packaging, draw_pixels=False):
     fig, ax = plt.subplots()
     MAX_SIZE = 20
     if packaging.pallet_width > packaging.pallet_height:
-        fig.set_figheight(MAX_SIZE * packaging.pallet_height/packaging.pallet_width)
+        fig.set_figheight(MAX_SIZE * packaging.pallet_height /
+                          packaging.pallet_width)
         fig.set_figwidth(MAX_SIZE)
     else:
         fig.set_figheight(MAX_SIZE)
-        fig.set_figwidth(MAX_SIZE * packaging.pallet_width/packaging.pallet_height)
+        fig.set_figwidth(MAX_SIZE * packaging.pallet_width /
+                         packaging.pallet_height)
 
-    plt.text(0, packaging.pallet_height*1.015, packaging.get_annotation(), fontsize=15, color='green')
+    plt.text(0, packaging.pallet_height*1.015,
+             packaging.get_annotation(), fontsize=15, color='green')
 
     pallet = patches.Rectangle(
         (0, 0), packaging.pallet_width, packaging.pallet_height, linewidth=2, facecolor='none', edgecolor='black')
@@ -40,8 +43,8 @@ def items2png(path, items, packaging, draw_pixels=False):
                             sqver, linewidth=1, facecolor=random_color, edgecolor='black', alpha=0.33)
                         ax.add_patch(polygon)
         # отрисовка предмета
-        polygon = patches.Polygon(item.points, linewidth=1, edgecolor='red', fill=False)
+        polygon = patches.Polygon(
+            item.points, linewidth=1, edgecolor='red', fill=False)
         ax.add_patch(polygon)
-    plt.savefig(path[:-4] + str(items[0].pallet_id) + '.png')
+    plt.savefig(path[:-4] + '.png')
     return None
-

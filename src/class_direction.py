@@ -12,7 +12,7 @@ def compare_ccw_angle(vec1: Vector, vec2: Vector):
         return 1
     elif (quadrant_1 < quadrant_2):
         return -1
-    if (abs(vec1.x*vec2.y-vec1.y*vec2.x) < 0.0000000001):
+    if (abs(vec1.x*vec2.y-vec1.y*vec2.x) < 0.000000001):
         return 0
     return -sign(vec1.x*vec2.y-vec1.y*vec2.x)
 
@@ -50,7 +50,7 @@ def psevdoProd(p1: Vector, p2: Vector):
 
 
 def is_convex(p1: Vector, p2: Vector, p3: Vector):
-    return psevdoProd(p2-p1, p3-p2) > 0.0000000000000001
+    return psevdoProd(p2-p1, p3-p2) > 0.000000001
 
 
 class Direction:

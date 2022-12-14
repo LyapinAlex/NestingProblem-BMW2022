@@ -79,6 +79,7 @@ class EventQueue(AvlTree):
             event.value.upper_segments.add(segment)
             self.insert(event)
         else:
+            segment.max_point = found_start_event.key
             found_start_event.value.upper_segments.add(segment)
 
         if (not found_end_event):
@@ -86,6 +87,7 @@ class EventQueue(AvlTree):
             event.value.lower_segments.add(segment)
             self.insert(event)
         else:
+            segment.min_point = found_end_event.key
             found_end_event.value.lower_segments.add(segment)
 
     def insert_event_by_intersection(self, point, segment1, segment2):

@@ -27,6 +27,8 @@ class Polygon:
         self.size = self.resize()
         self.area = self.calc_area()
         self.expanded_polygon = None
+        self.max_XY = self.maxXY()
+        self.min_XY = self.minXY()
 
     def __str__(self):
         s = ""
@@ -86,6 +88,8 @@ class Polygon:
 
     def resize(self):
         self.size = self.maxXY() - self.minXY()
+        self.max_XY = self.maxXY()
+        self.min_XY = self.minXY()
         return self.size
 
     def round_points(self, ndigits=4):
@@ -131,11 +135,6 @@ class Polygon:
         self.num_sides = len(self.points)
         return
 
-    def resize(self):
-        self.num_sides = len(self.points)
-        self.size = self.maxXY() - self.minXY()
-        return self.size
-
     def del_duplicate_points(self):
         new_points = [self.points[0]]
         new_prev_point = self.points[0]
@@ -152,9 +151,9 @@ class Polygon:
         """Удаляет дублирующиеся точки, потом удаляет среднюю из трёх соседствующих точек лежащих на одной прямой, 
         далее упорядочивает их так, что первой вершиной становится самая нижняя (если таких несколько, то из них самая левая), 
         дальше идут вершины против часовой стрелки"""
-        self.del_duplicate_points()
-        self.del_points_on_one_line()
-        self.sort_points()
+        # self.del_duplicate_points()
+        # self.del_points_on_one_line()
+        # self.sort_points()
         return
 
 # ------------------------------  Calculations   -------------------------------
@@ -501,7 +500,6 @@ class Polygon:
     def rotate(self, angle):
         for point in self.points:
             point.rotate(angle)
-        self.round_points()
         self.resize()
         return self
 
@@ -513,7 +511,6 @@ class Polygon:
         shift_vector = vector - self.minXY()
         for point in self.points:
             point += shift_vector
-        self.round_points()
         return self
 
     def move_to_origin(self):

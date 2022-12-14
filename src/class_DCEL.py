@@ -319,7 +319,7 @@ class Face:  # OK
         pa = a-point
         pb = b-point
 
-        if (pa.x**2+pa.y**2 < 0.0000000000000001 or pb.x**2+pb.y**2 < 0.0000000000000001):
+        if (pa.x**2+pa.y**2 < 0.00000000000001 or pb.x**2+pb.y**2 < 0.00000000000001):
             return False
 
         orient = psevdoProd(b-point, a-point)
@@ -342,7 +342,7 @@ class Face:  # OK
             pa = a-point
             pb = b-point
 
-            if (pa.x**2+pa.y**2 < 0.0000000000000001 or pb.x**2+pb.y**2 < 0.0000000000000001):
+            if (pa.x**2+pa.y**2 < 0.00000000000001 or pb.x**2+pb.y**2 < 0.00000000000001):
                 return True
             v = current_half_edge.end - current_half_edge.origin
             orient = psevdoProd(b - point, a-point)
@@ -374,8 +374,6 @@ class DCEL:
 
     def build_dcel(self, edges):
         # Начальная инициализация
-        status = DcelStatus()
-        event_qeue = EventQueue()
         handler = BuildHandler(self)
         sweep_line = DcelBuilder(edges, handler)
         self.init_faces()
