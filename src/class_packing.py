@@ -280,3 +280,11 @@ class Packing():
         self.change_position()
         self.save_pallets_in_files(output_file_name)
         return
+
+# ----------------------------------  Eristics   ----------------------------------
+
+    def swap_itemes(self, n: int, m: int):
+        """Меняет местами два предмета в последовательности упаковываемых предметов"""
+        item = self.items[n]
+        self.items[n] = self.items[m]
+        self.items[m] = item

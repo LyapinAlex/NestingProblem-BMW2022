@@ -112,7 +112,7 @@ class Item:
                 m_el = max(i,m_el)
             mat[j][0] = j
             mat[j][1] = m_el
-        mat = mat[np.argsort(mat[:,1])]
+        mat = mat[np.argsort(mat[:,1])] # Закоментировать для замедления
         mat = mat[:, 0]
         mat = np.flip(mat)
         return mat

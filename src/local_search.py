@@ -1,107 +1,94 @@
-from operator import truediv
-import time
-import numpy as np
-
-from greedy_alg.class_pallets import Pallets
+from class_packing import Packing
 from class_item import Item
-from data_rendering.items2png import draw_all_pallets
-from putting_data.create_list_of_items import create_list_of_items
-from putting_data.svg2polygons import svg2polygons
-from greedy_alg.fit_pallets_with_rotation import fit_pallets_with_rotation
+import numpy as np
+import time
 
 
-def swap(list, pos1, pos2):
-    list[pos1], list[pos2] = list[pos2], list[pos1]
-    return list
+def read_our_tests(input_file_name: str,
+                           input_dir="src\\input\\concave50\\"):
+    # ------------  чтение файла  ------------
+    path = input_dir + input_file_name
+    f = open(path, 'r')
+    num_items = int(f.readline())
+    polygons = np.full(num_items, None)
+    list_pallet_shape = f.readline().split(' ')
+    for i in range(num_items):
+        list_points = f.readline().split(' ')
+        points = []
+        for j in range(0, len(list_points) - 1, 2):
+            point = [float(list_points[j]), float(list_points[j + 1])]
+            points.append(point)
+        if (points[0][0] == points[-1][0] and points[0][1] == points[-1][1]):
+            points.pop()
+        polygons[i] = np.array(points)
+    f.close()
+    # ------------  Задание данных  ------------
+    packaging = Packing(width=float(list_pallet_shape[0]),
+                        height=float(list_pallet_shape[1]),
+                        drill_radius=0,
+                        border_distance=0)
+    packaging.polygons = polygons
+    packaging.num_items = num_items
+    packaging.items = np.full(packaging.num_items, None)
+    for id in range(packaging.num_items):
+        item = Item(id, polygons[id])
+        packaging.items[id] = item
+    return packaging
 
 
-def locSearch(pallet, poligons):
-    objVal = len(fit_pallets_with_rotation(pallet.shape,  poligons, pallet.h))
+def write_packaging(packaging: Packing, output_file_name: str):
+    packaging.print_stats()
+    packaging.change_position()
+    packaging.save_pallets_in_files(output_file_name)
 
-    num_items = len(poligons)
-    stop = False
-    iter = 0
-    while not stop:
-        t = time.time()
 
-        betterNeighboor = (0,0)
-        stop = True
-        for i in range(num_items - 1):
-            for j in range(i + 1, num_items):
-                for poligon in poligons:
-                    poligon.clear_coordinat()
-                pal = fit_pallets_with_rotation(pallet.shape, swap(poligons, i, j), pallet.h)
-                iter+=1
-                swap(poligons, i, j)
-                val = len(pal)
-                if val < objVal:
-                    stop = False
-                    objVal = val
-                    betterNeighboor = (i,j)
-                    
-            print(iter, ':', objVal, 't :', time.time() - t)
-        if betterNeighboor != (0,0):
-            fit_pallets_with_rotation(pallet.shape, swap(poligons, betterNeighboor[0], betterNeighboor[1]), pallet.h)
-            
-    for poligon in poligons:
-        poligon.clear_coordinat()
+def local_search(packaging: Packing, neighborhood: int):
+    packaging.greedy_packing()
+    target_value = packaging.get_stats()[0]
+    target_sequence = packaging.items.copy()
+    for i in range(packaging.num_items):
+        for j in range(i+1, i+neighborhood):
+            if j > packaging.num_items-1:
+                continue
+            packaging.swap_itemes(i,j)
+            packaging.greedy_packing()
+            value = packaging.get_stats()[0]
+            if target_value > value:
+                target_value = value
+                target_sequence = packaging.items.copy()
+            packaging.swap_itemes(i,j)
+        print(i, ":", target_value)
 
-    fit_pallets_with_rotation(pallet.shape,  poligons, pallet.h)
-    return objVal
+    packaging.items = target_sequence
+    packaging.greedy_packing()
+    write_packaging(packaging, "test0-LS.png")
 
 
 def main():
-    t_start = time.time()
-    # Начальные данные
-    pallet_width = 2000 - 2.1
-    pallet_height = 1000 - 2.1
-    eps = 23
-    drill_radius = 2
-    file_name = 'src/input/NEST001-108.svg'
+    # ----------- начальные данные -----------
+    dirict = "convex30"
+    input_file_name = "test0.txt"
+    eps = 0.5
+    neighborhood = 50
 
+    # --------- настройка упаковщика ---------
+    packaging = read_our_tests(input_file_name, "src\\input\\"+dirict+"\\")
+    packaging.make_items(h = eps, num_rout = 4)
+    packaging.sort_items(num_sort = 2)
 
-    print("\nШаг сетки:", eps,"\n")
-    pal = Pallets(pallet_width, pallet_height, eps)
-
-    # num_polygons = 100
-    # polygons = create_list_of_items(num_polygons, pallet_width, pallet_height, eps)
+    # ----------- локальный поиск ------------
+    start_t = time.time()
+    local_search(packaging, neighborhood)
+    print("\n",time.time() - start_t)
     
-    [polygons, num_polygons] = svg2polygons(file_name)
-    
-    # print([polygons[6], np.share(polygons[6])])
-
-    t_convert = time.time()
-    print("Считано", num_polygons, "предметов за", round(t_convert - t_start, 2))
-    # преобразование данных (создание растровых приближений)
-    items = np.full(num_polygons, None)
-    for id in range(num_polygons):
-        item = Item(id, polygons[id])
-        item.creat_polygon_shell(drill_radius)
-        item.list_of_MixedShiftC_4R(eps)
-        items[id] = item
-
-    t_prep = time.time()
-    print("Построение растровых приближений:", round(t_prep - t_convert, 2))
-    # препроцессинги
-    items = sorted(items, key = lambda item: - item.matrix.size)
-
-    t_packing = time.time()
-    print("Сортировка решения:", round(t_packing - t_prep, 2))
-    # алгоритм упаковки
-    # print("Использованных палет:", locSearch(pal, items))
-    fit_pallets_with_rotation(pal.shape, items, eps)
-
-    t_draw = time.time()
-    print("Время работы жадного алгоритма:", round(t_draw - t_packing, 2))
-    # отрисовка решения
-    draw_all_pallets(items, pallet_width, pallet_height, eps, True)
-
-    t_end = time.time()
-    print("Отрисовка решения:", round(t_end - t_draw, 2))
-    print()
-    print(round(t_end - t_start, 6), "- общее время работы")
-    return None
+    # packaging.swap_itemes(0,7)
+    # packaging.swap_itemes(0,14)
+    # packaging.swap_itemes(10,16)
+    # packaging.swap_itemes(10,15)
+    # packaging.swap_itemes(5,11)
+    # packaging.greedy_packing()
+    # write_packaging(packaging, "test0-LS4.png")
 
 
-if (__name__=='__main__'):
+if __name__ == '__main__':
     main()

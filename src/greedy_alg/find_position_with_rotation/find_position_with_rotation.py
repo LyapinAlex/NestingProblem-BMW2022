@@ -12,7 +12,7 @@ def find_position_with_rotation(pallet, pallet_shape, item):
     rotation = 0
 
     for i in range(4):
-        # if i == 1 or i == 3:
+        # if i == 0 or i == 2:
             is_placed_item_with_this_rotation, x_0, y_0 = find_position(item.list_new_shift[i], item.matrix.shape[(i + 1) % 2], item.list_check_order[i], pallet, pallet_shape[0])
             if is_placed_item_with_this_rotation and ((y_0 + item.matrix.shape[i % 2] < y_best) or ((y_0 + item.matrix.shape[i % 2] == y_best) and x_0 < x_best)):
                 is_placed_item = True

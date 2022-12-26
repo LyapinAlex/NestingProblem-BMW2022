@@ -13,7 +13,7 @@ def packing_from_our_tests(input_file_name: str,
                            input_dir="src\\input\\concave50\\",
                            is_draw=False,
                            is_print_stats=True,
-                           num_rot=4,
+                           num_rot=0,
                            num_sort=2,
                            eps=0.0):
     """Входные данные типа test1"""
@@ -48,6 +48,7 @@ def packing_from_our_tests(input_file_name: str,
     packaging.make_items(h=eps, num_rout=num_rot)
     packaging.sort_items(num_sort=num_sort)
     packaging.greedy_packing()
+
     if is_print_stats:
         packaging.print_stats()
     if is_draw:
@@ -59,7 +60,7 @@ def packing_from_our_tests(input_file_name: str,
 def packing_from_Terashima2(input_file_name: str,
                             is_draw=False,
                             is_print_stats=True,
-                            num_rot=4,
+                            num_rot=0,
                             num_sort=2,
                             eps=0.0):
     """Входные данные типа Terashima2 (распаковываем интересующие файлы и запускаем)"""
@@ -94,6 +95,7 @@ def packing_from_Terashima2(input_file_name: str,
     packaging.make_items(h=eps, num_rout=num_rot)
     packaging.sort_items(num_sort=num_sort)
     packaging.greedy_packing()
+
     if is_print_stats:
         packaging.print_stats()
     if is_draw:
@@ -107,7 +109,7 @@ def packing_from_swim(input_file_name: str,
                       is_print_stats=True,
                       width=10000,
                       height=5752,
-                      num_rot=4,
+                      num_rot=0,
                       num_sort=2,
                       eps=0.0):
     """Входные данные типа swim.txt (trousers.txt, shirts.txt, ...)"""
@@ -152,6 +154,7 @@ def packing_from_swim(input_file_name: str,
     packaging.make_items(h=eps, num_rout=num_rot)
     packaging.sort_items(num_sort=num_sort)
     packaging.greedy_packing()
+
     if is_print_stats:
         packaging.print_stats()
     if is_draw:
@@ -185,7 +188,7 @@ def collect_stats(initial_files: list[str],
                   input_dir: str,
                   save_file_name_h: str,
                   save_file_name_t: str,
-                  num_rot=4,
+                  num_rot=0,
                   num_sort=2):
     stats_h = ''
     stats_t = ''
@@ -205,6 +208,7 @@ def collect_stats(initial_files: list[str],
                                           num_rot=num_rot,
                                           num_sort=num_sort,
                                           eps=h,
+                                          is_draw=False,
                                           is_print_stats=False)
             str_stat_h += str(stat[0]) + ' '
             str_stat_t += str(stat[1]) + ' '
@@ -258,7 +262,7 @@ def collect_stats_from_swim(initial_files: list[str],
                   save_file_name_t: str,
                   width=10000,
                   height=5752,
-                  num_rot=4,
+                  num_rot=0,
                   num_sort=2):
     stats_h = ''
     stats_t = ''
@@ -400,35 +404,38 @@ def draw_stats(file_names: list[str], lables_of_path: list[str],
     plt.savefig(save_path)
 
 
-def main1():
+def main1(dirict = "concave15"):
     """Сбор статистики из наших тестов"""
-    input_dir = "src\\input\\concave15\\"
+    input_dir = "src\\input\\"+dirict+"\\"
     init_files = ['test' + str(i) + '.txt' for i in range(50)]
-    list_eps = [10, 20, 30, 40, 50]
-    save_file_name_time = "my_tests-time.txt"
-    save_file_name_height = "my_tests-height.txt"
+    list_eps = [0.5, 1, 2]
+    save_file_name_time = dirict+"-time.txt"
+    save_file_name_height = dirict+"-height.txt"
     collect_stats(init_files, list_eps, input_dir, save_file_name_height,
                   save_file_name_time)
     return
 
 
-def main2():
+def main2(file_name = "shirts"):
     """Сбор статистики из тестов типа swim с датасета"""
-    # init_files = ["shirts.txt"]
-    # width=100
-    # height=40
+    if file_name == "swim":
+        init_files = ["swim.txt"]
+        width=10000
+        height=5752
+        list_eps = [36, 18]
+    elif file_name == "trousers":
+        init_files = ["trousers.txt"]
+        width=500
+        height=79
+        list_eps = [1, 0.5]
+    elif file_name == "shirts":
+        init_files = ["shirts.txt"]
+        width=100
+        height=40
+        list_eps = [1, 0.5]
 
-    # init_files = ["trousers.txt"]
-    # width=500
-    # height=79
-
-    init_files = ["swim.txt"]
-    width=10000
-    height=5752
-
-    list_eps = [30, 40, 50]
-    save_file_name_time = "my_tests-time1.txt"
-    save_file_name_height = "my_tests-height1.txt"
+    save_file_name_time = file_name+"-time.txt"
+    save_file_name_height = file_name+"-height.txt"
     collect_stats_from_swim(init_files, list_eps, save_file_name_height,
                   save_file_name_time, width, height)
     return
@@ -446,26 +453,28 @@ def main3():
 
 
 if __name__ == '__main__':
-    # for i in range(0,1):
-    #     ### create_pack('test'+str(i)+'.txt', 30, 210, 100)
-    #     [height, time] = packing_from_our_tests(input_file_name='test'+str(i)+'.txt', input_dir = "src\\input\\concave30\\")
+    # main1("convex15")
+    # main1("convex30")
+    # main1("concave15")
+    # main1("concave30")
+    
+    # culc_stats("convex15-height.txt")
+    # culc_stats("convex30-height.txt")
+    # culc_stats("concave15-height.txt")
+    # culc_stats("concave30-height.txt")
 
-    # [height, time] = packing_from_swim('shirts.txt',
-    #                                    True,
-    #                                    width=100,
-    #                                    height=40)
+    # culc_stats("convex15-time.txt")
+    # culc_stats("convex30-time.txt")
+    # culc_stats("concave15-time.txt")
+    # culc_stats("concave30-time.txt")
 
-    # [height, time] = packing_from_swim('trousers.txt',
-    #                                    True,
-    #                                    width=500,
-    #                                    height=79)
+    packing_from_our_tests("test22.txt", "src\\input\\concave15\\", True, eps = 0.5)
+    # packing_from_our_tests("test43.txt", "src\\input\\convex15\\", True, eps = 1)
+    # packing_from_swim("swim.txt", True)
+    # main2("swim")
+    # main2("trousers")
+    # main2("shirts")
 
-    # [height, time] = packing_from_swim('swim.txt',
-    #                                    True,
-    #                                    width=10000,
-    #                                    height=5752)
-
-    # culc_stats("my_tests-time.txt")
-    # culc_stats("my_tests-height.txt")
-    # main1()
-    main2()
+    # packing_from_swim("swim.txt", True, True, 10000, 5752, eps=18)
+    # packing_from_swim("trousers.txt", True, True, 500, 79, eps=0.5)
+    # packing_from_swim("shirts.txt", True, True, 100, 40, eps=0.5)

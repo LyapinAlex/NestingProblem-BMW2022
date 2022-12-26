@@ -3,7 +3,7 @@ import numpy as np
 from class_polygon import Polygon
 from class_vector import Vector
 
-# реализовать больше одного поворота и отражение
+# реализовать для каждого предмета наперёд заданное число поворотов, отражение, класс position
 
 class Item:
 
