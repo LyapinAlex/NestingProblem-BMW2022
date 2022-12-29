@@ -468,7 +468,7 @@ if __name__ == '__main__':
     # culc_stats("concave15-time.txt")
     # culc_stats("concave30-time.txt")
 
-    packing_from_our_tests("test22.txt", "src\\input\\concave15\\", True, eps = 0.5)
+    # packing_from_our_tests("test22.txt", "src\\input\\concave15\\", True, eps = 0.5)
     # packing_from_our_tests("test43.txt", "src\\input\\convex15\\", True, eps = 1)
     # packing_from_swim("swim.txt", True)
     # main2("swim")
@@ -478,3 +478,37 @@ if __name__ == '__main__':
     # packing_from_swim("swim.txt", True, True, 10000, 5752, eps=18)
     # packing_from_swim("trousers.txt", True, True, 500, 79, eps=0.5)
     # packing_from_swim("shirts.txt", True, True, 100, 40, eps=0.5)
+    
+    packaging = Packing(width=11,
+                        height=11,
+                        drill_radius=0,
+                        border_distance=0)
+                        
+    
+    packaging.num_items = 14
+
+    polygon1 = [[0, 0],[0, 2],[2, 2],[2, 0]] #7
+    polygon2 = [[0, 0],[0, 3],[2, 3],[2, 0]] #3
+    polygon3 = [[0, 0],[3, 0],[3, 3],[6, 3],[6, 9],[0, 9]] #1
+    polygon4 = [[0, 0],[7, 0],[7, 1],[3, 1],[3, 3],[0, 3]] #1
+    polygon5 = [[4, 0],[5, 0],[5, 4],[0, 4],[0, 3],[4, 3]] #1
+    polygon6 = [[4, 0],[5, 0],[5, 5],[0, 5],[0, 4],[4, 4]] #1
+
+    import copy
+    polygons = []
+    for i in range(7):
+        polygons.append(copy.deepcopy(polygon1))
+    for i in range(3):
+        polygons.append(copy.deepcopy(polygon2))
+    polygons.append(copy.deepcopy(polygon3))
+    polygons.append(copy.deepcopy(polygon4))
+    polygons.append(copy.deepcopy(polygon5))
+    polygons.append(copy.deepcopy(polygon6))
+
+    packaging.items = np.full(packaging.num_items, None)
+    for id in range(packaging.num_items):
+        item = Item(id, polygons[id])
+        packaging.items[id] = item
+
+    packaging.output_dir = "src\\input\\special_tests"
+    packaging.save_items_in_file("test_zero.txt", False)
