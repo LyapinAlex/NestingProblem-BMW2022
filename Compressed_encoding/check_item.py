@@ -59,7 +59,7 @@ def check_item(pallet, item_enc, positon, bad_line: int):
         is_placed_item, shift, bad_line"""
 
     item_shift_code = item_enc.compressed_encoding
-    item_line_length = len(item_enc)
+    item_line_length = item_enc.horizontal_length
     check_order = item_enc.line_check_order
     pallet_shift_code = pallet.compressed_encoding
     x = positon.x
@@ -67,8 +67,8 @@ def check_item(pallet, item_enc, positon, bad_line: int):
 
     is_placed_item = True
     j = 0
-    #оптимизация которая нужна только для достаточно больших предметов
-    if (y < bad_line) and (item_shift_code.shape[0] > 25):
+    #оптимизация которая нужна только для достаточно многострочных кодировок
+    if (y < bad_line) and (item_shift_code.shape[0] > 40):
         is_placed_item, shift = check_line(x, item_shift_code[bad_line - y],
                                            item_line_length,
                                            pallet_shift_code[bad_line])

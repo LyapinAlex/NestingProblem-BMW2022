@@ -61,14 +61,14 @@ def local_search(packaging: Packing, neighborhood: int):
 
     packaging.items = target_sequence
     packaging.greedy_packing()
-    write_packaging(packaging, "test0-LS.png")
+    write_packaging(packaging, "test_zero-LS.png")
 
 
 def main():
     # ----------- начальные данные -----------
-    dirict = "convex30"
-    input_file_name = "test0.txt"
-    eps = 0.5
+    dirict = "special_tests"
+    input_file_name = "test_zero.txt"
+    eps = 1
     neighborhood = 50
 
     # --------- настройка упаковщика ---------

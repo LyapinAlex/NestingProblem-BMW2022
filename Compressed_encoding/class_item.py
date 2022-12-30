@@ -1,4 +1,5 @@
 import math
+import time
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -37,6 +38,30 @@ class Position:
     @property
     def rotation(self):
         return self.compressed_encoding.rotation
+        
+    @property
+    def item(self):
+        return self.compressed_encoding.raster_approx.item
+        
+    @property
+    def eps(self):
+        return self.compressed_encoding.raster_approx.eps
+
+    @property
+    def polygon(self):
+        return self.compressed_encoding.polygon
+
+    @property
+    def polygon_on_position(self):
+        return self.item.get_original_polygon_on_position(self)
+
+    @property
+    def encoding(self):
+        return self.compressed_encoding.compressed_encoding
+
+    @property
+    def surf_vector(self):
+        return self.compressed_encoding.surf_vector
 
 
 class Compressed_encoding:
@@ -64,19 +89,16 @@ class Compressed_encoding:
 
         self._length = self._calc_length()
         self.line_check_order = self._calc_check_order()
-        self.max_holes_in_line = self._calc_max_holes()
         self.total_length_per_line = self._calc_total_length()
+        self.max_unit_in_line = self._calc_max_units()
 
     def __str__(self):
         str_matrix = ""
         for num_line in range(self.compressed_encoding.shape[0] - 1, -1, -1):
-            for unite in self.compressed_encoding[num_line]:
-                str_matrix += str(unite) + ' '
+            for unit in self.compressed_encoding[num_line]:
+                str_matrix += str(unit) + ' '
             str_matrix += '\n'
         return str_matrix
-
-    def __len__(self):
-        return self._length
 
     @property
     def vertical_length(self):
@@ -90,6 +112,10 @@ class Compressed_encoding:
     def dimensions(self):
         return Vector(self.horizontal_length, self.vertical_length)
 
+    @property
+    def eps(self):
+        return self.raster_approx.eps
+    
     def __getitem__(self, key):
         return self.compressed_encoding[key]
 
@@ -181,29 +207,28 @@ class Compressed_encoding:
         line_code = np.full(original_comp_enc.shape[0], None, dtype=list)
         for num_line in range(original_comp_enc.shape[0]):
             line_code[num_line] = []
-            for unite in original_comp_enc[num_line]:
-                line_code[num_line].insert(0, unite)
+            for unit in original_comp_enc[num_line]:
+                line_code[num_line].insert(0, unit)
         return line_code
 
     def _axial_symmetry_y(self, original_comp_enc: np.ndarray) -> np.ndarray:
         line_code = np.full(original_comp_enc.shape[0], None, dtype=list)
         for num_line in range(original_comp_enc.shape[0]):
             line_code[original_comp_enc.shape[0] - 1 - num_line] = []
-            for unite in original_comp_enc[num_line]:
+            for unit in original_comp_enc[num_line]:
                 line_code[original_comp_enc.shape[0] - 1 -
-                          num_line].append(unite)
+                          num_line].append(unit)
         return line_code
 
     def _calc_check_order(self) -> np.ndarray:
-        line_length = self.compressed_encoding.shape[0]
-        check_order = np.zeros((line_length, 2), dtype=int)
+        check_order = np.zeros((self.vertical_length, 2), dtype=int)
 
-        for num_line in range(line_length):
-            max_unite = -line_length
-            for unite in self[num_line]:
-                max_unite = max(max_unite, unite)
+        for num_line in range(self.vertical_length):
+            max_unit = 0
+            for unit in self[num_line]:
+                max_unit = max(max_unit, unit)
             check_order[num_line][0] = num_line
-            check_order[num_line][1] = max_unite
+            check_order[num_line][1] = max_unit
 
         check_order = check_order[np.argsort(
             check_order[:, 1])]  # Закоментировать для замедления
@@ -212,35 +237,33 @@ class Compressed_encoding:
 
         return check_order
 
-    def _calc_max_holes(self) -> np.ndarray:
-        line_length = self.compressed_encoding.shape[0]
-        max_holes = np.zeros(line_length, dtype=int)
-
-        for num_line in range(line_length):
-            min_unite = 0
-            for unite in self[num_line]:
-                min_unite = min(min_unite, unite)
-            max_holes[num_line] = min_unite
-
-        return max_holes
-
     def _calc_total_length(self) -> np.ndarray:
-        line_length = self.compressed_encoding.shape[0]
-        total_length = np.zeros(line_length, dtype=int)
+        total_length = np.zeros(self.vertical_length, dtype=int)
 
-        for num_line in range(line_length):
-            sum_unites = 0
-            for unite in self[num_line]:
-                if unite > 0:
-                    sum_unites += unite
-            total_length[num_line] = sum_unites
+        for num_line in range(self.vertical_length):
+            sum_units = 0
+            for unit in self[num_line]:
+                if unit > 0:
+                    sum_units += unit
+            total_length[num_line] = sum_units
 
         return total_length
 
+    def _calc_max_units(self) -> np.ndarray:
+        max_units = np.zeros(self.vertical_length, dtype=int)
+
+        for num_line in range(self.vertical_length):
+            max_unit = 0
+            for unit in self[num_line]:
+                max_unit = max(max_unit, unit)
+            max_units[num_line] = max_unit
+
+        return max_units
+
     def _calc_length(self) -> int:
         length = 0
-        for unite in self[0]:
-            length += abs(unite)
+        for unit in self[0]:
+            length += abs(unit)
         return length
 
     def draw(self):
@@ -250,8 +273,7 @@ class Compressed_encoding:
         pr.image_size(fig, polygon.size)
         pr.focusing_on_subject(ax, polygon.minXY(), polygon.maxXY())
 
-        pr.draw_compressed_encoding(ax, polygon, self.compressed_encoding,
-                                    self.raster_approx.eps, self.surf_vector)
+        pr.draw_compressed_encoding(ax, polygon.minXY(), self.compressed_encoding, self.eps, self.surf_vector)
         pr.draw_polygon(ax, polygon)
 
         plt.show()
@@ -280,8 +302,8 @@ class Raster_approximation:
     def __str__(self):
         str_matrix = ""
         for num_line in range(self.matrix.shape[0] - 1, -1, -1):
-            for unite in self.matrix[num_line]:
-                str_matrix += str(unite) + ' '
+            for unit in self.matrix[num_line]:
+                str_matrix += str(unit) + ' '
             str_matrix += '\n'
         return str_matrix
 
@@ -316,9 +338,9 @@ class Raster_approximation:
     def _calc_pixel_area(self):
         area = 0
         for line in self[0].compressed_encoding:
-            for unite in line:
-                if unite > 0:
-                    area += unite
+            for unit in line:
+                if unit > 0:
+                    area += unit
         return area
 
     def draw(self):
@@ -327,7 +349,7 @@ class Raster_approximation:
 
         pr.image_size(fig, polygon.size)
         pr.focusing_on_subject(ax, polygon.minXY(), polygon.maxXY())
-        pr.draw_raster_approximation(ax, polygon, self.matrix, self.eps)
+        pr.draw_raster_approximation(ax, polygon.minXY(), self.matrix, self.eps)
         pr.draw_polygon(ax, polygon)
 
         plt.show()
@@ -335,20 +357,24 @@ class Raster_approximation:
 
 class Item:
 
-    def __init__(self, id: int, polygon, drill_radius=0):
+    def __init__(self, id: int, polygon, num_copies = 1, drill_radius=0):
         if type(polygon) == Polygon:
             self.original_polygon = polygon
         else:
             self.original_polygon = Polygon(polygon)
 
         self.id = id
-        self.position: Position
+        self.num_copies = num_copies
+        self.list_positions: list[Position] = []
         self.expand_polygon: Polygon
         self._expand_item(drill_radius)
         self.list_raster_approx: list[Raster_approximation] = []
 
     def __str__(self):
         return str(self.original_polygon)
+
+    def __len__(self):
+        return len(self.list_positions)
 
     def __getitem__(self, key):
         return self.list_raster_approx[key]
@@ -357,10 +383,10 @@ class Item:
         self.expand_polygon = self.original_polygon.copy().expand_polygon(
             drill_radius)
         #! добавить проверку на самопересечения
-        surf_vector = self.original_polygon.minXY(
+        surf_vec = self.original_polygon.minXY(
         ) - self.expand_polygon.minXY()
         self.expand_polygon.move_to_origin()
-        self.original_polygon.move_to(surf_vector)
+        self.original_polygon.move_to(surf_vec)
 
     def add_raster_approximations(self,
                                   eps=0,
@@ -378,7 +404,7 @@ class Item:
             Raster_approximation(self, eps, rotation, is_reflectable,
                                  num_turns))
 
-    def get_original_polygon_on_position(self) -> Polygon:
+    def get_original_polygon_on_position(self, position: Position) -> Polygon:
         """Возвращает копию исходного предмета на своей позиции"""
 
         def move_polygons(poly: Polygon, exp_polygon: Polygon):
@@ -389,18 +415,18 @@ class Item:
         polygon = self.original_polygon.copy()
         expand_polygon = self.expand_polygon.copy()
 
-        polygon.rotate(self.position.rotation)
-        expand_polygon.rotate(self.position.rotation)
+        polygon.rotate(position.rotation)
+        expand_polygon.rotate(position.rotation)
         move_polygons(polygon, expand_polygon)
 
-        compr_encoding = self.position.compressed_encoding
+        compr_encoding = position.compressed_encoding
         if compr_encoding.reflection:
             polygon.axial_symmetry_y()
             polygon = polygon.move(
                 Vector(compr_encoding.horizontal_length, 0) *
                 compr_encoding.raster_approx.eps)
 
-        polygon.move(self.position.vector_coord)
+        polygon.move(position.vector_coord)
         return polygon
 
 
@@ -420,19 +446,19 @@ class Rectangular_pallet:
         self.expand_pallet: Polygon
         self.shape: tuple[int, int]
         self._create_pallet(height, width, drill_radius, border_distance)
+
+        self.plased_items_positions: list[Position]
+        self.free_pixels_in_line: np.ndarray
+        self.min_unit_in_line: np.ndarray
         self.compressed_encoding = self._create_encoding_pallet()
-        self.list_plased_itemes: list[Item] = []
 
     def __str__(self):
         str_matrix = ""
         for num_line in range(self.shape[1] - 1, -1, -1):
-            for unite in self.compressed_encoding[num_line]:
-                str_matrix += str(unite) + ' '
+            for unit in self.compressed_encoding[num_line]:
+                str_matrix += str(unit) + ' '
             str_matrix += '\n'
         return str_matrix
-
-    def __len__(self):
-        return self.shape[0]
 
     @property
     def vertical_length(self):
@@ -456,63 +482,100 @@ class Rectangular_pallet:
         self.original_pallet.move(Vector(-indent, -indent))
         self.expand_pallet = self.original_pallet.expand_polygon(-indent)
 
-    def _create_encoding_pallet(self):
-        compressed_encoding = np.full(self.shape[1], None)
-        for i in range(self.shape[1]):
-            compressed_encoding[i] = [-self.shape[0]]
+    def _create_encoding_pallet(self) -> np.ndarray:
+        compressed_encoding = np.full(self.vertical_length, None)
+        for i in range(self.vertical_length):
+            compressed_encoding[i] = [-self.horizontal_length]
+
+        self.plased_items_positions = []
+        self.free_pixels_in_line = np.full(self.vertical_length, self.horizontal_length)
+        self.min_unit_in_line = np.full(self.vertical_length, -self.horizontal_length)
+
         return compressed_encoding
 
-    def _greedy_find_position(self, item_enc: Compressed_encoding):
+    def _is_plased_item1(self, item_enc: Compressed_encoding, positon: Vector) -> bool:
+        """Проверка на влезабельность предмета по суммарной длине каждой его строки"""
+        # если использовать то добавить следующую строку в _place_item
+        ### self.free_pixels_in_line[positon.y + num_line] -= item_enc.total_length_per_line[num_line]
+        for num_line in item_enc.line_check_order:
+            # можно убрать переменную, но будет не читабельно
+            is_placed_item = self.free_pixels_in_line[positon.y + num_line] >= item_enc.total_length_per_line[num_line]
+            if not is_placed_item:
+                return False
+        return True
+
+    def _is_plased_item2(self, item_enc: Compressed_encoding, positon: Vector) -> bool:
+        """Проверка на влезабельность предмета по максимальной дырке паллеты и не дырки предмета"""
+        for num_line in item_enc.line_check_order:
+            # можно убрать переменную, но будет не читабельно
+            is_placed_item = (self.min_unit_in_line[positon.y + num_line] + item_enc.max_unit_in_line[num_line] <= 0)
+            if not is_placed_item:
+                return False
+        return True
+
+    def _greedy_find_position(self, item_enc: Compressed_encoding, start_position = Vector(0, 0)):
         """Ищет возможное расположение объекта по принципу жадного алгоритма "как можно ниже, как можно левее"
         начиная с позиции positon"""
-        item_shift_code = item_enc.compressed_encoding
-        item_line_length = item_enc.horizontal_length
-        pallet_shift_code = self.compressed_encoding
-        pallet_line_length = self.horizontal_length
-        positon = Vector(0, 0)
+        positon = start_position.copy()
 
         shift = 0
         is_placed_item = False
         bad_line = 0
-        while (not is_placed_item) and (positon.y + item_shift_code.shape[0] <=
-                                        pallet_shift_code.shape[0]):
-            while (not is_placed_item) and (
-                    positon.x + shift + item_line_length <=
-                    pallet_line_length):
+        while (not is_placed_item) and (positon.y + item_enc.vertical_length <= self.vertical_length):
+            if not self._is_plased_item2(item_enc, positon):
+                positon.y += 1
+                positon.x = 0
+                shift = 0
+                continue
+
+            while (not is_placed_item) and (positon.x + item_enc.horizontal_length + shift <= self.horizontal_length):
                 positon.x += shift
-                is_placed_item, shift, bad_line = check_item(
-                    self, item_enc, positon, bad_line)
+                is_placed_item, shift, bad_line = check_item(self, item_enc, positon, bad_line)
+
             if not is_placed_item:
                 positon.y += 1
                 positon.x = 0
                 shift = 0
+
         return is_placed_item, positon
 
     def _place_item(self, item_enc: Compressed_encoding, positon: Vector):
-        fit_item(self.compressed_encoding, item_enc.compressed_encoding,
-                 positon)
+        fit_item(self.compressed_encoding, item_enc.compressed_encoding, positon)
+        for num_line in range(item_enc.vertical_length):
+            min_unit = 0
+            for unit in self[positon.y + num_line]:
+                min_unit = min(min_unit, unit)
+            
+            self.min_unit_in_line[positon.y + num_line] = max(self.min_unit_in_line[positon.y + num_line], min_unit)
 
     def pack_item(self, item: Item) -> bool:
         """Размещаем верхний правый угол предмета как можно ниже, как можно левее"""
         is_placed_item = False
-        best_pos = Vector(self.shape[0] + 1, self.shape[1] + 1)
+        best_pos = Vector(self.horizontal_length + 1, self.vertical_length + 1)
+        start_position = Vector(0, 0)
+
+        if len(item)>0:
+            start_position = item.list_positions[-1].raster_coord.copy()
+            dimensions = item.list_positions[-1].compressed_encoding.dimensions.copy()
+            dimensions.x = max(dimensions.x, dimensions.y)
+            dimensions.y = dimensions.x
+            start_position -= dimensions
+            if start_position.x<0: start_position.x=0
+            if start_position.y<0: start_position.y=0
 
         for raster_approx in item:
             for comp_encoding in raster_approx:
-                is_placed_this_one, positon = self._greedy_find_position(
-                    comp_encoding)
+                is_placed_this_one, positon = self._greedy_find_position(comp_encoding, start_position)
                 if is_placed_this_one and positon + comp_encoding.dimensions < best_pos:
                     is_placed_item = True
                     best_pos = positon + comp_encoding.dimensions
                     placed_comp_encoding = comp_encoding
 
         if is_placed_item:
-            item.position = Position(
-                self, placed_comp_encoding,
-                best_pos - placed_comp_encoding.dimensions)
-            self._place_item(placed_comp_encoding,
-                             best_pos - placed_comp_encoding.dimensions)
-            self.list_plased_itemes.append(item)
+            position = Position(self, placed_comp_encoding, best_pos - placed_comp_encoding.dimensions)
+            self._place_item(placed_comp_encoding, best_pos - placed_comp_encoding.dimensions)
+            item.list_positions.append(position)
+            self.plased_items_positions.append(position)
 
         return is_placed_item
 
@@ -523,51 +586,50 @@ class Rectangular_pallet:
                                self.original_pallet.maxXY())
         pr.draw_polygon(ax, self.expand_pallet, 'green')
         pr.draw_polygon(ax, self.original_pallet)
-        for item in self.list_plased_itemes:
-            pr.draw_polygon(ax, item.get_original_polygon_on_position(),
-                            'black')
-            if is_draw_encoding:
-                compr_encoding = item.position.compressed_encoding
-                pr.draw_compressed_encoding(ax, compr_encoding.polygon,
-                                            self.compressed_encoding,
-                                            compr_encoding.raster_approx.eps,
-                                            compr_encoding.surf_vector)
+        if is_draw_encoding:
+            pr.draw_compressed_encoding(ax, self.expand_pallet.minXY(), self.compressed_encoding, self.eps, Vector(0,0))
+        for position in self.plased_items_positions:
+            pr.draw_polygon(ax, position.polygon_on_position, 'black')
         plt.show()
 
 
 if (__name__ == '__main__'):
-    eps = 0.093/2
-    drill_radius = 0.2
-    border_distance = 3
-    height = 30
+    eps = 0.093/4
+    drill_radius = 0.1
+    border_distance = 0.3
+    height = 25
     width = 10
 
-    pal1 = Rectangular_pallet(1, height, width, eps, drill_radius,
-                              border_distance)
+    pal1 = Rectangular_pallet(1, height, width, eps, drill_radius, border_distance)
 
-    it1 = Item(1, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]), drill_radius)
-    # it1 = Item(1,np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]), drill_radius)
-    it1.add_raster_approximations(eps, math.pi / 3, False, 1)
-    pal1.pack_item(it1)
+    num1 = 10
+    num2 = 20
+    items : list[Item] = []
+
+    rastering_time = time.time()
+    it1 = Item(id, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]), num1, drill_radius)
+    it1.add_raster_approximations(eps, math.pi / 6, True, 4)
+    items.append(it1)
+
+    it2 = Item(id, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]), num2, drill_radius)
+    it2.add_raster_approximations(eps, math.pi / 3, True, 4)
+    items.append(it2)
+
+    packaging_time = time.time()
+
+    for it in items:
+        while len(it)<it.num_copies:
+            pal1.pack_item(it)
+
+    end_time = time.time()
+
+
+    print("rastering_time:", packaging_time-rastering_time)
+    print("packaging_time:", end_time-packaging_time)
+
     pal1.draw(True)
 
-    it2 = Item(
-        2,
-        np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8],
-                  [3, 0.4], [1.2, 0.4], [0.6, 0.8]]), drill_radius)
-    it2.add_raster_approximations(eps, 0, True, 2)
-    pal1.pack_item(it2)
-    pal1.draw(True)
-
-    it3 = Item(
-        3,
-        np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8],
-                  [3, 0.4], [1.2, 0.4], [0.6, 0.8]]), drill_radius)
-    it3.add_raster_approximations(eps, math.pi / 4, True, 4)
-    pal1.pack_item(it3)
-    pal1.draw(True)
-
-    # it2 = Item(1, np.array([[0.3, 0.5], [0, 1], [0.7, 1.5], [1.2, 0.8], [3, 0.8], [3, 0.4], [1.2, 0.4], [0.6, 0.8]]), drill_radius)
-    # it2.add_raster_approximations(eps, 0, True, 4)
-    # for enc in it2[0]:
-    #     enc.draw()
+    # it = Item(id, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]), drill_radius=drill_radius)
+    # it.add_raster_approximations(eps, math.pi / 6, True, 4)
+    # for rast_apr in it[0]:
+    #     rast_apr.draw()

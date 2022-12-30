@@ -34,8 +34,8 @@ def draw_polygon(ax, polygon, edgecolor='red'):
                         fill=False))
 
 
-def draw_raster_approximation(ax, polygon, matrix, h, is_random_color=False):
-    move_matrix = np.full((4, 2), [polygon.minXY().x, polygon.minXY().y])
+def draw_raster_approximation(ax, polygon_minXY, matrix, h, is_random_color=False):
+    move_matrix = np.full((4, 2), [polygon_minXY.x, polygon_minXY.y])
     if is_random_color:
         color = "#" + ''.join(
             [random.choice('0123456789ABCDEF') for j in range(6)])
@@ -56,15 +56,15 @@ def draw_raster_approximation(ax, polygon, matrix, h, is_random_color=False):
 
 
 def draw_compressed_encoding(ax,
-                             polygon,
+                             polygon_minXY,
                              compressed_encoding,
                              h,
                              vector = None,
                              is_random_color=False):
     if not vector is None:
-        move_matrix = np.full((4, 2), [polygon.minXY().x - vector.x, polygon.minXY().y - vector.y])
+        move_matrix = np.full((4, 2), [polygon_minXY.x - vector.x, polygon_minXY.y - vector.y])
     else:
-        move_matrix = np.full((4, 2), [polygon.minXY().x, polygon.minXY().y])
+        move_matrix = np.full((4, 2), [polygon_minXY.x, polygon_minXY.y])
 
     if is_random_color:
         color = "#" + ''.join(
