@@ -174,22 +174,7 @@ class Polygon:
         centroid /= 6 * self.calc_area(False)
         return centroid
 
-    def choose_best_turn1(self):
-        """Идея в минимизации разницы площадей фигуры и её растрового приближения"""
-        target_value = 0
-        target_side = 0
-        for j in range(self.num_sides):
-            new_value = 0
-            for i in range(self.num_sides):
-                new_value += self.side_length(i) * abs(
-                    math.cos(2 * (self.side_angle(i) - self.side_angle(j))))
-            if new_value > target_value:
-                target_value = new_value
-                target_side = j
-        self.rotate_on_side(target_side)
-        return self
-
-    def choose_best_turn2(self):
+    def find_best_turn1(self) -> float:
         """Идея в минимизации площади описанного прямоугольника"""
         self_copy = self.copy()
         target_value = self_copy.area_circumscribed_rectangle()
@@ -201,19 +186,31 @@ class Polygon:
                 target_value = new_value
                 target_side = j
         if target_side != -1:
-            self.rotate_on_side(target_side)
-        return self
+            return -self.side_angle(target_side)
+        return 0.0
 
-    def choose_best_turn3(self):
-        """Кладём мредмет на длиннейшую сторону"""
+    def find_best_turn2(self) -> float:
+        """Идея в минимизации разницы площадей фигуры и её растрового приближения"""
+        target_value = 0
+        target_side = 0
+        for j in range(self.num_sides):
+            new_value = 0
+            for i in range(self.num_sides):
+                new_value += self.side_length(i) * abs(math.cos(2 * (self.side_angle(i) - self.side_angle(j))))
+            if new_value > target_value:
+                target_value = new_value
+                target_side = j
+        return -self.side_angle(target_side)
+
+    def find_best_turn3(self) -> float:
+        """Кладём предмет на длиннейшую сторону"""
         target_value = 0
         target_side = 0
         for j in range(self.num_sides):
             if self.side_length(j) > target_value:
                 target_value = self.side_length(j)
                 target_side = j
-        self.rotate_on_side(target_side)
-        return self
+        return self.side_angle(target_side)
 
     def expand_polygon(self, indent):
         self.bring_points2normal_appearance()
