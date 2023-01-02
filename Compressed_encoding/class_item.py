@@ -20,15 +20,13 @@ class Position:
         self.raster_coord = raster_coord
 
     def __str__(self):
-        output = 'pallet_id: ' + str(self.pallet.id)
-        output += '\nvector_coord: ' + str(self.vector_coord)
-        output += '\nrotation: ' + str(self.rotation)
+        # output = 'pallet_id: ' + str(self.pallet.id)
+        output = 'vector_coord: ' + str(self.vector_coord)
+        # output += '\nrotation: ' + str(self.rotation)
         return output
 
     def copy(self):
-        copy_position = Position(self.compressed_encoding)
-        copy_position.pallet = self.pallet
-        copy_position.raster_coord = self.raster_coord.copy()
+        copy_position = Position(self.pallet, self.compressed_encoding, self.raster_coord.copy())
         return copy_position
 
     @property
@@ -42,6 +40,10 @@ class Position:
     @property
     def item(self):
         return self.compressed_encoding.raster_approx.item
+
+    @property
+    def dimensions(self):
+        return self.compressed_encoding.dimensions
 
     @property
     def eps(self):
@@ -391,7 +393,11 @@ class Item:
 
     @property
     def area_of_approximation(self):
-        return self[0].pixel_area * self[0].eps**2
+        return self[0].pixel_area * (self[0].eps**2)
+
+    @property
+    def area(self):
+        return self.__original_polygon.area
 
     def _expand_item(self, drill_radius=0):
         self.expand_polygon = self.__original_polygon.copy().expand_polygon(
@@ -463,22 +469,31 @@ class Item:
 class Rectangular_pallet:
 
     def __init__(self,
+                 id: int,
                  height: float,
                  width: float,
                  eps: float,
                  drill_radius=0.0,
                  border_distance=0.0):
+        self.id = id
         self.__eps = eps
 
         self.__original_pallet: Polygon
         self.__expand_pallet: Polygon
         self.__shape: tuple[int, int]
+        self.__height = height
+        self.__width = width
         self._create_pallet(height, width, drill_radius, border_distance)
 
         self.plased_items_positions: list[Position]
         self.__free_pixels_in_line: np.ndarray
         self.__min_unit_in_line: np.ndarray
         self.compressed_encoding = self._create_encoding_pallet()
+
+        # ---------  Stats   ---------
+        self.__target_height = 0
+        self.time_finding_position = 0
+        self.time_placing_items = 0
 
     def __str__(self):
         str_matrix = ""
@@ -498,13 +513,34 @@ class Rectangular_pallet:
 
     @property
     def target_height(self):
-        height = 0
-        for position in self.plased_items_positions:
-            height = max(height, position.polygon_on_position.maxXY().y)
-        return height
+        return self.__target_height
+
+    @property
+    def target_area(self):
+        return self.__width * self.target_height
+    
+    @property
+    def target_pixel_height(self):
+        pixel_height = 0
+        for line in self:
+            if line[0] != -self.horizontal_length:
+                pixel_height+=1
+        return pixel_height
+
+    @property
+    def target_pixel_area(self):
+        return self.target_pixel_height * self.horizontal_length * (self.__eps**2)
+
+    @property
+    def num_plased_items(self):
+        return len(self.plased_items_positions)
 
     def __getitem__(self, key):
         return self.compressed_encoding[key]
+
+    def sort_items(self):
+        """Сортировка фигур в порядке их размещения"""
+        self.plased_items_positions = sorted(self.plased_items_positions, key=lambda position: position.raster_coord)
 
     def _create_pallet(self, height, width, drill_radius, border_distance):
         indent = 0
@@ -532,25 +568,25 @@ class Rectangular_pallet:
         return compressed_encoding
 
     def _is_plased_item1(self, item_enc: Compressed_encoding,
-                         positon: Vector) -> bool:
+                         position: Vector) -> bool:
         """Проверка на влезабельность предмета по суммарной длине каждой его строки"""
         # если использовать то добавить следующую строку в _place_item
-        ### self.__free_pixels_in_line[positon.y + num_line] -= item_enc.total_length_per_line[num_line]
+        ### self.__free_pixels_in_line[position.y + num_line] -= item_enc.total_length_per_line[num_line]
         for num_line in item_enc.line_check_order:
             # можно убрать переменную, но будет не читабельно
             is_placed_item = self.__free_pixels_in_line[
-                positon.y +
+                position.y +
                 num_line] >= item_enc.total_length_per_line[num_line]
             if not is_placed_item:
                 return False
         return True
 
     def _is_plased_item2(self, item_enc: Compressed_encoding,
-                         positon: Vector) -> bool:
+                         position: Vector) -> bool:
         """Проверка на влезабельность предмета по максимальной дырке паллеты и не дырки предмета"""
         for num_line in item_enc.line_check_order:
             # можно убрать переменную, но будет не читабельно
-            is_placed_item = (self.__min_unit_in_line[positon.y + num_line] +
+            is_placed_item = (self.__min_unit_in_line[position.y + num_line] +
                               item_enc.max_unit_in_line[num_line] <= 0)
             if not is_placed_item:
                 return False
@@ -560,44 +596,52 @@ class Rectangular_pallet:
                               item_enc: Compressed_encoding,
                               start_position=Vector(0, 0)):
         """Ищет возможное расположение объекта по принципу жадного алгоритма "как можно ниже, как можно левее"
-        начиная с позиции positon"""
-        positon = start_position.copy()
+        начиная с позиции position"""
+        time_finding_begin = time.time()
 
+        position = start_position.copy()
         shift = 0
         is_placed_item = False
         bad_line = 0
-        while (not is_placed_item) and (positon.y + item_enc.vertical_length <=
+
+        while (not is_placed_item) and (position.y + item_enc.vertical_length <=
                                         self.vertical_length):
-            if not self._is_plased_item2(item_enc, positon):
-                positon.y += 1
-                positon.x = 0
+            if not self._is_plased_item2(item_enc, position):
+                position.y += 1
+                position.x = 0
                 shift = 0
                 continue
 
             while (not is_placed_item) and (
-                    positon.x + item_enc.horizontal_length + shift <=
+                    position.x + item_enc.horizontal_length + shift <=
                     self.horizontal_length):
-                positon.x += shift
+                position.x += shift
                 is_placed_item, shift, bad_line = check_item(
-                    self, item_enc, positon, bad_line)
+                    self, item_enc, position, bad_line)
 
             if not is_placed_item:
-                positon.y += 1
-                positon.x = 0
+                position.y += 1
+                position.x = 0
                 shift = 0
 
-        return is_placed_item, positon
+        self.time_finding_position += time.time() - time_finding_begin
+        return is_placed_item, position
 
-    def _place_item(self, item_enc: Compressed_encoding, positon: Vector):
+    def _place_item(self, item_enc: Compressed_encoding, position: Position):
+        time_placing_begin = time.time()
+        rast_coord = position.raster_coord
         fit_item(self.compressed_encoding, item_enc.compressed_encoding,
-                 positon)
+                 rast_coord)
         for num_line in range(item_enc.vertical_length):
             min_unit = 0
-            for unit in self[positon.y + num_line]:
+            for unit in self[rast_coord.y + num_line]:
                 min_unit = min(min_unit, unit)
 
-            self.__min_unit_in_line[positon.y + num_line] = max(
-                self.__min_unit_in_line[positon.y + num_line], min_unit)
+            self.__min_unit_in_line[rast_coord.y + num_line] = max(
+                self.__min_unit_in_line[rast_coord.y + num_line], min_unit)
+        
+        self.__target_height = max(self.__target_height, position.polygon_on_position.maxXY().y)
+        self.time_placing_items += time.time() - time_placing_begin
 
     def pack_item(self, item: Item) -> bool:
         """Размещаем верхний правый угол предмета как можно ниже, как можно левее"""
@@ -617,18 +661,17 @@ class Rectangular_pallet:
 
         for raster_approx in item:
             for comp_encoding in raster_approx:
-                is_placed_this_one, positon = self._greedy_find_position(
+                is_placed_this_one, position = self._greedy_find_position(
                     comp_encoding, start_position)
-                if is_placed_this_one and positon + comp_encoding.dimensions < best_pos:
+                if is_placed_this_one and position + comp_encoding.dimensions < best_pos:
                     is_placed_item = True
-                    best_pos = positon + comp_encoding.dimensions
+                    best_pos = position + comp_encoding.dimensions
                     placed_comp_encoding = comp_encoding
 
         if is_placed_item:
             position = Position(self, placed_comp_encoding,
                                 best_pos - placed_comp_encoding.dimensions)
-            self._place_item(placed_comp_encoding,
-                             best_pos - placed_comp_encoding.dimensions)
+            self._place_item(placed_comp_encoding, position)
             item.list_positions.append(position)
             self.plased_items_positions.append(position)
 
@@ -657,7 +700,7 @@ if (__name__ == '__main__'):
     height = 25
     width = 10
 
-    pal1 = Rectangular_pallet(height, width, eps, drill_radius,
+    pal1 = Rectangular_pallet(1, height, width, eps, drill_radius,
                               border_distance)
 
     num1 = 10
@@ -675,7 +718,6 @@ if (__name__ == '__main__'):
     it2 = Item(2, polygon2, num2, drill_radius)
     it2.add_raster_approximations(eps, math.pi / 3, True, 4)
 
-
     items.append(it1)
     items.append(it2)
 
@@ -689,10 +731,16 @@ if (__name__ == '__main__'):
 
     print("rastering_time:", packaging_time - rastering_time)
     print("packaging_time:", end_time - packaging_time)
+    print("time_finding_position:", pal1.time_finding_position)
+    print("time_placing_items:", pal1.time_placing_items)
+
+    print()
+    for position in pal1.plased_items_positions:
+        print(position)
+    pal1.sort_items()
+    print()
+    for position in pal1.plased_items_positions:
+        print(position)
 
     pal1.draw(True)
 
-    # it = Item(id, np.array([[1, 0], [0.3, 3], [3, 3.7], [2.1, 0]]), drill_radius=drill_radius)
-    # it.add_raster_approximations(eps, math.pi / 6, True, 4)
-    # for rast_apr in it[0]:
-    #     rast_apr.draw()

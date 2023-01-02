@@ -87,3 +87,5 @@ def draw_compressed_encoding(ax,
                                           alpha=0.33)
                 ax.add_patch(poly)
             indent += abs(compressed_encoding[num_line][num_unite])
+
+

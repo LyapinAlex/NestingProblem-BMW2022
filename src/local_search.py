@@ -83,7 +83,6 @@ def write_packaging(packaging: Packing, output_file_name: str):
     packaging.change_position()
     packaging.save_pallets_in_files(output_file_name)
 
-
 def local_search(packaging: Packing, neighborhood: int):
     packaging.greedy_packing()
     target_value = packaging.get_stats()[0]
@@ -110,12 +109,12 @@ def main():
     # ----------- начальные данные -----------
     dirict = "special_tests"
     input_file_name = "test_zero.txt"
-    eps = 36*2
+    eps = 1
     neighborhood = 50
 
     # --------- настройка упаковщика ---------
-    # packaging = read_our_tests(input_file_name, "src\\input\\"+dirict+"\\")
-    packaging = packing_from_swim(input_file_name="swim.txt")
+    packaging = read_our_tests(input_file_name, "src\\input\\"+dirict+"\\")
+    # packaging = packing_from_swim(input_file_name="swim.txt")
     packaging.make_items(h = eps, num_rout = 4)
     packaging.sort_items(num_sort = 2)
 
