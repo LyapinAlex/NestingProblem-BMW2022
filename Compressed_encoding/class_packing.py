@@ -41,7 +41,6 @@ class Packing():
         # ---------  Stats   ---------
         self.__time_start = time.time()
         self.total_packing_time = 0
-        self.__target_height = 0
 
         self.time_finding_position = 0
         self.time_placing_items = 0
@@ -52,7 +51,6 @@ class Packing():
     @property
     def target_height(self) -> float:
         return self.__pallets[-1].target_height + (self.num_ussed_pallets-1)*(self.__pallets[0].vertical_length*self.__eps)
-        # return self.__target_height
 
     @property
     def num_ussed_pallets(self) -> int:
@@ -180,9 +178,7 @@ class Packing():
                 
                 if not is_placed_item:
                     self.__not_placed_items.append(item)
-                else:
-                    self.__target_height = self.__pallets[-1].target_height + (self.num_ussed_pallets-1)*(self.__pallets[0].vertical_length*self.__eps)
-            if (previous_target_height!=-1) and (self.__target_height > previous_target_height):
+            if (previous_target_height!=-1) and (self.target_height > previous_target_height):
                 break
         
         self.total_packing_time = time.time() - self.__time_start
@@ -212,15 +208,13 @@ class Packing():
         self.__items[n] = self.__items[m]
         self.__items[m] = item
 
-    def __change_position_items_as_on_pallet(self, pallets: list[Rectangular_pallet]):
+    def __change_position_items_as_on_pallet(self, pallets: list[Rectangular_pallet]) -> None:
         """Очищет позиции предметов и добавляет те, что на паллетах"""
         self.__pallets = pallets
         for item in self.__items:
             item.list_positions = []
             
         for num_pallet in range(len(pallets)):
-            if num_pallet == len(pallets) - 1:
-                self.__target_height = max(self.__target_height, pallets[num_pallet].target_height + num_pallet*(pallets[num_pallet].vertical_length*self.__eps))
             for position in pallets[num_pallet].plased_items_positions:
                 position.item.list_positions.append(position)
 
@@ -229,7 +223,6 @@ class Packing():
         self.__not_placed_items = []
         # очищаю паллеты и размещаю на них первые предметы
         num_pallets = 0
-        self.__target_height = 0
         self.__pallets = []
 
         for pallet in pallets:
@@ -293,12 +286,15 @@ class Packing():
 
     # -----------------------------------  Output   -----------------------------------
 
+    def __get_stats(self):
+        return [self.target_height, self.total_packing_time]
+
     def print_stats(self, is_print_all_stats = True) -> None:
 
         print("------------------=======  Stats  =======------------------")
         print("Общее время работы алгоритма:", self.total_packing_time)
         print("Использованно паллет:", self.num_ussed_pallets)
-        print("Высота упаковки на последей паллете:", self.target_height)
+        print("Суммарная высота упаковки:", self.target_height)
         
         if is_print_all_stats:
             print("-----------------------------------------------------------")
@@ -350,7 +346,7 @@ if (__name__ == '__main__'):
 
     # pack.greedy_packing(4, False)
     
-    pack.local_search(4, False, 2, 30)
+    pack.local_search(4, False, 8, 30)
 
     # pack.print_stats()
     pack.draw()
