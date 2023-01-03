@@ -4,7 +4,7 @@ from xml.dom import minidom
 import numpy as np
 
 
-def svg2polygons(file_name):
+def read_SVG(file_name):
     """Считывает входные данные из SVG-файла
 
     Args:
@@ -34,4 +34,4 @@ def svg2polygons(file_name):
     return np.array(list_of_items, dtype=object)
 
 if __name__=='__main__':
-    print(svg2polygons('src/input/NEST001-108.svg')[0])
+    print(read_SVG('src/input/NEST001-108.svg')[0])

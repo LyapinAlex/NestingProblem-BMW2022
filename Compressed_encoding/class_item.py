@@ -3,7 +3,7 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 
-import data_rendering.primitives as pr
+import data_writer.primitives as pr
 from class_polygon import Polygon
 from class_vector import Vector
 from check_item import check_item
@@ -399,6 +399,10 @@ class Item:
     def area(self):
         return self.__original_polygon.area
 
+    @property
+    def original_polygon(self):
+        return self.__original_polygon.copy()
+
     def _expand_item(self, drill_radius=0):
         self.expand_polygon = self.__original_polygon.copy().expand_polygon(
             drill_radius)
@@ -481,8 +485,8 @@ class Rectangular_pallet:
         self.__original_pallet: Polygon
         self.__expand_pallet: Polygon
         self.__shape: tuple[int, int]
-        self.__height = height
-        self.__width = width
+        self.height = height
+        self.width = width
         self._create_pallet(height, width, drill_radius, border_distance)
 
         self.plased_items_positions: list[Position]
@@ -504,6 +508,14 @@ class Rectangular_pallet:
         return str_matrix
 
     @property
+    def original_pallet(self):
+        return self.__original_pallet.copy()
+
+    @property
+    def expand_pallet(self):
+        return self.__expand_pallet.copy()
+
+    @property
     def vertical_length(self):
         return self.__shape[1]
 
@@ -517,7 +529,7 @@ class Rectangular_pallet:
 
     @property
     def target_area(self):
-        return self.__width * self.target_height
+        return self.width * self.target_height
     
     @property
     def target_pixel_height(self):
@@ -594,18 +606,19 @@ class Rectangular_pallet:
 
     def _greedy_find_position(self,
                               item_enc: Compressed_encoding,
+                              previous_position_found: Vector,
                               start_position=Vector(0, 0)):
         """Ищет возможное расположение объекта по принципу жадного алгоритма "как можно ниже, как можно левее"
         начиная с позиции position"""
         time_finding_begin = time.time()
 
         position = start_position.copy()
-        shift = 0
         is_placed_item = False
+        shift = 0
         bad_line = 0
 
         while (not is_placed_item) and (position.y + item_enc.vertical_length <=
-                                        self.vertical_length):
+                                        previous_position_found.y):
             if not self._is_plased_item2(item_enc, position):
                 position.y += 1
                 position.x = 0
@@ -646,7 +659,7 @@ class Rectangular_pallet:
     def pack_item(self, item: Item) -> bool:
         """Размещаем верхний правый угол предмета как можно ниже, как можно левее"""
         is_placed_item = False
-        best_pos = Vector(self.horizontal_length + 1, self.vertical_length + 1)
+        best_pos = Vector(self.horizontal_length + 1, self.vertical_length)
         start_position = Vector(0, 0)
 
         if len(item) > 0:
@@ -662,7 +675,7 @@ class Rectangular_pallet:
         for raster_approx in item:
             for comp_encoding in raster_approx:
                 is_placed_this_one, position = self._greedy_find_position(
-                    comp_encoding, start_position)
+                    comp_encoding, best_pos, start_position)
                 if is_placed_this_one and position + comp_encoding.dimensions < best_pos:
                     is_placed_item = True
                     best_pos = position + comp_encoding.dimensions
@@ -734,13 +747,13 @@ if (__name__ == '__main__'):
     print("time_finding_position:", pal1.time_finding_position)
     print("time_placing_items:", pal1.time_placing_items)
 
-    print()
-    for position in pal1.plased_items_positions:
-        print(position)
-    pal1.sort_items()
-    print()
-    for position in pal1.plased_items_positions:
-        print(position)
+    # print()
+    # for position in pal1.plased_items_positions:
+    #     print(position)
+    # pal1.sort_items()
+    # print()
+    # for position in pal1.plased_items_positions:
+    #     print(position)
 
     pal1.draw(True)
 

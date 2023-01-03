@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def dxf2polygons(path):
+def read_DXF(path):
     file = open(path)
     polygonsList = []
 
@@ -31,4 +31,4 @@ def dxf2polygons(path):
 
 
 if __name__ == "__main__":
-    print(len(dxf2polygons(r"src\input\NEST001-108.DXF")))
+    print(len(read_DXF(r"src\input\NEST001-108.DXF")))

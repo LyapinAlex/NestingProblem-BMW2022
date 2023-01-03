@@ -2,7 +2,7 @@ import math
 import numpy as np
 from math import ceil, floor
 from matplotlib import pyplot as plt
-import data_rendering.primitives as pr
+import data_writer.primitives as pr
 
 from class_vector import Vector, _NDIGITS
 
