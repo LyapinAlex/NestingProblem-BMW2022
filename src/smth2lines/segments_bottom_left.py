@@ -1,4 +1,8 @@
+import math
 from copy import copy
+
+from polygon import Polygon
+from src.class_vector import Vector
 
 
 def pack_item(item, pallets, t_vector, r, best_rotation):
@@ -8,12 +12,13 @@ def pack_item(item, pallets, t_vector, r, best_rotation):
     # print(best_rotation)
     for s in range(len(item.segments[best_rotation])):
         for l in range(len(item.segments[best_rotation][s])):
-            new_line = [copy(item.segments[best_rotation][s][l][0]) + copy(item.t_vector[0]), copy(item.segments[best_rotation][s][l][1]) + copy(item.t_vector[0])]
-            pallets.pallet_lines[r+s].append(copy(new_line))
-        pallets.pallet_lines[r+s].sort(key=lambda x: int(x[0]), reverse=False)
+            new_line = [copy(item.segments[best_rotation][s][l][0]) + copy(item.t_vector[0]),
+                        copy(item.segments[best_rotation][s][l][1]) + copy(item.t_vector[0])]
+            pallets.pallet_lines[r + s].append(copy(new_line))
+        pallets.pallet_lines[r + s].sort(key=lambda x: int(x[0]), reverse=False)
 
     def first_elem(e):
-      return e[0]
+        return e[0]
 
     for line in pallets.pallet_lines:
         for segment in line:
@@ -21,28 +26,31 @@ def pack_item(item, pallets, t_vector, r, best_rotation):
         line.sort(key=first_elem)
         i = 0
         while i < (len(line) - 1):
-            if line[i][1] == line[i+1][0]:
-                line[i][1] = line[i+1][1]
-                line.pop(i+1)
+            if line[i][1] == line[i + 1][0]:
+                line[i][1] = line[i + 1][1]
+                line.pop(i + 1)
                 continue
-            if line[i][1] > line[i+1][0]:
-                if line[i][1] < line[i+1][1]:
-                    line[i][1] = line[i+1][1]
-                    line.pop(i+1)
+            if line[i][1] > line[i + 1][0]:
+                if line[i][1] < line[i + 1][1]:
+                    line[i][1] = line[i + 1][1]
+                    line.pop(i + 1)
                     continue
-                elif line[i][1] >= line[i+1][1]:
-                    line.pop(i+1)
+                elif line[i][1] >= line[i + 1][1]:
+                    line.pop(i + 1)
                     continue
-            i+=1
+            i += 1
 
-def pack_segments(items, pallets):
+
+def pack_segments(figures, palletes, pallet_width):
+    items = copy(figures)
+    pallets = copy(palletes)
+    max_height = 0
     for item in items:
-        best_height = 10000
-        best_t_vector = None
-        best_rotation = None
-        best_r = None
+        best_height = len(pallets.pallet_lines)
+        best_t_vector = pallet_width
+        best_rotation = 0
+        best_r = 0
         for rotation in range(item.rotation + 1):
-            # print(rotation)
             segments = copy(item.segments[rotation])
             r = 0
             finish_flag = 0
@@ -51,42 +59,49 @@ def pack_segments(items, pallets):
                 k = 1
                 ex_flag = 0
                 while k < len(row) and item.packed == False and ex_flag == 0:
-                    t_vector = row[k-1][1] - segments[0][0][0]
+                    t_vector = row[k - 1][1] - segments[0][0][0]
                     i = 0
                     # l = len(segments[0])
                     while i < len(segments) and r + i < len(pallets.pallet_lines) and ex_flag == 0:
-                            j = 0
-                            while j < len(segments[i]) and ex_flag == 0:
-                                m = 0
-                                while m < len(pallets.pallet_lines[r+i]) and ex_flag == 0:
-                                    # случаи пересечения линии и упаковки
-                                    if segments[i][j][1] + t_vector > pallets.shape[0]:
-                                        ex_flag = 1
-                                    elif pallets.pallet_lines[r+i][m][0] <= segments[i][j][0] + t_vector < pallets.pallet_lines[r+i][m][1] and segments[i][j][0] + t_vector != segments[i][j][1] + t_vector:
-                                        t_vector = pallets.pallet_lines[r+i][m][1]
-                                        i = 0
-                                        j = 0
-                                    elif pallets.pallet_lines[r+i][m][0] < segments[i][j][1] + t_vector <= pallets.pallet_lines[r+i][m][1] and segments[i][j][0] + t_vector != segments[i][j][1] + t_vector:
-                                        t_vector = pallets.pallet_lines[r+i][m][1]
-                                        i = 0
-                                        j = 0
-                                    elif segments[i][j][0] + t_vector < pallets.pallet_lines[r + i][m][0] and \
-                                            pallets.pallet_lines[r + i][m][1] < segments[i][j][1] + t_vector:
-                                        t_vector = pallets.pallet_lines[r + i][m][1]
-                                        i = 0
-                                        j = 0
-                                    elif segments[i][j][0] + t_vector < 0:
-                                        t_vector = - segments[i][j][0]
-                                        i = 0
-                                        j = 0
+                        j = 0
+                        while j < len(segments[i]) and ex_flag == 0:
+                            m = 0
+                            while m < len(pallets.pallet_lines[r + i]) and ex_flag == 0:
+                                # случаи пересечения линии и упаковки
+                                if segments[i][j][1] + t_vector > pallets.shape[0]:
+                                    ex_flag = 1
+                                elif pallets.pallet_lines[r + i][m][0] <= segments[i][j][0] + t_vector < \
+                                        pallets.pallet_lines[r + i][m][1] and segments[i][j][0] + t_vector != segments[i][j][1] + t_vector:
+                                    t_vector = pallets.pallet_lines[r + i][m][1]
+                                    i = 0
+                                    j = 0
+                                elif pallets.pallet_lines[r + i][m][0] < segments[i][j][1] + t_vector <= \
+                                        pallets.pallet_lines[r + i][m][1] and segments[i][j][0] + t_vector != segments[i][j][1] + t_vector:
+                                    t_vector = pallets.pallet_lines[r + i][m][1]
+                                    i = 0
+                                    j = 0
+                                elif segments[i][j][0] + t_vector < pallets.pallet_lines[r + i][m][0] and \
+                                        pallets.pallet_lines[r + i][m][1] < segments[i][j][1] + t_vector:
+                                    t_vector = pallets.pallet_lines[r + i][m][1]
+                                    i = 0
+                                    j = 0
+                                elif segments[i][j][0] + t_vector < 0:
+                                    t_vector = - segments[i][j][0]
+                                    i = 0
+                                    j = 0
 
-                                    m += 1
-                                j += 1
-                            i += 1
-                    # если объект влезает, добавляем его на палету
+                                m += 1
+                            j += 1
+                        i += 1
+                    # запоминаем лучшее расположение
                     if ex_flag == 0:
                         # pack_item(item, pallets, t_vector, r)
-                        if best_height > r :
+                        if best_height > r + len(segments[rotation]):
+                            best_height = copy(r)
+                            best_r = copy(r)
+                            best_t_vector = copy(t_vector)
+                            best_rotation = copy(rotation)
+                        elif best_height == r + len(segments[rotation]) and t_vector < best_t_vector:
                             best_height = copy(r)
                             best_r = copy(r)
                             best_t_vector = copy(t_vector)
@@ -95,6 +110,8 @@ def pack_segments(items, pallets):
                         ex_flag = 1
                     k += 1
                 r += 1
+        if max_height < best_r + len(item.segments[best_rotation]):
+            max_height = best_r + len(item.segments[best_rotation])
         pack_item(item, pallets, best_t_vector, best_r, best_rotation)
-
-    return None
+    # print(max_height)
+    return max_height

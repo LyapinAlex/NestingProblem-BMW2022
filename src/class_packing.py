@@ -108,7 +108,7 @@ class Packing():
         return
 
     def segments_bottom_left(self):
-        return pack_segments(self.items, self.pallets)
+        return pack_segments(self.items, self.pallets, self.pallet_width)
 
     def move_packed_segment_items(self):
         for polygon in self.items:

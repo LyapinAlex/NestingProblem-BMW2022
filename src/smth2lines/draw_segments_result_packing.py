@@ -62,16 +62,16 @@ def draw_segments_result_packing(packing):
         ax.add_patch(figure)
         random_color = "#" + \
                        ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
-        rotaton = copy(polygon.best_rotation)
-        for i in range(len(polygon.segments[rotaton])):
-            for sigment in polygon.segments[rotaton][i]:
-                sigment[0] += polygon.t_vector[0]
-                sigment[1] += polygon.t_vector[0]
-                if sigment[0] != sigment[1]:
-                    plt.plot(sigment, [(i + polygon.t_vector[1]) * h, (i + polygon.t_vector[1]) * h],
-                             color=random_color, alpha=0.7)
-                else:
-                    ax.scatter(sigment[0], (i + polygon.t_vector[1]) * h, color=random_color, s=4, alpha=0.7)
+        # rotaton = copy(polygon.best_rotation)
+        # for i in range(len(polygon.segments[rotaton])):
+        #     for sigment in polygon.segments[rotaton][i]:
+        #         sigment[0] += polygon.t_vector[0]
+        #         sigment[1] += polygon.t_vector[0]
+        #         if sigment[0] != sigment[1]:
+        #             plt.plot(sigment, [(i + polygon.t_vector[1]) * h, (i + polygon.t_vector[1]) * h],
+        #                      color=random_color, alpha=0.7)
+        #         else:
+        #             ax.scatter(sigment[0], (i + polygon.t_vector[1]) * h, color=random_color, s=4, alpha=0.7)
     plt.title('Max height: ' + str(max_height) + ', R: ' + str(packing.h))
     plt.savefig('line-packing.png')
     plt.show()

@@ -21,6 +21,7 @@ class Pallets():
         return
 
     def add_pallet_lines(self):
+        self.pallet_lines = []
         for _ in range(ceil(self.shape[1]/self.grid_step)):
             self.pallet_lines.append([[0, 0], [self.shape[0], self.shape[0]]])
         # self.pallet_lines.append(pallet)

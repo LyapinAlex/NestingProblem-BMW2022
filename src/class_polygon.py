@@ -6,8 +6,8 @@ from matplotlib import patches
 from matplotlib import pyplot as plt
 
 
-from src.class_vector import Vector
-from class_vector import Vector, _NDIGITS
+# from src.class_vector import Vector
+from src.class_vector import Vector, _NDIGITS
 
 
 class Polygon:
