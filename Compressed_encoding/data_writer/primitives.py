@@ -1,7 +1,21 @@
 import random
+import os.path
 import numpy as np
 from matplotlib import patches
 from matplotlib import pyplot as plt
+
+# ------------------------------------   Draw   -----------------------------------
+
+def settings_function_graph(ax, fig, annotations = '', xlabel = '', ylabel = '', is_log_xscale = False):
+    fig.set_figheight(7)
+    fig.set_figwidth(10)
+    plt.title(annotations)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.grid(True)
+    if is_log_xscale:
+        ax.set_xscale('log', base=2)
+    return
 
 
 def image_size(fig, size, MAX_SIZE=5):
@@ -34,7 +48,11 @@ def draw_polygon(ax, polygon, edgecolor='red'):
                         fill=False))
 
 
-def draw_raster_approximation(ax, polygon_minXY, matrix, h, is_random_color=False):
+def draw_raster_approximation(ax,
+                              polygon_minXY,
+                              matrix,
+                              h,
+                              is_random_color=False):
     move_matrix = np.full((4, 2), [polygon_minXY.x, polygon_minXY.y])
     if is_random_color:
         color = "#" + ''.join(
@@ -59,10 +77,11 @@ def draw_compressed_encoding(ax,
                              polygon_minXY,
                              compressed_encoding,
                              h,
-                             vector = None,
+                             vector=None,
                              is_random_color=False):
     if not vector is None:
-        move_matrix = np.full((4, 2), [polygon_minXY.x - vector.x, polygon_minXY.y - vector.y])
+        move_matrix = np.full(
+            (4, 2), [polygon_minXY.x - vector.x, polygon_minXY.y - vector.y])
     else:
         move_matrix = np.full((4, 2), [polygon_minXY.x, polygon_minXY.y])
 
@@ -77,15 +96,23 @@ def draw_compressed_encoding(ax,
         for num_unite in range(len(compressed_encoding[num_line])):
             if compressed_encoding[num_line][num_unite] > 0:
                 length = compressed_encoding[num_line][num_unite]
-                sqver = np.array([[indent, num_line], [indent + length, num_line],
+                sqver = np.array([[indent, num_line],
+                                  [indent + length, num_line],
                                   [indent + length, num_line + 1],
                                   [indent, num_line + 1]]) * h + move_matrix
                 poly = patches.Polygon(sqver,
-                                          linewidth=1,
-                                          facecolor=color,
-                                          edgecolor='black',
-                                          alpha=0.33)
+                                       linewidth=1,
+                                       facecolor=color,
+                                       edgecolor='black',
+                                       alpha=0.33)
                 ax.add_patch(poly)
             indent += abs(compressed_encoding[num_line][num_unite])
 
 
+# -----------------------------------   Files   -----------------------------------
+
+
+def calc_num_files(path: str):
+    num_files = len(
+        [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))])
+    return num_files

@@ -102,9 +102,7 @@ class Packing():
         for num_item in range(self.num_items):
             pos = self.__items[num_item].list_positions[0]
             is_packed_later = hi_pack_pos.pallet.id > pos.pallet.id
-            is_packed_highly = (hi_pack_pos.raster_coord +
-                                hi_pack_pos.dimensions) >= (pos.raster_coord +
-                                                            pos.dimensions)
+            is_packed_highly = (hi_pack_pos.raster_coord + hi_pack_pos.dimensions) <= (pos.raster_coord + pos.dimensions)
             if is_packed_later or is_packed_highly:
                 number = num_item
                 hi_pack_pos = pos
@@ -226,7 +224,7 @@ class Packing():
 
     # --------------------------------  Local search   --------------------------------
     ### не модернезируется для одинаковых предметов (!!! Item.num_copies = 1 !!!)
-    ### считывание данных в принципе написаны так, что Item.num_copies для всех предметов равно 1
+    ### считывание данных в принципе написано так, что Item.num_copies для всех предметов равно 1
 
     def __change_id_of_items_in_order(self) -> None:
         for num_item in range(self.num_items):
@@ -281,7 +279,7 @@ class Packing():
         best_target_height = self.target_height
         previous_pallets = self.__pallets
         new_pallets = self.__pallets
-        swap_pair = (0, 0)
+        swap_pair = [0, 0]
 
         for i in range(self.num_highly_packaged_item):
             for j in range(i + 1, i + neighborhood):
@@ -411,22 +409,25 @@ if (__name__ == '__main__'):
     height = 2000
     width = 1000
     file_name = "NEST001-108.svg"
-    neighbor = 0
 
-    # eps = 0.5
-    # height = 210
-    # width = 100
-    # file_name = "test0.txt"
-    # neighbor = -1
+    eps = 0.5
+    file_name = "test0.txt"
+
 
     pack = Packing("Compressed_encoding\\input", "Compressed_encoding\\output")
     pack.set_packaging_parameters(height, width, drill_radius, border_distance,
                                   eps)
     pack.read_polygons_from_file(file_name)
 
-    pack.greedy_packing(4, False)
-    # pack.local_search(4, False, neighborhood=neighbor)
 
-    # pack.save_result_calculation("123-0.txt")
-    pack.print_stats()
+    # pack.greedy_packing(4, False)
+    # pack.print_stats()
+
+
+    max_num_iteration = -1
+    neighbor = -1
+    pack.local_search(4, False, max_num_iteration=max_num_iteration, neighborhood=neighbor)
+
+
+    # pack.save_result_calculation("123-0.svg")
     pack.draw()
