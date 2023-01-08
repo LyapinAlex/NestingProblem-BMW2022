@@ -34,6 +34,8 @@ class Item:
         self.t_vector = None
         self.packed = False
         self.best_rotation = None
+        self.segment_square = None
+        self.segment_square_convex = None
 
         # --------  Position   ---------
         self.raster_coord = None
@@ -181,6 +183,19 @@ class Item:
         self.list_check_order = li1
 
         self.culc_pixel_area(self.list_new_shift[0])
+        return None
+
+    def set_item_segment_squares(self):
+        item_square_convex = 0
+        item_square = 0
+        for rotation in range(self.rotation + 1):
+            for i in range(len(self.segments[rotation])):
+                item_square_convex += self.segments[rotation][i][len(self.segments[rotation][i]) - 1][1] - \
+                                      self.segments[rotation][i][0][0]
+                for segment in self.segments[rotation][i]:
+                    item_square += segment[1] - segment[0]
+        self.segment_square = item_square
+        self.segment_square_convex = item_square_convex
         return None
 
     def culc_pixel_area(self, new_shift):

@@ -105,7 +105,8 @@ class Packing():
     def add_segments_for_items(self):
         for item in self.items:
             item.set_segments(self.h)
-        return
+        self.set_segments_squares()
+        return None
 
     def segments_bottom_left(self):
         return pack_segments(self.items, self.pallets, self.pallet_width)
@@ -115,12 +116,17 @@ class Packing():
             for point in polygon.points:
                 point[0] += polygon.t_vector[0]
                 point[1] += polygon.t_vector[1] * self.h
-        return
+        return None
 
     def set_squares(self):
         for item in self.items:
             item.set_square()
+        return None
 
+    def set_segments_squares(self):
+        for item in self.items:
+            item.set_item_segment_squares()
+        return None
 
 # --------------------------------  Calculations   --------------------------------
 
