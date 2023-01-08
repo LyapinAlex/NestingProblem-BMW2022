@@ -106,6 +106,7 @@ class Packing():
         for item in self.items:
             item.set_segments(self.h)
         self.set_segments_squares()
+        self.set_segments_gravity_centers()
         return None
 
     def segments_bottom_left(self):
@@ -126,6 +127,11 @@ class Packing():
     def set_segments_squares(self):
         for item in self.items:
             item.set_item_segment_squares()
+        return None
+
+    def set_segments_gravity_centers(self):
+        for item in self.items:
+            item.set_item_gravity_centers(self.h)
         return None
 
 # --------------------------------  Calculations   --------------------------------

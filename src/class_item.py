@@ -34,8 +34,10 @@ class Item:
         self.t_vector = None
         self.packed = False
         self.best_rotation = None
-        self.segment_square = None
-        self.segment_square_convex = None
+        self.segment_square = []
+        self.segment_square_convex = []
+        self.segment_gravity_center_x = []
+        self.segment_gravity_center_y = []
 
         # --------  Position   ---------
         self.raster_coord = None
@@ -194,8 +196,31 @@ class Item:
                                       self.segments[rotation][i][0][0]
                 for segment in self.segments[rotation][i]:
                     item_square += segment[1] - segment[0]
-        self.segment_square = item_square
-        self.segment_square_convex = item_square_convex
+            self.segment_square.append(item_square)
+            self.segment_square_convex.append(item_square_convex)
+        return None
+
+    def set_item_gravity_centers(self, h):
+        gravity_center_x = 0
+        gravity_center_y = 0
+        item_weight = 0
+        for r in range(self.rotation + 1):
+            j = 0
+            for line in self.segments[r]:
+                centers_sum = 0
+                line_weight = 0
+                i = 0
+                while i < len(line):
+                    centers_sum += (line[i][0] + (line[i][1] - line[i][0]) / 2) * (line[i][1] - line[i][0])
+                    line_weight += line[i][1] - line[i][0]
+                    i += 1
+                gravity_center_x += centers_sum
+                gravity_center_y += (j * h) * line_weight
+                item_weight += line_weight
+                j += 1
+
+            self.segment_gravity_center_x.append(gravity_center_x / item_weight)
+            self.segment_gravity_center_y.append(gravity_center_y / item_weight)
         return None
 
     def culc_pixel_area(self, new_shift):
