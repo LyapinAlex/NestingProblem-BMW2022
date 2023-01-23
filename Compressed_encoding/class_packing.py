@@ -1,4 +1,4 @@
-from math import sqrt
+from math import sqrt, pi
 import time
 
 # from .class_polygon import Polygon
@@ -173,8 +173,7 @@ class Packing():
 
         for item in self.__items:
             angle = item.find_best_item_turn(1)
-            item.add_raster_approximations(self.__eps, angle, is_reflectable,
-                                           num_turns)
+            item.add_raster_approximations(self.__eps, angle, is_reflectable, num_turns)
 
         self.time_convert_data = time.time() - self.time_convert_data
 
@@ -402,31 +401,31 @@ class Packing():
 
 
 if (__name__ == '__main__'):
-    drill_radius = 0
-    border_distance = 0
+    drill_radius = 1
+    border_distance = 2.1
 
     eps = 0
     height = 2000
     width = 1000
-    file_name = "NEST001-108.svg"
+    file_name = "NEST003-432.svg"
 
-    eps = 0.5
-    file_name = "test0.txt"
+    eps = 5.75/4/2
+    # file_name = "swim.txt"
 
 
-    pack = Packing("Compressed_encoding\\input", "Compressed_encoding\\output")
+    pack = Packing("Compressed_encoding\\input\\big_printer", "Compressed_encoding\\output")
     pack.set_packaging_parameters(height, width, drill_radius, border_distance,
                                   eps)
     pack.read_polygons_from_file(file_name)
 
 
-    # pack.greedy_packing(4, False)
-    # pack.print_stats()
+    pack.greedy_packing(4, True)
+    pack.print_stats()
 
 
-    max_num_iteration = -1
-    neighbor = -1
-    pack.local_search(4, False, max_num_iteration=max_num_iteration, neighborhood=neighbor)
+    # max_num_iteration = -1
+    # neighbor = -1
+    # pack.local_search(4, False, max_num_iteration=max_num_iteration, neighborhood=neighbor)
 
 
     # pack.save_result_calculation("123-0.svg")

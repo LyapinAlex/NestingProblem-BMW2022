@@ -76,7 +76,7 @@ def check_item(pallet, item_encoding, positon, bad_line: int) -> tuple[bool, int
     is_placed_item = True
     j = 0
     #оптимизация которая нужна только для достаточно многострочных кодировок
-    if (y < bad_line) and (item_vl > 40):
+    if (y < bad_line) and (item_vl > 25):
         is_placed_item, shift = check_line(x, item_ce[bad_line - y], item_hl,
                                            pallet_ce[bad_line])
         if not is_placed_item:
