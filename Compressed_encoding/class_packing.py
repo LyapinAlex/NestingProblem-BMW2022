@@ -172,8 +172,9 @@ class Packing():
         self.time_convert_data = time.time()
 
         for item in self.__items:
-            angle = item.find_best_item_turn(1)
-            item.add_raster_approximations(self.__eps, angle, is_reflectable, num_turns)
+            angles = set(item.find_best_item_turn(i) for i in range(5))
+            for angle in angles:
+                item.add_raster_approximations(self.__eps, angle, is_reflectable, num_turns)
 
         self.time_convert_data = time.time() - self.time_convert_data
 
@@ -401,32 +402,29 @@ class Packing():
 
 
 if (__name__ == '__main__'):
-    drill_radius = 1
-    border_distance = 2.1
+    drill_radius = 0
+    border_distance = 0
 
-    eps = 0
-    height = 2000
-    width = 1000
-    file_name = "NEST003-432.svg"
+    height = 70000
+    width = 70000
+    file_name = "all_autocovers.txt"
 
-    eps = 5.75/4/2
+    eps = 1000
     # file_name = "swim.txt"
 
-
-    pack = Packing("Compressed_encoding\\input\\big_printer", "Compressed_encoding\\output")
+    pack = Packing("Compressed_encoding\\input\\autocovers", "Compressed_encoding\\output")
     pack.set_packaging_parameters(height, width, drill_radius, border_distance,
                                   eps)
     pack.read_polygons_from_file(file_name)
 
-
-    pack.greedy_packing(4, True)
-    pack.print_stats()
-
-
-    # max_num_iteration = -1
-    # neighbor = -1
-    # pack.local_search(4, False, max_num_iteration=max_num_iteration, neighborhood=neighbor)
+    # pack.greedy_packing(4, False)
+    # pack.print_stats()
 
 
-    # pack.save_result_calculation("123-0.svg")
-    pack.draw()
+    max_num_iteration = -1
+    neighbor = -1
+    pack.local_search(4, False, max_num_iteration=max_num_iteration, neighborhood=neighbor)
+
+
+    pack.save_result_calculation("autocovers.png")
+    # pack.draw()
