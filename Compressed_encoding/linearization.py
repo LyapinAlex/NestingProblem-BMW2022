@@ -56,12 +56,12 @@ def svg_2_polygon_and_metadata(file_name):
     doc.unlink()
     return polygons, initial_xml
 
-
+ 
 def save_pallet_as_TXT(path, polygons: list[Polygon]):
     """Создаёт файл содержащий многоугольники из массива"""
     f = open(path + '\\all_autocovers.txt', 'w')
     f.write(str(len(polygons)*2) + '\n')
-    f.write(str(1000000) + " " + str(800000) + '\n')
+    f.write(str(195000) + " " + str(145000) + '\n')
     for polygon in polygons:
         points = polygon.points_to_list()
         s = ''
@@ -77,6 +77,7 @@ def find_polygons(folder):
     file_names = [each for each in os.listdir(folder) if each.endswith('.svg')]
     result = []
     for file_name in file_names:
+        print(file_name)
         candidates_for_polygon, initial_xml = svg_2_polygon_and_metadata(
             folder + "\\" + file_name)
 

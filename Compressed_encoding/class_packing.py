@@ -173,6 +173,9 @@ class Packing():
 
         for item in self.__items:
             angles = set(item.find_best_item_turn(i) for i in range(5))
+            num_i = 4
+            for i in range(num_i):
+                angles.add(i*pi/(2*num_i))
             for angle in angles:
                 item.add_raster_approximations(self.__eps, angle, is_reflectable, num_turns)
 
